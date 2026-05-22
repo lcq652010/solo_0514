@@ -1,0 +1,13 @@
+{
+  "name": "bamboo-carving-order",
+  "version": "1.0.0",
+  "description": "传统竹雕笔筒定制订单系统",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 8080",
+    "serve": "python -m http.server 8080"
+  },
+  "keywords": ["vue2", "element-ui", "bamboo-carving"],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,60 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Microsoft YaHei", "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", Arial, sans-serif;
+  background-color: #f5f7fa;
+}
+
+.header {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  height: 60px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.nav-menu {
+  background: transparent;
+  border: none;
+}
+
+.nav-menu .el-menu-item {
+  color: rgba(255, 255, 255, 0.9);
+  border-bottom: 2px solid transparent;
+}
+
+.nav-menu .el-menu-item:hover,
+.nav-menu .el-menu-item.is-active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom: 2px solid #fff;
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.card-shadow {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+}

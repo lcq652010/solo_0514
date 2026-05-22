@@ -1,0 +1,16 @@
+{
+  "name": "peachwood-sword-customization",
+  "version": "1.0.0",
+  "description": "传统桃木剑挂件定制前端页面",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server --port=8080",
+    "serve": "live-server --port=8080"
+  },
+  "keywords": ["vue2", "element-ui", "桃木剑"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

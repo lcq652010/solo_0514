@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>银行自助回单打印终端运维管理系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .search-item label {
+            font-size: 14px;
+            color: #606266;
+            white-space: nowrap;
+        }
+        .status-tag-normal {
+            background-color: #67c23a;
+            color: white;
+        }
+        .status-tag-fault {
+            background-color: #f56c6c;
+            color: white;
+        }
+        .status-tag-offline {
+            background-color: #909399;
+            color: white;
+        }
+        .status-tag-maintenance {
+            background-color: #e6a23c;
+            color: white;
+        }
+        .module-status {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .module-tag {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .module-online {
+            background-color: #f0f9eb;
+            color: #67c23a;
+            border: 1px solid #e1f3d8;
+        }
+        .module-offline {
+            background-color: #fef0f0;
+            color: #f56c6c;
+            border: 1px solid #fde2e2;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+        .fault-row {
+            background-color: #fef0f0 !important;
+        }
+        .fault-row:hover > td {
+            background-color: #fde2e2 !important;
+        }
+        .offline-row {
+            background-color: #f4f4f5 !important;
+        }
+        .offline-row:hover > td {
+            background-color: #e9e9eb !important;
+        }
+        .maintenance-row {
+            background-color: #fdf6ec !important;
+        }
+        .maintenance-row:hover > td {
+            background-color: #faecd8 !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>银行自助回单打印终端运维管理系统</h1>
+        </div>
+        
+        <div class="container">
+            <div class="card">
+                <div class="search-bar">
+                    <div class="search-item">
+                        <label>设备编号：</label>
+                        <el-input 
+                            v-model="searchForm.deviceCode" 
+                            placeholder="请输入设备编号"
+                            style="width: 180px"
+                            clearable>
+                        </el-input>
+                    </div>
+                    <div class="search-item">
+                        <label>网点名称：</label>
+                        <el-input 
+                            v-model="searchForm.branchName" 
+                            placeholder="请输入网点名称"
+                            style="width: 180px"
+                            clearable>
+                        </el-input>
+                    </div>
+                    <div class="search-item">
+                        <label>设备状态：</label>
+                        <el-select 
+                            v-model="searchForm.status" 
+                            placeholder="全部状态"
+                            style="width: 130px"
+                            clearable>
+                            <el-option label="正常" value="normal"></el-option>
+                            <el-option label="故障" value="fault"></el-option>
+                            <el-option label="离线" value="offline"></el-option>
+                            <el-option label="维护中" value="maintenance"></el-option>
+                        </el-select>
+                    </div>
+                    <el-button type="primary" @click="handleSearch" icon="el-icon-search">查询</el-button>
+                    <el-button @click="handleReset" icon="el-icon-refresh">重置</el-button>
+                    <el-button type="success" @click="openReportDialog" icon="el-icon-edit">故障上报</el-button>
+                </div>
+
+                <div class="table-container">
+                    <el-table 
+                        :data="tableData" 
+                        border 
+                        style="width: 100%"
+                        :header-cell-style="{background:'#f5f7fa', color:'#606266', fontWeight:'bold'}"
+                        :row-class-name="getRowClassName"
+                        :key="tableKey">
+                        <el-table-column type="index" label="序号" width="60" align="center"></el-table-column>
+                        <el-table-column prop="deviceCode" label="设备编号" width="160" align="center"></el-table-column>
+                        <el-table-column prop="branchName" label="营业网点" min-width="180" align="center" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="location" label="布设位置" width="150" align="center" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="status" label="设备状态" width="100" align="center">
+                            <template slot-scope="scope">
+                                <el-tag :class="getStatusClass(scope.row.status)" size="medium">
+                                    {{ getStatusText(scope.row.status) }}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="身份证读卡" width="120" align="center">
+                            <template slot-scope="scope">
+                                <span class="module-tag" :class="scope.row.idCardStatus === 'online' ? 'module-online' : 'module-offline'">
+                                    <i :class="scope.row.idCardStatus === 'online' ? 'el-icon-check' : 'el-icon-close'"></i>
+                                    {{ scope.row.idCardStatus === 'online' ? '正常' : '异常' }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="回单打印" width="120" align="center">
+                            <template slot-scope="scope">
+                                <span class="module-tag" :class="scope.row.printStatus === 'online' ? 'module-online' : 'module-offline'">
+                                    <i :class="scope.row.printStatus === 'online' ? 'el-icon-check' : 'el-icon-close'"></i>
+                                    {{ scope.row.printStatus === 'online' ? '正常' : '异常' }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="加密模块" width="120" align="center">
+                            <template slot-scope="scope">
+                                <span class="module-tag" :class="scope.row.encryptStatus === 'online' ? 'module-online' : 'module-offline'">
+                                    <i :class="scope.row.encryptStatus === 'online' ? 'el-icon-check' : 'el-icon-close'"></i>
+                                    {{ scope.row.encryptStatus === 'online' ? '正常' : '异常' }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="操作" width="140" align="center" fixed="right">
+                            <template slot-scope="scope">
+                                <div class="action-btns">
+                                    <el-button 
+                                        type="text" 
+                                        size="small" 
+                                        @click="handleReport(scope.row)"
+                                        :disabled="scope.row.status === 'maintenance'">
+                                        故障上报
+                                    </el-button>
+                                </div>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <div class="pagination-container">
+                    <el-pagination
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                        :current-page.sync="pagination.currentPage"
+                        :page-sizes="[5, 10, 20, 50]"
+                        :page-size.sync="pagination.pageSize"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="pagination.total">
+                    </el-pagination>
+                </div>
+            </div>
+        </div>
+
+        <el-dialog 
+            title="故障上报" 
+            :visible.sync="reportDialogVisible" 
+            width="650px"
+            @close="resetReportForm"
+            :close-on-click-modal="false">
+            <el-form :model="reportForm" :rules="reportRules" ref="reportForm" label-width="100px">
+                <el-form-item label="工单编号" prop="workOrderNo">
+                    <el-input v-model="reportForm.workOrderNo" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="设备状态" prop="statusFilter">
+                    <el-select 
+                        v-model="reportForm.statusFilter" 
+                        placeholder="筛选设备状态"
+                        style="width: 200px"
+                        @change="filterDeviceList">
+                        <el-option label="全部设备" value=""></el-option>
+                        <el-option label="正常" value="normal"></el-option>
+                        <el-option label="故障" value="fault"></el-option>
+                        <el-option label="离线" value="offline"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="选择设备" prop="deviceId">
+                    <el-select 
+                        v-model="reportForm.deviceId" 
+                        placeholder="请选择故障设备"
+                        style="width: 100%"
+                        filterable
+                        no-data-text="没有可上报故障的设备"
+                        clearable>
+                        <el-option 
+                            v-for="device in filteredDeviceList" 
+                            :key="device.id" 
+                            :label="device.deviceCode + ' - ' + device.branchName + ' (' + getStatusText(device.status) + ')'"
+                            :value="device.id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="设备编号" prop="deviceCode">
+                    <el-input v-model="reportForm.deviceCode" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="营业网点" prop="branchName">
+                    <el-input v-model="reportForm.branchName" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="布设位置" prop="location">
+                    <el-input v-model="reportForm.location" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="故障模块" prop="faultModule">
+                    <el-checkbox-group v-model="reportForm.faultModule">
+                        <el-checkbox label="idCard">身份证读卡</el-checkbox>
+                        <el-checkbox label="print">回单打印</el-checkbox>
+                        <el-checkbox label="encrypt">银行加密</el-checkbox>
+                        <el-checkbox label="other">其他模块</el-checkbox>
+                    </el-checkbox-group>
+                </el-form-item>
+                <el-form-item label="故障类型" prop="faultType">
+                    <el-select 
+                        v-model="reportForm.faultType" 
+                        placeholder="请选择故障类型"
+                        style="width: 100%">
+                        <el-option label="硬件故障" value="hardware"></el-option>
+                        <el-option label="软件故障" value="software"></el-option>
+                        <el-option label="网络故障" value="network"></el-option>
+                        <el-option label="卡纸问题" value="jam"></el-option>
+                        <el-option label="其他故障" value="other"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="故障说明" prop="faultDescription">
+                    <el-input 
+                        type="textarea" 
+                        :rows="4" 
+                        v-model="reportForm.faultDescription"
+                        placeholder="请详细描述故障情况，例如：打印机无法正常出纸，屏幕显示错误代码E001"
+                        maxlength="500"
+                        show-word-limit>
+                    </el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="reportDialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitReport" :loading="submitting">提交</el-button>
+            </span>
+        </el-dialog>
+    </div>
+
+    <script src="https://unpkg.com/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    searchForm: {
+                        deviceCode: '',
+                        branchName: '',
+                        status: ''
+                    },
+                    allDeviceData: [],
+                    tableData: [],
+                    tableKey: 0,
+                    pagination: {
+                        currentPage: 1,
+                        pageSize: 10,
+                        total: 0
+                    },
+                    reportDialogVisible: false,
+                    reportForm: {
+                        workOrderNo: '',
+                        deviceId: '',
+                        deviceCode: '',
+                        branchName: '',
+                        location: '',
+                        statusFilter: '',
+                        faultModule: [],
+                        faultType: '',
+                        faultDescription: ''
+                    },
+                    reportRules: {
+                        deviceId: [
+                            { required: true, message: '请选择故障设备', trigger: 'change' }
+                        ],
+                        faultModule: [
+                            { type: 'array', required: true, message: '请选择故障模块', trigger: 'change' }
+                        ],
+                        faultType: [
+                            { required: true, message: '请选择故障类型', trigger: 'change' }
+                        ],
+                        faultDescription: [
+                            { required: true, message: '请填写故障说明', trigger: 'blur' },
+                            { min: 10, message: '故障说明至少10个字符，请详细描述故障情况', trigger: 'blur' }
+                        ]
+                    },
+                    workOrderCounter: 1,
+                    submitting: false,
+                    filteredDeviceList: []
+                }
+            },
+            computed: {
+                deviceList() {
+                    return this.allDeviceData.filter(d => d.status !== 'maintenance');
+                }
+            },
+            watch: {
+                'reportForm.deviceId'(newVal) {
+                    if (newVal) {
+                        const device = this.allDeviceData.find(d => d.id === newVal);
+                        if (device) {
+                            this.reportForm.deviceCode = device.deviceCode;
+                            this.reportForm.branchName = device.branchName;
+                            this.reportForm.location = device.location;
+                        }
+                    } else {
+                        this.reportForm.deviceCode = '';
+                        this.reportForm.branchName = '';
+                        this.reportForm.location = '';
+                    }
+                }
+            },
+            created() {
+                this.initData();
+            },
+            methods: {
+                initData() {
+                    this.allDeviceData = [
+                        { id: 1, deviceCode: 'HD-2024-001', branchName: '北京市分行朝阳支行', location: '一楼大厅左侧', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 2, deviceCode: 'HD-2024-002', branchName: '北京市分行海淀支行', location: '二楼业务办理区', status: 'fault', idCardStatus: 'online', printStatus: 'offline', encryptStatus: 'online' },
+                        { id: 3, deviceCode: 'HD-2024-003', branchName: '上海市分行浦东支行', location: '营业大厅入口处', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 4, deviceCode: 'HD-2024-004', branchName: '上海市分行静安支行', location: '自助服务区', status: 'offline', idCardStatus: 'offline', printStatus: 'offline', encryptStatus: 'offline' },
+                        { id: 5, deviceCode: 'HD-2024-005', branchName: '广州市分行天河支行', location: '一楼大堂右侧', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 6, deviceCode: 'HD-2024-006', branchName: '广州市分行越秀支行', location: '二楼VIP室旁', status: 'maintenance', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 7, deviceCode: 'HD-2024-007', branchName: '深圳市分行南山支行', location: '营业大厅中央', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 8, deviceCode: 'HD-2024-008', branchName: '深圳市分行福田支行', location: '自助银行区', status: 'fault', idCardStatus: 'online', printStatus: 'offline', encryptStatus: 'online' },
+                        { id: 9, deviceCode: 'HD-2024-009', branchName: '杭州市分行西湖支行', location: '一楼大厅进门处', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 10, deviceCode: 'HD-2024-010', branchName: '杭州市分行滨江支行', location: '二楼业务区', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 11, deviceCode: 'HD-2024-011', branchName: '成都市分行锦江支行', location: '营业大厅左侧', status: 'offline', idCardStatus: 'offline', printStatus: 'offline', encryptStatus: 'offline' },
+                        { id: 12, deviceCode: 'HD-2024-012', branchName: '成都市分行武侯支行', location: '自助服务区', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 13, deviceCode: 'HD-2024-013', branchName: '武汉市分行武昌支行', location: '一楼大厅右侧', status: 'fault', idCardStatus: 'offline', printStatus: 'offline', encryptStatus: 'online' },
+                        { id: 14, deviceCode: 'HD-2024-014', branchName: '武汉市分行江汉支行', location: '二楼办公区旁', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 15, deviceCode: 'HD-2024-015', branchName: '南京市分行鼓楼支行', location: '营业大厅入口', status: 'maintenance', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 16, deviceCode: 'HD-2024-016', branchName: '重庆市分行渝中支行', location: '一楼营业部', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 17, deviceCode: 'HD-2024-017', branchName: '重庆市分行江北支行', location: '自助银行区', status: 'fault', idCardStatus: 'online', printStatus: 'offline', encryptStatus: 'online' },
+                        { id: 18, deviceCode: 'HD-2024-018', branchName: '天津市分行和平支行', location: '营业大厅', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 19, deviceCode: 'HD-2024-019', branchName: '西安市分行雁塔支行', location: '二楼服务区', status: 'offline', idCardStatus: 'offline', printStatus: 'offline', encryptStatus: 'offline' },
+                        { id: 20, deviceCode: 'HD-2024-020', branchName: '苏州市分行姑苏支行', location: '一楼大厅', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 21, deviceCode: 'HD-2024-021', branchName: '杭州市分行余杭支行', location: '营业部大堂', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 22, deviceCode: 'HD-2024-022', branchName: '南京市分行玄武支行', location: '自助服务区', status: 'fault', idCardStatus: 'online', printStatus: 'offline', encryptStatus: 'online' },
+                        { id: 23, deviceCode: 'HD-2024-023', branchName: '成都市分行青羊支行', location: '一楼大厅', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' },
+                        { id: 24, deviceCode: 'HD-2024-024', branchName: '武汉市分行洪山支行', location: '二楼业务区', status: 'offline', idCardStatus: 'offline', printStatus: 'offline', encryptStatus: 'offline' },
+                        { id: 25, deviceCode: 'HD-2024-025', branchName: '苏州市分行工业园支行', location: '营业入口', status: 'normal', idCardStatus: 'online', printStatus: 'online', encryptStatus: 'online' }
+                    ];
+                    this.handleSearch();
+                },
+                getStatusText(status) {
+                    const statusMap = {
+                        'normal': '正常',
+                        'fault': '故障',
+                        'offline': '离线',
+                        'maintenance': '维护中'
+                    };
+                    return statusMap[status] || '未知';
+                },
+                getStatusClass(status) {
+                    const classMap = {
+                        'normal': 'status-tag-normal',
+                        'fault': 'status-tag-fault',
+                        'offline': 'status-tag-offline',
+                        'maintenance': 'status-tag-maintenance'
+                    };
+                    return classMap[status] || '';
+                },
+                getRowClassName({ row }) {
+                    if (row.status === 'fault') {
+                        return 'fault-row';
+                    } else if (row.status === 'offline') {
+                        return 'offline-row';
+                    } else if (row.status === 'maintenance') {
+                        return 'maintenance-row';
+                    }
+                    return '';
+                },
+                handleSearch() {
+                    let filteredData = [...this.allDeviceData];
+                    
+                    if (this.searchForm.deviceCode) {
+                        const keyword = this.searchForm.deviceCode.toLowerCase().trim();
+                        filteredData = filteredData.filter(item => 
+                            item.deviceCode.toLowerCase().includes(keyword)
+                        );
+                    }
+                    
+                    if (this.searchForm.branchName) {
+                        const keyword = this.searchForm.branchName.trim();
+                        filteredData = filteredData.filter(item => 
+                            item.branchName.includes(keyword)
+                        );
+                    }
+                    
+                    if (this.searchForm.status) {
+                        filteredData = filteredData.filter(item => 
+                            item.status === this.searchForm.status
+                        );
+                    }
+                    
+                    this.pagination.total = filteredData.length;
+                    this.loadPageData(filteredData);
+                },
+                handleReset() {
+                    this.searchForm = {
+                        deviceCode: '',
+                        branchName: '',
+                        status: ''
+                    };
+                    this.pagination.currentPage = 1;
+                    this.handleSearch();
+                },
+                loadPageData(filteredData) {
+                    const start = (this.pagination.currentPage - 1) * this.pagination.pageSize;
+                    const end = start + this.pagination.pageSize;
+                    this.tableData = filteredData.slice(start, end);
+                    this.tableKey++;
+                },
+                handleSizeChange(val) {
+                    this.pagination.pageSize = val;
+                    this.pagination.currentPage = 1;
+                    this.handleSearch();
+                },
+                handleCurrentChange(val) {
+                    this.pagination.currentPage = val;
+                    this.handleSearch();
+                },
+                generateWorkOrderNo() {
+                    const date = new Date();
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const counter = String(this.workOrderCounter).padStart(4, '0');
+                    return `WO${year}${month}${day}${counter}`;
+                },
+                filterDeviceList() {
+                    if (this.reportForm.statusFilter) {
+                        this.filteredDeviceList = this.deviceList.filter(d => 
+                            d.status === this.reportForm.statusFilter
+                        );
+                    } else {
+                        this.filteredDeviceList = [...this.deviceList];
+                    }
+                },
+                openReportDialog() {
+                    this.reportForm.workOrderNo = this.generateWorkOrderNo();
+                    this.reportForm.statusFilter = '';
+                    this.filteredDeviceList = [...this.deviceList];
+                    this.reportDialogVisible = true;
+                },
+                handleReport(row) {
+                    this.reportForm.workOrderNo = this.generateWorkOrderNo();
+                    this.reportForm.deviceId = row.id;
+                    this.reportForm.deviceCode = row.deviceCode;
+                    this.reportForm.branchName = row.branchName;
+                    this.reportForm.location = row.location;
+                    this.reportForm.statusFilter = '';
+                    this.filteredDeviceList = [...this.deviceList];
+                    this.reportDialogVisible = true;
+                },
+                resetReportForm() {
+                    this.$refs.reportForm && this.$refs.reportForm.resetFields();
+                    this.reportForm = {
+                        workOrderNo: '',
+                        deviceId: '',
+                        deviceCode: '',
+                        branchName: '',
+                        location: '',
+                        statusFilter: '',
+                        faultModule: [],
+                        faultType: '',
+                        faultDescription: ''
+                    };
+                    this.submitting = false;
+                },
+                submitReport() {
+                    if (!this.reportForm.deviceId) {
+                        this.$message.warning('请先选择故障设备！');
+                        return;
+                    }
+                    
+                    if (!this.reportForm.faultModule || this.reportForm.faultModule.length === 0) {
+                        this.$message.warning('请选择故障模块！');
+                        return;
+                    }
+                    
+                    this.$refs.reportForm.validate((valid) => {
+                        if (valid) {
+                            this.submitting = true;
+                            
+                            setTimeout(() => {
+                                this.$message({
+                                    type: 'success',
+                                    message: '故障上报成功！工单号：' + this.reportForm.workOrderNo
+                                });
+                                this.workOrderCounter++;
+                                this.reportDialogVisible = false;
+                                this.submitting = false;
+                                
+                                const device = this.allDeviceData.find(d => d.id === this.reportForm.deviceId);
+                                if (device) {
+                                    device.status = 'maintenance';
+                                    
+                                    if (this.reportForm.faultModule.includes('idCard')) {
+                                        device.idCardStatus = 'offline';
+                                    }
+                                    if (this.reportForm.faultModule.includes('print')) {
+                                        device.printStatus = 'offline';
+                                    }
+                                    if (this.reportForm.faultModule.includes('encrypt')) {
+                                        device.encryptStatus = 'offline';
+                                    }
+                                    
+                                    this.handleSearch();
+                                }
+                            }, 800);
+                        } else {
+                            this.$message.error('请完善所有必填信息后再提交！');
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>

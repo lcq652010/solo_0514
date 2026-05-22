@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>书店借阅管理系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.13/lib/theme-chalk/index.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f5f7fa;
+        }
+        #app {
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .page-header {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        .page-title {
+            font-size: 24px;
+            font-weight: 500;
+            color: #303133;
+            margin-bottom: 10px;
+        }
+        .page-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        .search-bar {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f9fafc;
+            border-radius: 4px;
+        }
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .el-table {
+            margin-top: 10px;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status-available {
+            background: #f0f9eb;
+            color: #67c23a;
+        }
+        .status-borrowed {
+            background: #fdf6ec;
+            color: #e6a23c;
+        }
+        .status-overdue {
+            background: #fef0f0;
+            color: #f56c6c;
+        }
+        .status-returned {
+            background: #ecf5ff;
+            color: #409eff;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <el-container style="height: 100vh; border: 1px solid #eee;">
+            <el-header style="background: #409EFF; color: #fff; display: flex; align-items: center; padding: 0 20px;">
+                <h2 style="margin: 0;">📚 书店借阅管理系统</h2>
+            </el-header>
+            <el-container>
+                <el-aside width="200px" style="background-color: rgb(238, 241, 246);">
+                    <el-menu
+                        default-active="1"
+                        class="el-menu-vertical-demo"
+                        @select="handleMenuSelect"
+                        background-color="#eef1f6"
+                        text-color="#48576a"
+                        active-text-color="#409EFF">
+                        <el-menu-item index="1">
+                            <i class="el-icon-s-books"></i>
+                            <span slot="title">图书列表</span>
+                        </el-menu-item>
+                        <el-menu-item index="2">
+                            <i class="el-icon-edit"></i>
+                            <span slot="title">读者借阅</span>
+                        </el-menu-item>
+                        <el-menu-item index="3">
+                            <i class="el-icon-document"></i>
+                            <span slot="title">借阅记录</span>
+                        </el-menu-item>
+                        <el-menu-item index="4">
+                            <i class="el-icon-sold-out"></i>
+                            <span slot="title">图书归还</span>
+                        </el-menu-item>
+                        <el-menu-item index="5">
+                            <i class="el-icon-s-finance"></i>
+                            <span slot="title">逾期费用</span>
+                        </el-menu-item>
+                    </el-menu>
+                </el-aside>
+                <el-main style="background-color: #f5f7fa; padding: 20px; overflow-y: auto;">
+                    <component :is="currentPage" :key="refreshKey" :selected-book="selectedBook" :selected-record-from-list="selectedRecord"></component>
+                </el-main>
+            </el-container>
+        </el-container>
+    </div>
+
+    <script src="https://unpkg.com/vue@2.7.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui@2.15.13/lib/index.js"></script>
+    <script src="https://unpkg.com/vue-router@3.6.5/dist/vue-router.js"></script>
+    
+    <script src="app.js"></script>
+</body>
+</html>

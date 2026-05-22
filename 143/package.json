@@ -1,0 +1,20 @@
+{
+  "name": "cloisonne-bracelet-custom",
+  "version": "1.0.0",
+  "description": "传统景泰蓝手镯定制系统",
+  "main": "index.html",
+  "scripts": {
+    "dev": "serve -s .",
+    "start": "serve -s ."
+  },
+  "dependencies": {
+    "vue": "^2.7.14",
+    "vue-router": "^3.6.5",
+    "element-ui": "^2.15.13"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "author": "",
+  "license": "MIT"
+}

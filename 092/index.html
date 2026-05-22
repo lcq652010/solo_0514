@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>传统木雕瑞兽镇纸定制系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.13/lib/theme-chalk/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+    .header {
+      background: linear-gradient(90deg, #8B4513 0%, #A0522D 100%);
+      color: white;
+      padding: 0 20px;
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    }
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .nav-menu {
+      display: flex;
+    }
+    .nav-item {
+      color: white;
+      text-decoration: none;
+      padding: 0 20px;
+      line-height: 60px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .nav-item:hover, .nav-item.active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 30px;
+    }
+    .order-form-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .card-header {
+      font-size: 20px;
+      font-weight: 600;
+      color: #8B4513;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .gilded-tip {
+      margin-left: 15px;
+      color: #E6A23C;
+      font-size: 14px;
+    }
+    .price-summary {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 10px 0;
+    }
+    .price-label {
+      margin: 0;
+      font-size: 16px;
+      color: #606266;
+    }
+    .price-value {
+      margin: 0 0 0 10px;
+      font-size: 28px;
+      font-weight: 600;
+      color: #F56C6C;
+    }
+    .process-steps {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: not-allowed;
+      position: relative;
+      flex: 1;
+    }
+    .step-item.clickable {
+      cursor: pointer;
+    }
+    .step-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: #E4E7ED;
+      z-index: 0;
+    }
+    .step-item.active:not(:last-child)::after {
+      background: #67C23A;
+    }
+    .step-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #E4E7ED;
+      z-index: 1;
+      margin-bottom: 5px;
+    }
+    .step-item.active .step-dot {
+      background: #67C23A;
+    }
+    .step-item.current .step-dot {
+      background: #409EFF;
+      box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.2);
+    }
+    .step-label {
+      font-size: 12px;
+      color: #909399;
+      white-space: nowrap;
+    }
+    .step-item.active .step-label {
+      color: #67C23A;
+    }
+    .step-item.current .step-label {
+      color: #409EFF;
+      font-weight: 600;
+    }
+    .order-stats {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #EBEEF5;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e7ed 100%);
+      border-radius: 8px;
+    }
+    .stat-label {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #606266;
+    }
+    .stat-value {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 600;
+      color: #8B4513;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="header">
+      <div class="header-content">
+        <h1>传统木雕瑞兽镇纸定制系统</h1>
+        <div class="nav-menu">
+          <span class="nav-item" :class="{ active: currentPage === 'order' }" @click="currentPage = 'order'">客户下单</span>
+          <span class="nav-item" :class="{ active: currentPage === 'admin' }" @click="currentPage = 'admin'">管理员订单</span>
+        </div>
+      </div>
+    </div>
+    <div class="main-content">
+      <!-- 客户下单页面 -->
+      <div v-if="currentPage === 'order'" class="order-form-container">
+        <el-card class="order-card" shadow="hover">
+          <div slot="header" class="card-header">
+            <span>客户下单</span>
+          </div>
+          <el-form :model="orderForm" :rules="rules" ref="orderForm" label-width="120px">
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="木料种类" prop="woodType">
+                  <el-select v-model="orderForm.woodType" placeholder="请选择木料" style="width: 100%">
+                    <el-option
+                      v-for="wood in woodTypes"
+                      :key="wood.value"
+                      :label="wood.label"
+                      :value="wood.value">
+                      <span style="float: left">{{ wood.label }}</span>
+                      <span style="float: right; color: #8492a6; font-size: 13px">¥{{ wood.price }}</span>
+                    </el-option>
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="瑞兽款式" prop="beastStyle">
+                  <el-select v-model="orderForm.beastStyle" placeholder="请选择款式" style="width: 100%">
+                    <el-option
+                      v-for="style in beastStyles"
+                      :key="style.value"
+                      :label="style.label"
+                      :value="style.value">
+                      <span style="float: left">{{ style.label }}</span>
+                      <span style="float: right; color: #8492a6; font-size: 13px">{{ style.desc }}</span>
+                    </el-option>
+                  </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-divider content-position="left">尺寸规格（单位：厘米）</el-divider>
+
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <el-form-item label="长度" prop="length">
+                  <el-input-number v-model="orderForm.length" :min="sizeRules.length.min" :max="sizeRules.length.max" :step="sizeRules.length.step" style="width: 100%"></el-input-number>
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="宽度" prop="width">
+                  <el-input-number v-model="orderForm.width" :min="sizeRules.width.min" :max="sizeRules.width.max" :step="sizeRules.width.step" style="width: 100%"></el-input-number>
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="高度" prop="height">
+                  <el-input-number v-model="orderForm.height" :min="sizeRules.height.min" :max="sizeRules.height.max" :step="sizeRules.height.step" style="width: 100%"></el-input-number>
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-divider content-position="left">附加选项</el-divider>
+
+            <el-row :gutter="20">
+              <el-col :span="24">
+                <el-form-item label="是否鎏金">
+                  <el-switch
+                    v-model="orderForm.isGilded"
+                    active-text="是"
+                    inactive-text="否">
+                  </el-switch>
+                  <span class="gilded-tip">鎏金工艺额外收取 ¥200 工本费</span>
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-row :gutter="20">
+              <el-col :span="24">
+                <el-form-item label="客户备注" prop="remark">
+                  <el-input
+                    type="textarea"
+                    :rows="4"
+                    placeholder="请输入您的特殊要求或备注信息..."
+                    v-model="orderForm.remark">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-divider></el-divider>
+
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <div class="price-summary">
+                  <p class="price-label">预估总价：</p>
+                  <p class="price-value">¥{{ totalPrice }}</p>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item>
+                  <el-button type="primary" size="large" @click="submitOrder" style="width: 100%">提交订单</el-button>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </el-form>
+        </el-card>
+      </div>
+
+      <!-- 管理员订单页面 -->
+      <div v-if="currentPage === 'admin'" class="admin-orders-container">
+        <el-card class="orders-card" shadow="hover">
+          <div slot="header" class="card-header">
+            <span>订单管理</span>
+            <el-button type="primary" size="small" @click="refreshOrders">刷新订单</el-button>
+          </div>
+
+          <el-table :data="orders" style="width: 100%" border>
+            <el-table-column prop="id" label="订单号" width="120" align="center"></el-table-column>
+            <el-table-column prop="woodType" label="木料" width="100" align="center"></el-table-column>
+            <el-table-column prop="beastStyle" label="款式" width="100" align="center"></el-table-column>
+            <el-table-column label="尺寸" width="180" align="center">
+              <template slot-scope="scope">
+                <span>长{{ scope.row.length }}×宽{{ scope.row.width }}×高{{ scope.row.height }}cm</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="鎏金" width="80" align="center">
+              <template slot-scope="scope">
+                <el-tag :type="scope.row.isGilded ? 'success' : 'info'" size="mini">
+                  {{ scope.row.isGilded ? '是' : '否' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip></el-table-column>
+            <el-table-column label="生产工序" min-width="350">
+              <template slot-scope="scope">
+                <div class="process-steps">
+                  <div
+                    v-for="(step, index) in statusOptions"
+                    :key="step.value"
+                    :class="['step-item', { active: scope.row.status >= step.value, current: scope.row.status === step.value, clickable: step.value <= scope.row.status + 1 }]"
+                    @click="updateProcess(scope.row, step.value)">
+                    <span class="step-dot"></span>
+                    <span class="step-label">{{ step.label }}</span>
+                  </div>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="createTime" label="下单时间" width="180" align="center"></el-table-column>
+            <el-table-column label="操作" width="120" align="center" fixed="right">
+              <template slot-scope="scope">
+                <el-button
+                  type="success"
+                  size="mini"
+                  @click="nextStep(scope.row)"
+                  :disabled="scope.row.status >= 6">
+                  下一步
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div class="order-stats" v-if="orders.length > 0">
+            <el-row :gutter="20">
+              <el-col :span="6">
+                <div class="stat-item">
+                  <p class="stat-label">总订单数</p>
+                  <p class="stat-value">{{ orders.length }}</p>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="stat-item">
+                  <p class="stat-label">待选料</p>
+                  <p class="stat-value">{{ getStatusCount(0) }}</p>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="stat-item">
+                  <p class="stat-label">进行中</p>
+                  <p class="stat-value">{{ getStatusCount(1, 5) }}</p>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="stat-item">
+                  <p class="stat-label">已完工</p>
+                  <p class="stat-value">{{ getStatusCount(6) }}</p>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+        </el-card>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.13/lib/index.js"></script>
+  <script>
+    const orderStore = {
+      listeners: [],
+      onOrderAdded(callback) {
+        this.listeners.push(callback)
+      },
+      notifyOrderAdded() {
+        this.listeners.forEach(callback => callback())
+      },
+      sizeRules: {
+        length: { min: 5, max: 50, step: 0.5 },
+        width: { min: 2, max: 20, step: 0.5 },
+        height: { min: 1, max: 10, step: 0.5 }
+      },
+      orders: [
+        {
+          id: 'ORD001',
+          woodType: '紫檀木',
+          beastStyle: '麒麟',
+          length: 15,
+          width: 5,
+          height: 3,
+          isGilded: true,
+          remark: '希望雕刻要精细',
+          status: 3,
+          createTime: '2024-01-15 10:30:00',
+          statusUpdateTime: '2024-01-15 14:20:00'
+        },
+        {
+          id: 'ORD002',
+          woodType: '黄花梨',
+          beastStyle: '貔貅',
+          length: 12,
+          width: 4,
+          height: 2.5,
+          isGilded: false,
+          remark: '',
+          status: 5,
+          createTime: '2024-01-16 14:20:00',
+          statusUpdateTime: '2024-01-17 09:15:00'
+        }
+      ],
+      statusOptions: [
+        { value: 0, label: '选料' },
+        { value: 1, label: '开坯' },
+        { value: 2, label: '粗雕' },
+        { value: 3, label: '细雕' },
+        { value: 4, label: '打磨' },
+        { value: 5, label: '打蜡' },
+        { value: 6, label: '完工' }
+      ],
+      woodTypes: [
+        { value: '紫檀木', label: '紫檀木', price: 800 },
+        { value: '黄花梨', label: '黄花梨', price: 600 },
+        { value: '酸枝木', label: '酸枝木', price: 400 },
+        { value: '鸡翅木', label: '鸡翅木', price: 300 },
+        { value: '楠木', label: '楠木', price: 250 },
+        { value: '樟木', label: '樟木', price: 200 }
+      ],
+      beastStyles: [
+        { value: '麒麟', label: '麒麟', desc: '祥瑞之兽，招财纳福' },
+        { value: '貔貅', label: '貔貅', desc: '招财进宝，只进不出' },
+        { value: '龙', label: '龙', desc: '权势尊贵，吉祥如意' },
+        { value: '凤', label: '凤', desc: '百鸟之王，美丽祥瑞' },
+        { value: '狮子', label: '狮子', desc: '勇猛威严，镇宅辟邪' },
+        { value: '大象', label: '大象', desc: '吉祥如意，万象更新' }
+      ],
+      getOrders() {
+        return this.orders
+      },
+      addOrder(order) {
+        const newOrder = {
+          ...order,
+          id: 'ORD' + String(this.orders.length + 1).padStart(3, '0'),
+          status: 0,
+          createTime: new Date().toLocaleString('zh-CN'),
+          statusUpdateTime: new Date().toLocaleString('zh-CN')
+        }
+        this.orders.unshift(newOrder)
+        this.notifyOrderAdded()
+        return newOrder
+      },
+      updateStatus(orderId, status) {
+        const order = this.orders.find(o => o.id === orderId)
+        if (order) {
+          order.status = status
+          order.statusUpdateTime = new Date().toLocaleString('zh-CN')
+        }
+        return order
+      },
+      getStatusLabel(statusValue) {
+        const status = this.statusOptions.find(s => s.value === statusValue)
+        return status ? status.label : '未知'
+      },
+      getWoodPrice(woodType) {
+        const wood = this.woodTypes.find(w => w.value === woodType)
+        return wood ? wood.price : 0
+      }
+    }
+
+    new Vue({
+      el: '#app',
+      data: function() {
+        const sizeRules = orderStore.sizeRules
+        return {
+          currentPage: 'order',
+          woodTypes: orderStore.woodTypes,
+          beastStyles: orderStore.beastStyles,
+          statusOptions: orderStore.statusOptions,
+          sizeRules: sizeRules,
+          orders: [],
+          orderForm: {
+            woodType: '',
+            beastStyle: '',
+            length: 15,
+            width: 5,
+            height: 3,
+            isGilded: false,
+            remark: ''
+          },
+          rules: {
+            woodType: [
+              { required: true, message: '请选择木料种类', trigger: 'change' }
+            ],
+            beastStyle: [
+              { required: true, message: '请选择瑞兽款式', trigger: 'change' }
+            ],
+            length: [
+              { required: true, message: '请输入长度', trigger: 'blur' },
+              { type: 'number', min: sizeRules.length.min, max: sizeRules.length.max, message: `长度需在${sizeRules.length.min}-${sizeRules.length.max}厘米之间`, trigger: 'blur' }
+            ],
+            width: [
+              { required: true, message: '请输入宽度', trigger: 'blur' },
+              { type: 'number', min: sizeRules.width.min, max: sizeRules.width.max, message: `宽度需在${sizeRules.width.min}-${sizeRules.width.max}厘米之间`, trigger: 'blur' }
+            ],
+            height: [
+              { required: true, message: '请输入高度', trigger: 'blur' },
+              { type: 'number', min: sizeRules.height.min, max: sizeRules.height.max, message: `高度需在${sizeRules.height.min}-${sizeRules.height.max}厘米之间`, trigger: 'blur' }
+            ]
+          }
+        }
+      },
+      computed: {
+        totalPrice() {
+          let basePrice = orderStore.getWoodPrice(this.orderForm.woodType)
+          let gildedPrice = this.orderForm.isGilded ? 200 : 0
+          return basePrice + gildedPrice
+        }
+      },
+      created() {
+        this.refreshOrders()
+        orderStore.onOrderAdded(() => {
+          this.refreshOrders()
+        })
+      },
+      methods: {
+        submitOrder() {
+          this.$refs.orderForm.validate((valid) => {
+            if (valid) {
+              const newOrder = orderStore.addOrder({ ...this.orderForm })
+              this.$message({
+                type: 'success',
+                message: `订单提交成功！订单号：${newOrder.id}`
+              })
+              this.resetForm()
+            } else {
+              this.$message.error('请完善订单信息后再提交')
+              return false
+            }
+          })
+        },
+        resetForm() {
+          this.$refs.orderForm.resetFields()
+          this.orderForm.isGilded = false
+        },
+        refreshOrders() {
+          this.orders = orderStore.getOrders()
+        },
+        updateProcess(order, status) {
+          if (status > order.status + 1) {
+            this.$message({
+              type: 'warning',
+              message: '请按顺序推进工序，不允许跳步！'
+            })
+            return
+          }
+          if (status === order.status) {
+            return
+          }
+          orderStore.updateStatus(order.id, status)
+          this.$message({
+            type: 'success',
+            message: `订单 ${order.id} 已更新为：${orderStore.getStatusLabel(status)}`
+          })
+        },
+        nextStep(order) {
+          if (order.status < 6) {
+            const nextStatus = order.status + 1
+            this.updateProcess(order, nextStatus)
+          }
+        },
+        getStatusCount(min, max = null) {
+          if (max === null) {
+            return this.orders.filter(o => o.status === min).length
+          }
+          return this.orders.filter(o => o.status >= min && o.status <= max).length
+        }
+      }
+    })
+  </script>
+</body>
+</html>

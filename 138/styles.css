@@ -1,0 +1,133 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', sans-serif;
+    background-color: #f5f7fa;
+}
+
+#app {
+    min-height: 100vh;
+}
+
+.header {
+    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+    color: white;
+    padding: 20px 40px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header h1 {
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.container {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.search-bar {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.search-bar .el-form {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.table-container {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.status-normal {
+    color: #52c41a;
+    font-weight: 500;
+}
+
+.status-fault {
+    color: #f5222d;
+    font-weight: 500;
+}
+
+.status-offline {
+    color: #8c8c8c;
+    font-weight: 500;
+}
+
+.status-maintenance {
+    color: #fa8c16;
+    font-weight: 500;
+}
+
+.pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-fault-report {
+    background: linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%);
+    border: none;
+}
+
+.btn-fault-report:hover {
+    background: linear-gradient(135deg, #ff7875 0%, #ff4d4f 100%);
+}
+
+.el-table {
+    font-size: 14px;
+}
+
+.el-table th {
+    background-color: #fafafa !important;
+    font-weight: 600;
+}
+
+.el-dialog__header {
+    background: #f5f7fa;
+    border-radius: 4px 4px 0 0;
+}
+
+.el-dialog__title {
+    font-weight: 600;
+    color: #262626;
+}
+
+.work-order-id {
+    background: #e6f7ff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    color: #1890ff;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+.row-fault {
+    background-color: #fff2f0 !important;
+}
+
+.row-fault:hover {
+    background-color: #ffebe9 !important;
+}
+
+.row-offline {
+    background-color: #f5f5f5 !important;
+}
+
+.row-offline:hover {
+    background-color: #e8e8e8 !important;
+}

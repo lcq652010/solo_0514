@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>传统牛角梳定制系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+    }
+    #app {
+      min-height: 100vh;
+    }
+    .header {
+      background: linear-gradient(90deg, #8B4513 0%, #D2691E 100%);
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .nav-tabs a {
+      color: white;
+      text-decoration: none;
+      padding: 8px 20px;
+      border-radius: 20px;
+      transition: all 0.3s;
+    }
+    .nav-tabs a:hover,
+    .nav-tabs a.active {
+      background: rgba(255,255,255,0.2);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      padding: 30px;
+    }
+    .form-section {
+      margin-bottom: 25px;
+    }
+    .form-section h3 {
+      color: #8B4513;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #D2691E;
+    }
+    .material-option {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .material-option:hover {
+      border-color: #D2691E;
+      background: #fff9f5;
+    }
+    .material-option.selected {
+      border-color: #D2691E;
+      background: #fff9f5;
+    }
+    .material-color {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 15px;
+    }
+    .step-timeline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      position: relative;
+    }
+    .step-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      width: 100%;
+      height: 3px;
+      background: #e0e0e0;
+    }
+    .step-item.completed:not(:last-child)::after {
+      background: #67C23A;
+    }
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      z-index: 1;
+      transition: all 0.3s;
+    }
+    .step-item.completed .step-circle {
+      background: #67C23A;
+    }
+    .step-item.current .step-circle {
+      background: #E6A23C;
+    }
+    .step-label {
+      margin-top: 10px;
+      font-size: 12px;
+      text-align: center;
+    }
+    .order-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+      transition: all 0.3s;
+    }
+    .order-card:hover {
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .order-no {
+      font-weight: bold;
+      color: #8B4513;
+    }
+    .order-status {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+    .status-doing {
+      background: #ECF5FF;
+      color: #409EFF;
+    }
+    .status-done {
+      background: #f0f9eb;
+      color: #67C23A;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="header">
+      <h1>🪮 传统牛角梳定制系统</h1>
+      <div class="nav-tabs">
+        <a href="#/order" :class="{ active: currentRoute === '/order' }">客户下单</a>
+        <a href="#/admin" :class="{ active: currentRoute === '/admin' }">管理员订单管理</a>
+      </div>
+    </div>
+    
+    <div class="container">
+      <order-page v-if="currentRoute === '/order'" @submit="handleOrderSubmit"></order-page>
+      <admin-page v-else :orders="orders" @update-step="updateStep"></admin-page>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

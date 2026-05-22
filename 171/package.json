@@ -1,0 +1,24 @@
+{
+  "name": "gas-terminal-management",
+  "version": "1.0.0",
+  "description": "燃气自助缴费打印终端运维管理系统",
+  "main": "index.js",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^2.7.14",
+    "element-ui": "^2.15.13",
+    "vue-router": "^3.6.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue2": "^2.2.0",
+    "vite": "^4.5.0"
+  },
+  "keywords": ["vue2", "gas", "management"],
+  "author": "",
+  "license": "MIT"
+}

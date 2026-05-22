@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卫健服务自助健康证明打印终端运维管理系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
+        }
+        .container {
+            padding: 20px 40px;
+        }
+        .search-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+        }
+        .status-normal {
+            color: #67c23a;
+            font-weight: 500;
+        }
+        .status-fault {
+            color: #f56c6c;
+            font-weight: 500;
+        }
+        .status-maintenance {
+            color: #e6a23c;
+            font-weight: 500;
+        }
+        .status-offline {
+            color: #909399;
+            font-weight: 500;
+        }
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+        }
+        .pagination-container {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .row-fault {
+            background-color: #fef0f0 !important;
+        }
+        .row-offline {
+            background-color: #f4f4f5 !important;
+        }
+        .el-table__row.row-fault:hover > td {
+            background-color: #fde2e2 !important;
+        }
+        .el-table__row.row-offline:hover > td {
+            background-color: #e9e9eb !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>卫健服务自助健康证明打印终端运维管理系统</h1>
+        </div>
+        <div class="container">
+            <div class="search-bar">
+                <el-row :gutter="20">
+                    <el-col :span="6">
+                        <el-select 
+                            v-model="searchForm.status" 
+                            placeholder="按状态筛选" 
+                            style="width: 100%"
+                            clearable
+                            @change="handleSearch"
+                        >
+                            <el-option label="正常运行" value="normal"></el-option>
+                            <el-option label="故障" value="fault"></el-option>
+                            <el-option label="维护中" value="maintenance"></el-option>
+                            <el-option label="离线" value="offline"></el-option>
+                        </el-select>
+                    </el-col>
+                    <el-col :span="10">
+                        <el-input 
+                            v-model="searchForm.keyword" 
+                            placeholder="请输入设备编号、服务站点或安装点位进行智能搜索"
+                            clearable
+                            @input="handleSearch"
+                        >
+                            <i slot="prefix" class="el-input__icon el-icon-search"></i>
+                        </el-input>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-button type="primary" @click="handleSearch" icon="el-icon-search">搜索</el-button>
+                        <el-button @click="handleReset" icon="el-icon-refresh">重置</el-button>
+                        <el-button type="success" @click="handleReport" icon="el-icon-plus">故障上报</el-button>
+                    </el-col>
+                </el-row>
+            </div>
+
+            <div class="table-container">
+                <el-table 
+                    :data="tableData" 
+                    border 
+                    style="width: 100%"
+                    :header-cell-style="{background:'#f5f7fa', color:'#606266', fontWeight:'500'}"
+                    :row-class-name="getRowClassName"
+                >
+                    <el-table-column prop="deviceCode" label="设备编号" width="140" align="center"></el-table-column>
+                    <el-table-column prop="serviceStation" label="服务站点" width="180" align="center"></el-table-column>
+                    <el-table-column prop="installLocation" label="安装点位" width="140" align="center"></el-table-column>
+                    <el-table-column label="模块状态" align="center">
+                        <template slot-scope="scope">
+                            <el-tag :type="getModuleStatusType(scope.row.cardReader)" size="mini" style="margin-right: 5px;">读卡</el-tag>
+                            <el-tag :type="getModuleStatusType(scope.row.printer)" size="mini" style="margin-right: 5px;">打印</el-tag>
+                            <el-tag :type="getModuleStatusType(scope.row.network)" size="mini">网络</el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="status" label="设备状态" width="100" align="center">
+                        <template slot-scope="scope">
+                            <span :class="getStatusClass(scope.row.status)">
+                                {{ getStatusText(scope.row.status) }}
+                            </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="lastOnlineTime" label="最后在线时间" width="170" align="center"></el-table-column>
+                    <el-table-column label="操作" width="120" align="center">
+                        <template slot-scope="scope">
+                            <el-button 
+                                type="danger" 
+                                size="mini" 
+                                icon="el-icon-warning"
+                                @click="handleReportDevice(scope.row)"
+                            >
+                                故障上报
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+                <div class="pagination-container">
+                    <el-pagination
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                        :current-page="pagination.currentPage"
+                        :page-sizes="[5, 10, 20, 50]"
+                        :page-size="pagination.pageSize"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="pagination.total"
+                        background
+                    >
+                    </el-pagination>
+                    <div v-if="loading" class="loading-text" style="text-align: center; margin-top: 10px; color: #409eff;">
+                        <i class="el-icon-loading"></i> 正在加载数据...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <el-dialog 
+            title="故障上报" 
+            :visible.sync="dialogVisible" 
+            width="500px"
+            :close-on-click-modal="false"
+        >
+            <el-form :model="reportForm" :rules="reportRules" ref="reportForm" label-width="100px">
+                <el-form-item label="工单编号">
+                    <el-input v-model="reportForm.orderNo" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="选择设备" prop="deviceId">
+                    <el-select 
+                        v-model="reportForm.deviceId" 
+                        placeholder="请选择设备（可输入搜索）" 
+                        style="width: 100%"
+                        filterable
+                        :filter-method="deviceFilterMethod"
+                    >
+                        <el-option 
+                            v-for="item in filteredDevices" 
+                            :key="item.id" 
+                            :label="item.deviceCode + ' - ' + item.serviceStation + ' - ' + item.installLocation"
+                            :value="item.id"
+                        >
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="故障描述" prop="faultDescription">
+                    <el-input 
+                        type="textarea" 
+                        v-model="reportForm.faultDescription" 
+                        :rows="4" 
+                        placeholder="请详细描述故障情况"
+                        maxlength="500"
+                        show-word-limit
+                    >
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="上报时间">
+                    <el-input v-model="reportForm.reportTime" disabled></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="handleSubmitReport">提 交</el-button>
+            </span>
+        </el-dialog>
+    </div>
+
+    <script src="https://unpkg.com/vue@2.7.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    loading: false,
+                    searchForm: {
+                        keyword: '',
+                        status: ''
+                    },
+                    deviceFilter: '',
+                    allDevices: [
+                        { id: 1, deviceCode: 'WJ-2024-001', serviceStation: '朝阳区卫生服务中心', installLocation: '一楼大厅', status: 'normal', cardReader: 'normal', printer: 'normal', network: 'normal', lastOnlineTime: '2024-05-16 09:30:00' },
+                        { id: 2, deviceCode: 'WJ-2024-002', serviceStation: '海淀区人民医院', installLocation: '门诊楼入口', status: 'fault', cardReader: 'fault', printer: 'normal', network: 'normal', lastOnlineTime: '2024-05-15 14:20:00' },
+                        { id: 3, deviceCode: 'WJ-2024-003', serviceStation: '西城区社区医院', installLocation: '二楼走廊', status: 'normal', cardReader: 'normal', printer: 'normal', network: 'normal', lastOnlineTime: '2024-05-16 08:45:00' },
+                        { id: 4, deviceCode: 'WJ-2024-004', serviceStation: '东城区卫生服务站', installLocation: '服务台旁', status: 'maintenance', cardReader: 'normal', printer: 'maintenance', network: 'normal', lastOnlineTime: '2024-05-14 16:30:00' },
+                        { id: 5, deviceCode: 'WJ-2024-005', serviceStation: '丰台区体检中心', installLocation: '体检大厅', status: 'normal', cardReader: 'normal', printer: 'normal', network: 'normal', lastOnlineTime: '2024-05-16 10:15:00' },
+                        { id: 6, deviceCode: 'WJ-2024-006', serviceStation: '通州区妇幼保健院', installLocation: '住院部一楼', status: 'offline', cardReader: 'offline', printer: 'offline', network: 'offline', lastOnlineTime: '2024-05-10 11:00:00' },
+                        { id: 7, deviceCode: 'WJ-2024-007', serviceStation: '朝阳区卫生服务中心', installLocation: '二楼检验科', status: 'normal', cardReader: 'normal', printer: 'normal', network: 'normal', lastOnlineTime: '2024-05-16 07:50:00' },
+                        { id: 8, deviceCode: 'WJ-2024-008', serviceStation: '海淀区人民医院', installLocation: '急诊楼大厅', status: 'normal', cardReader: 'normal', printer: 'normal', network: 'normal', lastOnlineTime: '2024-05-16 09:00:00' },
+                        { id: 9, deviceCode: 'WJ-2024-009', serviceStation: '西城区社区医院', installLocation: '预防接种科', status: 'fault', cardReader: 'normal', printer: 'fault', network: 'normal', lastOnlineTime: '2024-05-15 09:30:00' },
+                        { id: 10, deviceCode: 'WJ-2024-010', serviceStation: '东城区卫生服务站', installLocation: '全科门诊旁', status: 'normal', cardReader: 'normal', printer: 'normal', network: 'normal', lastOnlineTime: '2024-05-16 08:30:00' },
+                        { id: 11, deviceCode: 'WJ-2024-011', serviceStation: '丰台区体检中心', installLocation: '报告领取处', status: 'maintenance', cardReader: 'normal', printer: 'normal', network: 'maintenance', lastOnlineTime: '2024-05-13 14:00:00' },
+                        { id: 12, deviceCode: 'WJ-2024-012', serviceStation: '通州区妇幼保健院', installLocation: '儿科门诊', status: 'normal', cardReader: 'normal', printer: 'normal', network: 'normal', lastOnlineTime: '2024-05-16 10:00:00' }
+                    ],
+                    dialogVisible: false,
+                    reportForm: {
+                        orderNo: '',
+                        deviceId: '',
+                        faultDescription: '',
+                        reportTime: ''
+                    },
+                    reportRules: {
+                        deviceId: [
+                            { required: true, message: '请选择设备', trigger: 'change' }
+                        ],
+                        faultDescription: [
+                            { required: true, message: '请填写故障描述', trigger: 'blur' },
+                            { min: 10, message: '故障描述至少10个字符', trigger: 'blur' },
+                            { max: 500, message: '故障描述不能超过500个字符', trigger: 'blur' }
+                        ]
+                    },
+                    pagination: {
+                        currentPage: 1,
+                        pageSize: 5,
+                        total: 0
+                    }
+                };
+            },
+            computed: {
+                filteredData() {
+                    let data = [...this.allDevices];
+                    
+                    if (this.searchForm.status) {
+                        data = data.filter(item => item.status === this.searchForm.status);
+                    }
+                    
+                    if (this.searchForm.keyword) {
+                        const keyword = this.searchForm.keyword.toLowerCase();
+                        data = data.filter(item => 
+                            item.deviceCode.toLowerCase().includes(keyword) ||
+                            item.serviceStation.toLowerCase().includes(keyword) ||
+                            item.installLocation.toLowerCase().includes(keyword)
+                        );
+                    }
+                    
+                    return data;
+                },
+                tableData() {
+                    const data = this.filteredData;
+                    this.pagination.total = data.length;
+                    
+                    const start = (this.pagination.currentPage - 1) * this.pagination.pageSize;
+                    const end = start + this.pagination.pageSize;
+                    return data.slice(start, end);
+                },
+                filteredDevices() {
+                    if (!this.deviceFilter) {
+                        return this.allDevices;
+                    }
+                    const keyword = this.deviceFilter.toLowerCase();
+                    return this.allDevices.filter(item => 
+                        item.deviceCode.toLowerCase().includes(keyword) ||
+                        item.serviceStation.toLowerCase().includes(keyword) ||
+                        item.installLocation.toLowerCase().includes(keyword)
+                    );
+                }
+            },
+            methods: {
+                getRowClassName({ row }) {
+                    if (row.status === 'fault') {
+                        return 'row-fault';
+                    } else if (row.status === 'offline') {
+                        return 'row-offline';
+                    }
+                    return '';
+                },
+                getStatusClass(status) {
+                    const classMap = {
+                        'normal': 'status-normal',
+                        'fault': 'status-fault',
+                        'maintenance': 'status-maintenance',
+                        'offline': 'status-offline'
+                    };
+                    return classMap[status] || '';
+                },
+                getStatusText(status) {
+                    const textMap = {
+                        'normal': '正常运行',
+                        'fault': '故障',
+                        'maintenance': '维护中',
+                        'offline': '离线'
+                    };
+                    return textMap[status] || status;
+                },
+                getModuleStatusType(status) {
+                    const typeMap = {
+                        'normal': 'success',
+                        'fault': 'danger',
+                        'maintenance': 'warning',
+                        'offline': 'info'
+                    };
+                    return typeMap[status] || 'info';
+                },
+                handleSearch() {
+                    this.pagination.currentPage = 1;
+                },
+                handleReset() {
+                    this.searchForm = {
+                        keyword: '',
+                        status: ''
+                    };
+                    this.pagination.currentPage = 1;
+                },
+                deviceFilterMethod(query) {
+                    this.deviceFilter = query;
+                },
+                handleSizeChange(val) {
+                    this.loading = true;
+                    setTimeout(() => {
+                        this.pagination.pageSize = val;
+                        this.loading = false;
+                    }, 300);
+                },
+                handleCurrentChange(val) {
+                    this.loading = true;
+                    setTimeout(() => {
+                        this.pagination.currentPage = val;
+                        this.loading = false;
+                    }, 300);
+                },
+                generateOrderNo() {
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                    const day = String(now.getDate()).padStart(2, '0');
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    const seconds = String(now.getSeconds()).padStart(2, '0');
+                    const random = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                    return `GZ${year}${month}${day}${hours}${minutes}${seconds}${random}`;
+                },
+                getCurrentTime() {
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                    const day = String(now.getDate()).padStart(2, '0');
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    const seconds = String(now.getSeconds()).padStart(2, '0');
+                    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                },
+                handleReport() {
+                    this.deviceFilter = '';
+                    this.reportForm = {
+                        orderNo: this.generateOrderNo(),
+                        deviceId: '',
+                        faultDescription: '',
+                        reportTime: this.getCurrentTime()
+                    };
+                    this.$nextTick(() => {
+                        this.$refs.reportForm && this.$refs.reportForm.clearValidate();
+                    });
+                    this.dialogVisible = true;
+                },
+                handleReportDevice(row) {
+                    this.deviceFilter = '';
+                    this.reportForm = {
+                        orderNo: this.generateOrderNo(),
+                        deviceId: row.id,
+                        faultDescription: '',
+                        reportTime: this.getCurrentTime()
+                    };
+                    this.$nextTick(() => {
+                        this.$refs.reportForm && this.$refs.reportForm.clearValidate();
+                    });
+                    this.dialogVisible = true;
+                },
+                handleSubmitReport() {
+                    if (!this.reportForm.deviceId) {
+                        this.$message({
+                            type: 'warning',
+                            message: '请先选择需要上报故障的设备！'
+                        });
+                        return;
+                    }
+                    
+                    this.$refs.reportForm.validate((valid) => {
+                        if (valid) {
+                            const device = this.allDevices.find(d => d.id === this.reportForm.deviceId);
+                            if (device) {
+                                device.status = 'fault';
+                                device.printer = 'fault';
+                                device.lastOnlineTime = this.getCurrentTime();
+                            }
+                            this.$message({
+                                type: 'success',
+                                message: '故障上报成功！工单编号：' + this.reportForm.orderNo
+                            });
+                            this.dialogVisible = false;
+                        } else {
+                            const errorMsg = !this.reportForm.deviceId ? '请选择要上报的设备！' : '请填写完整的故障描述（至少10个字符）！';
+                            this.$message({
+                                type: 'error',
+                                message: errorMsg
+                            });
+                        }
+                    });
+                }
+            },
+            mounted() {
+                this.pagination.total = this.allDevices.length;
+            }
+        });
+    </script>
+</body>
+</html>

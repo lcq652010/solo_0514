@@ -1,0 +1,97 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+}
+
+.layout-container {
+  height: 100%;
+}
+
+.sidebar {
+  background-color: #304156;
+  height: 100%;
+  overflow: hidden;
+
+  .logo {
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+    background-color: #263445;
+
+    h3 {
+      color: #fff;
+      font-size: 16px;
+      margin: 0;
+    }
+  }
+
+  .sidebar-menu {
+    border: none;
+  }
+}
+
+.header {
+  background-color: #fff;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+
+  .header-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #303133;
+  }
+
+  .header-user {
+    .el-dropdown-link {
+      cursor: pointer;
+      color: #606266;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+  }
+}
+
+.main-content {
+  background-color: #f0f2f5;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.page-card {
+  background: #fff;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.table-container {
+  margin-top: 20px;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pagination-container {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.form-container {
+  max-width: 800px;
+  margin: 0 auto;
+}

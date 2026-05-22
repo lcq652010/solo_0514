@@ -1,0 +1,28 @@
+{
+  "name": "library-terminal-admin",
+  "version": "1.0.0",
+  "description": "图书馆自助电子借阅下载终端运维管理后台",
+  "private": true,
+  "scripts": {
+    "dev": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "serve": "vue-cli-service serve"
+  },
+  "dependencies": {
+    "vue": "^2.7.14",
+    "vue-router": "^3.6.5",
+    "element-ui": "^2.15.14",
+    "core-js": "^3.30.2"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^5.0.8",
+    "vue-template-compiler": "^2.7.14",
+    "sass": "^1.62.1",
+    "sass-loader": "^13.2.2"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

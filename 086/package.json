@@ -1,0 +1,16 @@
+{
+  "name": "tea-cup-customization",
+  "version": "1.0.0",
+  "description": "传统瓷质茶盏定制系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "live-server --port=8080",
+    "serve": "live-server --port=8080"
+  },
+  "keywords": ["vue", "element-ui", "tea-cup"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

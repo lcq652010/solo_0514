@@ -1,0 +1,17 @@
+{
+  "name": "device-management-system",
+  "version": "1.0.0",
+  "description": "市民服务中心自助证明打印终端运维管理系统",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8000 -o",
+    "dev": "npx http-server -p 8000"
+  },
+  "keywords": [
+    "vue2",
+    "device-management",
+    "element-ui"
+  ],
+  "author": "",
+  "license": "MIT"
+}

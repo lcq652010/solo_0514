@@ -1,0 +1,16 @@
+{
+  "name": "suxiu-handkerchief-custom",
+  "version": "1.0.0",
+  "description": "苏绣手帕定制系统",
+  "main": "index.html",
+  "scripts": {
+    "dev": "serve -p 8080",
+    "start": "serve -p 8080"
+  },
+  "keywords": ["vue2", "element-ui", "suxiu"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}

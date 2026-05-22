@@ -1,0 +1,20 @@
+{
+  "name": "cinema-device-management",
+  "version": "1.0.0",
+  "description": "影院自助取票购票终端运维管理系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "vue": "^2.6.14",
+    "element-ui": "^2.15.13"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^5.0.8",
+    "vue-template-compiler": "^2.6.14"
+  },
+  "author": "",
+  "license": "ISC"
+}

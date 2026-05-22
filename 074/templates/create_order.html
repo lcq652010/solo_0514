@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}提交订单 - 宣纸团扇定制{% endblock %}
+
+{% block content %}
+<h2 style="color: #5D4037; margin-bottom: 30px; text-align: center;">📝 提交定制订单</h2>
+
+<form method="POST" style="max-width: 700px; margin: 0 auto;">
+    <div style="background: #F5F5DC; padding: 25px; border-radius: 10px; margin-bottom: 25px;">
+        <h3 style="color: #8B4513; margin-bottom: 20px;">👤 客户信息</h3>
+        <div class="form-group">
+            <label>姓名 *</label>
+            <input type="text" name="customer_name" required placeholder="请输入您的姓名">
+        </div>
+        <div class="form-group">
+            <label>联系电话 *</label>
+            <input type="tel" name="phone" required placeholder="请输入您的联系电话">
+        </div>
+        <div class="form-group">
+            <label>收货地址 *</label>
+            <textarea name="address" required placeholder="请输入详细收货地址"></textarea>
+        </div>
+    </div>
+
+    <div style="background: #F5F5DC; padding: 25px; border-radius: 10px; margin-bottom: 25px;">
+        <h3 style="color: #8B4513; margin-bottom: 20px;">🎐 宣纸规格</h3>
+        <div class="form-group">
+            <label>宣纸类型 *</label>
+            <select name="paper_type" required>
+                <option value="">请选择宣纸类型</option>
+                {% for paper in paper_types %}
+                <option value="{{ paper }}">{{ paper }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>宣纸型号 *</label>
+            <select name="paper_model" required>
+                <option value="">请选择宣纸型号</option>
+                {% for model in paper_models %}
+                <option value="{{ model }}">{{ model }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div style="background: #F5F5DC; padding: 25px; border-radius: 10px; margin-bottom: 25px;">
+        <h3 style="color: #8B4513; margin-bottom: 20px;">🪭 团扇规格</h3>
+        <div class="form-group">
+            <label>扇面尺寸 *</label>
+            <select name="fan_size" required>
+                <option value="">请选择扇面尺寸</option>
+                {% for size in fan_sizes %}
+                <option value="{{ size }}">{{ size }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>扇骨尺寸 *</label>
+            <select name="fan_bone_size" required>
+                <option value="">请选择扇骨尺寸</option>
+                {% for size in fan_bone_sizes %}
+                <option value="{{ size }}">{{ size }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div style="background: #F5F5DC; padding: 25px; border-radius: 10px; margin-bottom: 25px;">
+        <h3 style="color: #8B4513; margin-bottom: 20px;">🎨 定制内容</h3>
+        <div class="form-group">
+            <label>画面题材 *</label>
+            <select name="theme" required>
+                <option value="">请选择画面题材</option>
+                {% for t in themes %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>图案详细描述 *</label>
+            <textarea name="design_description" required placeholder="请详细描述您想要的图案风格、元素、构图等"></textarea>
+        </div>
+        <div class="form-group">
+            <label>题字内容（选填，最多{{ max_inscription_length }}字）</label>
+            <input type="text" name="inscription" id="inscription" maxlength="{{ max_inscription_length + 10 }}" 
+                   placeholder="如需题字，请输入题字内容（诗词、名言、落款等）" oninput="updateCharCount()">
+            <div id="char-count" style="font-size: 12px; color: #888; margin-top: 5px; text-align: right;">
+                0 / {{ max_inscription_length }} 字
+            </div>
+            <p style="font-size: 11px; color: #999; margin-top: 3px;">提示：仅支持中文、英文、数字及常用标点符号</p>
+        </div>
+
+        <script>
+        function updateCharCount() {
+            const input = document.getElementById('inscription');
+            const countDisplay = document.getElementById('char-count');
+            const maxLength = {{ max_inscription_length }};
+            let count = input.value.length;
+            
+            countDisplay.textContent = count + ' / ' + maxLength + ' 字';
+            
+            if (count > maxLength) {
+                countDisplay.style.color = '#e74c3c';
+                countDisplay.style.fontWeight = 'bold';
+            } else if (count > maxLength * 0.8) {
+                countDisplay.style.color = '#f39c12';
+                countDisplay.style.fontWeight = 'normal';
+            } else {
+                countDisplay.style.color = '#888';
+                countDisplay.style.fontWeight = 'normal';
+            }
+        }
+        </script>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <button type="submit" class="btn" style="font-size: 18px; padding: 15px 50px;">
+            ✅ 提交订单
+        </button>
+    </div>
+</form>
+{% endblock %}

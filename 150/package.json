@@ -1,0 +1,20 @@
+{
+  "name": "hospital-print-terminal-management",
+  "version": "1.0.0",
+  "description": "医院自助病历打印终端运维管理系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^2.7.14",
+    "element-ui": "^2.15.13"
+  },
+  "devDependencies": {
+    "vite": "^4.4.9",
+    "vite-plugin-vue2": "^2.0.3",
+    "vue-template-compiler": "^2.7.14"
+  }
+}

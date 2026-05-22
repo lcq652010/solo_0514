@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>传统砚台定制系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.13/lib/theme-chalk/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background-color: #f5f5f5;
+    }
+    #app {
+      min-height: 100vh;
+    }
+    .el-menu {
+      border-bottom: none !important;
+    }
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .logo i {
+      margin-right: 8px;
+      font-size: 22px;
+    }
+    .nav-items {
+      display: flex;
+    }
+    .order-form-container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    .form-card {
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+      text-align: center;
+    }
+    .card-header h2 {
+      margin: 0 0 8px 0;
+      color: #60463b;
+    }
+    .card-header p {
+      margin: 0;
+      color: #909399;
+      font-size: 14px;
+    }
+    .admin-orders-container {
+      padding: 20px;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .new-order-row {
+      background-color: #f0f9ff !important;
+    }
+    .operation-log {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f5f7fa;
+      border-radius: 4px;
+    }
+    .operation-item {
+      padding: 5px 0;
+      font-size: 12px;
+      color: #606266;
+      border-bottom: 1px dashed #e4e7ed;
+    }
+    .operation-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <el-menu :default-active="activeMenu" mode="horizontal" background-color="#60463b" text-color="#fff" active-text-color="#ffd04b">
+      <div class="nav-container">
+        <div class="logo">
+          <i class="el-icon-collection"></i>
+          <span>传统砚台定制系统</span>
+        </div>
+        <div class="nav-items">
+          <el-menu-item index="order" @click="currentPage = 'order'">
+            <i class="el-icon-edit"></i>
+            <span>客户下单</span>
+          </el-menu-item>
+          <el-menu-item index="admin" @click="currentPage = 'admin'">
+            <i class="el-icon-s-order"></i>
+            <span>订单管理</span>
+          </el-menu-item>
+        </div>
+      </div>
+    </el-menu>
+
+    <div v-if="currentPage === 'order'" class="order-form-container">
+      <el-card class="form-card">
+        <div slot="header" class="card-header">
+          <h2>传统砚台定制</h2>
+          <p>匠心工艺，专属定制</p>
+        </div>
+
+        <el-form :model="orderForm" :rules="rules" ref="orderForm" label-width="120px">
+          <el-divider content-position="left">砚石材质</el-divider>
+          <el-form-item label="砚石材质" prop="material">
+            <el-select v-model="orderForm.material" placeholder="请选择砚石材质" style="width: 100%">
+              <el-option v-for="item in materials" :key="item.value" :label="item.label" :value="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-divider content-position="left">砚台样式</el-divider>
+          <el-form-item label="砚台样式" prop="style">
+            <el-radio-group v-model="orderForm.style">
+              <el-radio-button v-for="item in styles" :key="item.value" :label="item.value">{{ item.label }}</el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+
+          <el-divider content-position="left">尺寸规格</el-divider>
+          <el-form-item label="长度 (cm)" prop="length">
+            <el-input-number v-model="orderForm.length" :min="5" :max="50" :step="0.5" style="width: 100%"></el-input-number>
+          </el-form-item>
+          <el-form-item label="宽度 (cm)" prop="width">
+            <el-input-number v-model="orderForm.width" :min="5" :max="40" :step="0.5" style="width: 100%"></el-input-number>
+          </el-form-item>
+          <el-form-item label="厚度 (cm)" prop="thickness">
+            <el-input-number v-model="orderForm.thickness" :min="1" :max="10" :step="0.5" style="width: 100%"></el-input-number>
+          </el-form-item>
+
+          <el-divider content-position="left">雕刻题材</el-divider>
+          <el-form-item label="雕刻题材" prop="carving">
+            <el-select v-model="orderForm.carving" placeholder="请选择雕刻题材" style="width: 100%">
+              <el-option v-for="item in carvings" :key="item.value" :label="item.label" :value="item.value"></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-divider content-position="left">刻字服务</el-divider>
+          <el-form-item label="是否刻字">
+            <el-switch v-model="orderForm.needEngraving"></el-switch>
+          </el-form-item>
+          <el-form-item v-if="orderForm.needEngraving" label="刻字内容" prop="engravingText">
+            <el-input v-model="orderForm.engravingText" type="textarea" :rows="3" placeholder="请输入刻字内容" maxlength="50" show-word-limit></el-input>
+          </el-form-item>
+
+          <el-divider content-position="left">订单留言</el-divider>
+          <el-form-item label="订单留言" prop="message">
+            <el-input v-model="orderForm.message" type="textarea" :rows="4" placeholder="请输入其他定制要求或留言" maxlength="200" show-word-limit></el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" size="large" @click="submitOrder" style="width: 100%">提交订单</el-button>
+          </el-form-item>
+        </el-form>
+      </el-card>
+    </div>
+
+    <div v-if="currentPage === 'admin'" class="admin-orders-container">
+      <el-card>
+        <div slot="header" class="admin-header">
+          <span>砚台定制订单管理</span>
+          <div>
+            <el-input v-model="operator" placeholder="请输入操作人姓名" size="small" style="width: 150px; margin-right: 10px;"></el-input>
+            <el-button type="primary" size="small" @click="loadOrders">刷新订单</el-button>
+          </div>
+        </div>
+
+        <el-table :data="orders" border stripe style="width: 100%" v-loading="loading" :row-class-name="getRowClassName">
+          <el-table-column prop="id" label="订单编号" width="180"></el-table-column>
+          <el-table-column label="砚石材质" width="120">
+            <template slot-scope="scope">
+              {{ getMaterialLabel(scope.row.material) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="砚台样式" width="100">
+            <template slot-scope="scope">
+              {{ getStyleLabel(scope.row.style) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="尺寸 (cm)" width="150">
+            <template slot-scope="scope">
+              {{ scope.row.length }} × {{ scope.row.width }} × {{ scope.row.thickness }}
+            </template>
+          </el-table-column>
+          <el-table-column label="雕刻题材" width="100">
+            <template slot-scope="scope">
+              {{ getCarvingLabel(scope.row.carving) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="刻字" width="80">
+            <template slot-scope="scope">
+              <el-tag :type="scope.row.needEngraving ? 'success' : 'info'" size="small">
+                {{ scope.row.needEngraving ? '是' : '否' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="createTime" label="下单时间" width="180"></el-table-column>
+          <el-table-column label="生产工序" width="450">
+            <template slot-scope="scope">
+              <el-steps :active="scope.row.status" finish-status="success" align-center size="small">
+                <el-step v-for="step in processSteps" :key="step.value" :title="step.label"></el-step>
+              </el-steps>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="80">
+            <template slot-scope="scope">
+              <el-tag v-if="scope.row.isNew" type="warning" size="small">新订单</el-tag>
+              <el-tag v-else size="small">已处理</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="250" fixed="right">
+            <template slot-scope="scope">
+              <el-button-group>
+                <el-button size="small" type="primary" @click="viewDetail(scope.row)">详情</el-button>
+                <el-button v-if="scope.row.isNew" size="small" type="info" @click="markAsRead(scope.row)">标记已读</el-button>
+                <el-button size="small" type="success" @click="nextStep(scope.row)" :disabled="scope.row.status >= 7">
+                  下一工序
+                </el-button>
+              </el-button-group>
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <el-empty v-if="orders.length === 0 && !loading" description="暂无订单数据"></el-empty>
+      </el-card>
+
+      <el-dialog title="订单详情" :visible.sync="detailVisible" width="600px">
+        <el-descriptions :column="1" border v-if="currentOrder">
+          <el-descriptions-item label="订单编号">{{ currentOrder.id }}</el-descriptions-item>
+          <el-descriptions-item label="砚石材质">{{ getMaterialLabel(currentOrder.material) }}</el-descriptions-item>
+          <el-descriptions-item label="砚台样式">{{ getStyleLabel(currentOrder.style) }}</el-descriptions-item>
+          <el-descriptions-item label="尺寸规格">{{ currentOrder.length }} × {{ currentOrder.width }} × {{ currentOrder.thickness }} cm</el-descriptions-item>
+          <el-descriptions-item label="雕刻题材">{{ getCarvingLabel(currentOrder.carving) }}</el-descriptions-item>
+          <el-descriptions-item label="是否刻字">{{ currentOrder.needEngraving ? '是' : '否' }}</el-descriptions-item>
+          <el-descriptions-item v-if="currentOrder.needEngraving" label="刻字内容">
+            <span style="color: #409EFF">{{ currentOrder.engravingText }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="订单留言">{{ currentOrder.message || '无' }}</el-descriptions-item>
+          <el-descriptions-item label="下单时间">{{ currentOrder.createTime }}</el-descriptions-item>
+          <el-descriptions-item label="当前工序">
+            <el-tag type="success">{{ processSteps[currentOrder.status].label }}</el-tag>
+          </el-descriptions-item>
+        </el-descriptions>
+        <div v-if="currentOrder && currentOrder.operationLogs && currentOrder.operationLogs.length > 0" class="operation-log">
+          <div style="font-weight: bold; margin-bottom: 8px; color: #303133;">工序操作日志</div>
+          <div v-for="(log, index) in currentOrder.operationLogs" :key="index" class="operation-item">
+            <span style="color: #409EFF;">[{{ log.from }} → {{ log.to }}]</span>
+            <span> 操作人: {{ log.operator }}</span>
+            <span style="float: right;">{{ log.time }}</span>
+          </div>
+        </div>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="detailVisible = false">关闭</el-button>
+        </div>
+      </el-dialog>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@2.7.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.13/lib/index.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        currentPage: 'order',
+        activeMenu: 'order',
+        loading: false,
+        detailVisible: false,
+        currentOrder: null,
+        operator: '',
+        orderForm: {
+          material: '',
+          style: '',
+          length: 20,
+          width: 15,
+          thickness: 3,
+          carving: '',
+          needEngraving: false,
+          engravingText: '',
+          message: ''
+        },
+        orders: [],
+        rules: {
+          material: [
+            { required: true, message: '请选择砚石材质', trigger: 'change' }
+          ],
+          style: [
+            { required: true, message: '请选择砚台样式', trigger: 'change' }
+          ],
+          length: [
+            { required: true, message: '请输入长度', trigger: 'blur' },
+            { type: 'number', min: 5, max: 50, message: '长度需在 5-50cm 之间', trigger: 'blur' }
+          ],
+          width: [
+            { required: true, message: '请输入宽度', trigger: 'blur' },
+            { type: 'number', min: 5, max: 40, message: '宽度需在 5-40cm 之间', trigger: 'blur' }
+          ],
+          thickness: [
+            { required: true, message: '请输入厚度', trigger: 'blur' },
+            { type: 'number', min: 1, max: 10, message: '厚度需在 1-10cm 之间', trigger: 'blur' }
+          ],
+          carving: [
+            { required: true, message: '请选择雕刻题材', trigger: 'change' }
+          ],
+          engravingText: [
+            { required: true, message: '请输入刻字内容', trigger: 'blur' }
+          ]
+        },
+        processSteps: [
+          { value: 0, label: '选石' },
+          { value: 1, label: '切坯' },
+          { value: 2, label: '粗雕' },
+          { value: 3, label: '细雕' },
+          { value: 4, label: '打磨' },
+          { value: 5, label: '刻字' },
+          { value: 6, label: '上蜡' },
+          { value: 7, label: '完工' }
+        ],
+        materials: [
+          { label: '端石 (广东肇庆)', value: 'duanshi' },
+          { label: '歙石 (安徽歙县)', value: 'sheshi' },
+          { label: '洮河石 (甘肃)', value: 'taohe' },
+          { label: '澄泥 (山西绛州)', value: 'chengni' },
+          { label: '红丝石 (山东)', value: 'hongsi' },
+          { label: '松花石 (吉林)', value: 'songhua' }
+        ],
+        styles: [
+          { label: '圆形', value: 'circle' },
+          { label: '方形', value: 'square' },
+          { label: '长方形', value: 'rectangle' },
+          { label: '随形', value: 'freeform' },
+          { label: '古琴式', value: 'guqin' },
+          { label: '箕形', value: 'ji' }
+        ],
+        carvings: [
+          { label: '山水风景', value: 'landscape' },
+          { label: '花鸟虫鱼', value: 'flower' },
+          { label: '龙凤呈祥', value: 'dragon' },
+          { label: '松竹梅兰', value: 'bamboo' },
+          { label: '人物典故', value: 'figure' },
+          { label: '素面无雕', value: 'plain' }
+        ]
+      },
+      watch: {
+        currentPage(val) {
+          this.activeMenu = val;
+          if (val === 'admin') {
+            this.loadOrders();
+          }
+        }
+      },
+      methods: {
+        submitOrder() {
+          this.$refs.orderForm.validate((valid) => {
+            if (valid) {
+              const order = {
+                id: 'ORD' + Date.now(),
+                ...JSON.parse(JSON.stringify(this.orderForm)),
+                status: 0,
+                createTime: new Date().toLocaleString(),
+                isNew: true,
+                timestamp: Date.now(),
+                operationLogs: []
+              };
+              
+              const orders = JSON.parse(localStorage.getItem('inkstoneOrders') || '[]');
+              orders.unshift(order);
+              localStorage.setItem('inkstoneOrders', JSON.stringify(orders));
+              
+              this.loadOrders();
+              
+              this.$message.success('订单提交成功！');
+              this.$refs.orderForm.resetFields();
+              this.orderForm.needEngraving = false;
+            } else {
+              this.$message.error('请完善订单信息');
+              return false;
+            }
+          });
+        },
+        loadOrders() {
+          this.loading = true;
+          setTimeout(() => {
+            const orders = JSON.parse(localStorage.getItem('inkstoneOrders') || '[]');
+            this.orders = orders.map(order => ({
+              ...order,
+              isNew: order.isNew !== undefined ? order.isNew : true,
+              timestamp: order.timestamp || Date.now(),
+              operationLogs: order.operationLogs || []
+            })).sort((a, b) => b.timestamp - a.timestamp);
+            this.loading = false;
+          }, 300);
+        },
+        getRowClassName({ row, rowIndex }) {
+          if (row.isNew) {
+            return 'new-order-row';
+          }
+          return '';
+        },
+        markAsRead(row) {
+          const index = this.orders.findIndex(item => item.id === row.id);
+          if (index !== -1) {
+            this.orders[index].isNew = false;
+            localStorage.setItem('inkstoneOrders', JSON.stringify(this.orders));
+            this.$message.success('已标记为已读');
+          }
+        },
+        getMaterialLabel(value) {
+          const item = this.materials.find(m => m.value === value);
+          return item ? item.label.split(' ')[0] : value;
+        },
+        getStyleLabel(value) {
+          const item = this.styles.find(s => s.value === value);
+          return item ? item.label : value;
+        },
+        getCarvingLabel(value) {
+          const item = this.carvings.find(c => c.value === value);
+          return item ? item.label : value;
+        },
+        viewDetail(row) {
+          this.currentOrder = row;
+          this.detailVisible = true;
+        },
+        nextStep(row) {
+          if (!this.operator || this.operator.trim() === '') {
+            this.$message.warning('请先输入操作人姓名');
+            return;
+          }
+          
+          if (row.status >= 7) {
+            this.$message.warning('该订单已完工，无需继续推进');
+            return;
+          }
+          
+          const nextStatus = row.status + 1;
+          
+          if (nextStatus > 7) {
+            this.$message.error('工序已达终点');
+            return;
+          }
+          
+          this.$confirm(`确定将订单从「${this.processSteps[row.status].label}」推进到「${this.processSteps[nextStatus].label}」工序吗？`, '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            const index = this.orders.findIndex(item => item.id === row.id);
+            if (index !== -1) {
+              if (this.orders[index].status === row.status) {
+                const log = {
+                  from: this.processSteps[row.status].label,
+                  to: this.processSteps[nextStatus].label,
+                  operator: this.operator.trim(),
+                  time: new Date().toLocaleString()
+                };
+                
+                if (!this.orders[index].operationLogs) {
+                  this.$set(this.orders[index], 'operationLogs', []);
+                }
+                this.orders[index].operationLogs.push(log);
+                this.orders[index].status = nextStatus;
+                this.orders[index].isNew = false;
+                
+                localStorage.setItem('inkstoneOrders', JSON.stringify(this.orders));
+                this.$message.success(`已推进至「${this.processSteps[nextStatus].label}」工序！`);
+              } else {
+                this.$message.error('工序状态已变更，请刷新后重试');
+                this.loadOrders();
+              }
+            }
+          }).catch(() => {});
+        }
+      }
+    });
+  </script>
+</body>
+</html>

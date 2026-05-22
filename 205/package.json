@@ -1,0 +1,24 @@
+{
+  "name": "recruitment-management",
+  "version": "1.0.0",
+  "description": "招聘面试管理系统",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^2.7.14",
+    "vue-router": "^3.6.5",
+    "element-ui": "^2.15.14",
+    "axios": "^1.6.0",
+    "moment": "^2.29.4"
+  },
+  "devDependencies": {
+    "vite": "^4.5.0",
+    "vite-plugin-vue2": "^2.0.3",
+    "vue-template-compiler": "^2.7.14",
+    "sass": "^1.69.0",
+    "sass-loader": "^13.3.2"
+  }
+}

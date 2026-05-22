@@ -1,0 +1,16 @@
+{
+  "name": "traffic-violation-terminal-system",
+  "version": "1.0.0",
+  "description": "交通违法自助处理缴款终端运维管理系统",
+  "main": "index.html",
+  "scripts": {
+    "dev": "serve -s .",
+    "start": "serve -s ."
+  },
+  "keywords": ["vue2", "traffic", "management"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}

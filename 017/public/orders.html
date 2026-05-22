@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生产订单管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #667eea;
+        }
+        .nav-tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.3s;
+        }
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+            border-bottom: 3px solid #667eea;
+        }
+        .nav-tab:hover {
+            color: #667eea;
+        }
+        .content {
+            padding: 30px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .statistics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-card.pending {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .stat-card.producing {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .stat-card.completed {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .filter-group label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+        .filter-group input,
+        .filter-group select {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+            white-space: nowrap;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-producing {
+            background: #cce5ff;
+            color: #004085;
+        }
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .priority-high {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .priority-medium {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .priority-low {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .pagination button {
+            padding: 8px 15px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+        }
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pagination span {
+            color: #666;
+        }
+        .message {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        .modal-header h2 {
+            color: #333;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        .form-group label {
+            font-weight: 500;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .dimension-inputs {
+            display: flex;
+            gap: 10px;
+        }
+        .dimension-inputs input {
+            flex: 1;
+        }
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+        .process-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .process-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .process-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .process-card.grooving {
+            border-left-color: #f5576c;
+        }
+        .process-card.joining {
+            border-left-color: #38ef7d;
+        }
+        .process-card.carving {
+            border-left-color: #4facfe;
+        }
+        .process-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .process-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .process-card li {
+            padding: 5px 0;
+            color: #666;
+            padding-left: 20px;
+            position: relative;
+        }
+        .process-card li:before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .specs-tag {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 5px;
+            margin-top: 5px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏭 生产订单管理系统</h1>
+            <p>木料家具生产 - 订单与工艺管理</p>
+        </div>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('orders')">订单列表</button>
+            <button class="nav-tab" onclick="switchTab('process')">工序指导</button>
+        </div>
+        
+        <div class="content">
+            <div id="message" class="message"></div>
+            
+            <div id="orders-tab" class="tab-content active">
+                <div class="statistics" id="orderStatistics">
+                    <div class="stat-card">
+                        <div class="stat-number" id="statTotal">0</div>
+                        <div class="stat-label">总订单数</div>
+                    </div>
+                    <div class="stat-card pending">
+                        <div class="stat-number" id="statPending">0</div>
+                        <div class="stat-label">待生产</div>
+                    </div>
+                    <div class="stat-card producing">
+                        <div class="stat-number" id="statProducing">0</div>
+                        <div class="stat-label">生产中</div>
+                    </div>
+                    <div class="stat-card completed">
+                        <div class="stat-number" id="statCompleted">0</div>
+                        <div class="stat-label">已完成</div>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>订单编号</label>
+                            <input type="text" id="filterOrderNo" placeholder="输入订单号">
+                        </div>
+                        <div class="filter-group">
+                            <label>客户姓名</label>
+                            <input type="text" id="filterCustomer" placeholder="输入客户姓名">
+                        </div>
+                        <div class="filter-group">
+                            <label>木料品种</label>
+                            <select id="filterWoodType">
+                                <option value="">全部木料</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>订单状态</label>
+                            <select id="filterStatus">
+                                <option value="">全部状态</option>
+                                <option value="待生产">待生产</option>
+                                <option value="生产中">生产中</option>
+                                <option value="已完成">已完成</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadOrders()">查询</button>
+                        <button class="btn btn-secondary" onclick="resetFilter()">重置</button>
+                        <button class="btn btn-success" onclick="openOrderModal()">+ 新建订单</button>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>订单编号</th>
+                                <th>客户</th>
+                                <th>产品名称</th>
+                                <th>木料品种</th>
+                                <th>外形尺寸</th>
+                                <th>槽型</th>
+                                <th>雕花风格</th>
+                                <th>数量</th>
+                                <th>状态</th>
+                                <th>优先级</th>
+                                <th>交货日期</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTable">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="pagination">
+                </div>
+            </div>
+            
+            <div id="process-tab" class="tab-content">
+                <div class="filter-section">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>选择订单</label>
+                            <select id="processOrderSelect">
+                                <option value="">请选择订单查看工序指导</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadProcessInstructions()">查看工序指导</button>
+                    </div>
+                </div>
+                <div id="processContent">
+                    <div style="text-align: center; color: #999; padding: 50px;">
+                        请选择订单查看详细的挖槽、拼接、雕花工序指导
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">新建订单</h2>
+                <button class="close-btn" onclick="closeOrderModal()">&times;</button>
+            </div>
+            <form id="orderForm">
+                <input type="hidden" id="orderId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>客户姓名 *</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>产品名称 *</label>
+                        <input type="text" id="productName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>木料品种 *</label>
+                        <select id="woodType" required>
+                            <option value="">请选择木料</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>数量 *</label>
+                        <input type="number" id="quantity" min="1" value="1" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>外形尺寸（长×宽×高，单位：mm）*</label>
+                        <div class="dimension-inputs">
+                            <input type="number" id="dimLength" placeholder="长" min="1" required>
+                            <input type="number" id="dimWidth" placeholder="宽" min="1" required>
+                            <input type="number" id="dimHeight" placeholder="高" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>内胆槽型 *</label>
+                        <select id="grooveType" required>
+                            <option value="">请选择槽型</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>雕花风格 *</label>
+                        <select id="carvingStyle" required>
+                            <option value="">请选择雕花风格</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>订单状态</label>
+                        <select id="orderStatus">
+                            <option value="待生产">待生产</option>
+                            <option value="生产中">生产中</option>
+                            <option value="已完成">已完成</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>优先级</label>
+                        <select id="priority">
+                            <option value="高">高</option>
+                            <option value="中">中</option>
+                            <option value="低">低</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>交货日期</label>
+                        <input type="date" id="deliveryDate">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>挖槽工艺要求</label>
+                        <textarea id="groovingReq" placeholder="请输入挖槽工艺的具体要求..."></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>拼接工艺要求</label>
+                        <textarea id="joiningReq" placeholder="请输入拼接工艺的具体要求..."></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>雕花工艺要求</label>
+                        <textarea id="carvingReq" placeholder="请输入雕花工艺的具体要求..."></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>备注</label>
+                        <textarea id="remarks" placeholder="其他备注信息..."></textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeOrderModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const pageSize = 10;
+        let editingOrderId = null;
+        
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'process') {
+                loadOrderSelectOptions();
+            }
+        }
+        
+        function showMessage(message, type = 'success') {
+            const msgEl = document.getElementById('message');
+            msgEl.textContent = message;
+            msgEl.className = `message ${type}`;
+            msgEl.style.display = 'block';
+            
+            setTimeout(() => {
+                msgEl.style.display = 'none';
+            }, 3000);
+        }
+        
+        async function loadSelectOptions() {
+            try {
+                const [woodRes, grooveRes, carvingRes] = await Promise.all([
+                    fetch('/api/wood-types'),
+                    fetch('/api/groove-types'),
+                    fetch('/api/carving-styles')
+                ]);
+                
+                const woodData = await woodRes.json();
+                const grooveData = await grooveRes.json();
+                const carvingData = await carvingRes.json();
+                
+                const woodSelect = document.getElementById('woodType');
+                const filterWoodSelect = document.getElementById('filterWoodType');
+                woodData.data.forEach(item => {
+                    woodSelect.add(new Option(item.name + ' - ' + item.description, item.name));
+                    filterWoodSelect.add(new Option(item.name, item.name));
+                });
+                
+                const grooveSelect = document.getElementById('grooveType');
+                grooveData.data.forEach(item => {
+                    grooveSelect.add(new Option(item.name + ' - ' + item.description, item.name));
+                });
+                
+                const carvingSelect = document.getElementById('carvingStyle');
+                carvingData.data.forEach(item => {
+                    carvingSelect.add(new Option(item.name + ' - ' + item.description, item.name));
+                });
+            } catch (error) {
+                console.error('加载选项失败:', error);
+            }
+        }
+        
+        async function loadOrderSelectOptions() {
+            try {
+                const response = await fetch('/api/orders?pageSize=100');
+                const result = await response.json();
+                
+                const select = document.getElementById('processOrderSelect');
+                select.innerHTML = '<option value="">请选择订单查看工序指导</option>';
+                
+                result.data.forEach(order => {
+                    const option = new Option(
+                        `${order.orderNo} - ${order.customerName} - ${order.productName}`,
+                        order.id
+                    );
+                    select.add(option);
+                });
+            } catch (error) {
+                console.error('加载订单列表失败:', error);
+            }
+        }
+        
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/orders/statistics/summary');
+                const result = await response.json();
+                
+                document.getElementById('statTotal').textContent = result.data.total;
+                document.getElementById('statPending').textContent = result.data.pending;
+                document.getElementById('statProducing').textContent = result.data.producing;
+                document.getElementById('statCompleted').textContent = result.data.completed;
+            } catch (error) {
+                console.error('加载统计数据失败:', error);
+            }
+        }
+        
+        async function loadOrders() {
+            const orderNo = document.getElementById('filterOrderNo').value;
+            const customerName = document.getElementById('filterCustomer').value;
+            const woodType = document.getElementById('filterWoodType').value;
+            const status = document.getElementById('filterStatus').value;
+            
+            let url = `/api/orders?page=${currentPage}&pageSize=${pageSize}`;
+            if (orderNo) url += `&orderNo=${encodeURIComponent(orderNo)}`;
+            if (customerName) url += `&customerName=${encodeURIComponent(customerName)}`;
+            if (woodType) url += `&woodType=${encodeURIComponent(woodType)}`;
+            if (status) url += `&status=${encodeURIComponent(status)}`;
+            
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                const tableBody = document.getElementById('ordersTable');
+                tableBody.innerHTML = '';
+                
+                result.data.forEach(order => {
+                    const row = document.createElement('tr');
+                    
+                    let statusClass = 'status-pending';
+                    if (order.status === '生产中') statusClass = 'status-producing';
+                    if (order.status === '已完成') statusClass = 'status-completed';
+                    
+                    let priorityClass = 'priority-medium';
+                    if (order.priority === '高') priorityClass = 'priority-high';
+                    if (order.priority === '低') priorityClass = 'priority-low';
+                    
+                    row.innerHTML = `
+                        <td><strong>${order.orderNo}</strong></td>
+                        <td>${order.customerName}</td>
+                        <td>${order.productName}</td>
+                        <td>${order.woodType}</td>
+                        <td>${order.dimensions.length}×${order.dimensions.width}×${order.dimensions.height}${order.dimensions.unit || 'mm'}</td>
+                        <td>${order.grooveType}</td>
+                        <td>${order.carvingStyle}</td>
+                        <td>${order.quantity}</td>
+                        <td><span class="status-badge ${statusClass}">${order.status}</span></td>
+                        <td><span class="${priorityClass}">${order.priority}</span></td>
+                        <td>${order.deliveryDate || '-'}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-primary btn-sm" onclick="viewProcess(${order.id})">工序</button>
+                                <button class="btn btn-success btn-sm" onclick="editOrder(${order.id})">编辑</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.id})">删除</button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                renderPagination(result.pagination);
+            } catch (error) {
+                showMessage('加载订单失败: ' + error.message, 'error');
+            }
+        }
+        
+        function renderPagination(pagination) {
+            const paginationEl = document.getElementById('pagination');
+            paginationEl.innerHTML = '';
+            
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '上一页';
+            prevBtn.disabled = pagination.page <= 1;
+            prevBtn.onclick = () => {
+                currentPage--;
+                loadOrders();
+            };
+            paginationEl.appendChild(prevBtn);
+            
+            const pageInfo = document.createElement('span');
+            pageInfo.textContent = `第 ${pagination.page} 页 / 共 ${pagination.totalPages} 页 (${pagination.total} 条记录)`;
+            paginationEl.appendChild(pageInfo);
+            
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = '下一页';
+            nextBtn.disabled = pagination.page >= pagination.totalPages;
+            nextBtn.onclick = () => {
+                currentPage++;
+                loadOrders();
+            };
+            paginationEl.appendChild(nextBtn);
+        }
+        
+        function resetFilter() {
+            document.getElementById('filterOrderNo').value = '';
+            document.getElementById('filterCustomer').value = '';
+            document.getElementById('filterWoodType').value = '';
+            document.getElementById('filterStatus').value = '';
+            currentPage = 1;
+            loadOrders();
+        }
+        
+        function openOrderModal(order = null) {
+            const modal = document.getElementById('orderModal');
+            const title = document.getElementById('modalTitle');
+            
+            if (order) {
+                title.textContent = '编辑订单';
+                editingOrderId = order.id;
+                document.getElementById('orderId').value = order.id;
+                document.getElementById('customerName').value = order.customerName;
+                document.getElementById('productName').value = order.productName;
+                document.getElementById('woodType').value = order.woodType;
+                document.getElementById('quantity').value = order.quantity;
+                document.getElementById('dimLength').value = order.dimensions.length;
+                document.getElementById('dimWidth').value = order.dimensions.width;
+                document.getElementById('dimHeight').value = order.dimensions.height;
+                document.getElementById('grooveType').value = order.grooveType;
+                document.getElementById('carvingStyle').value = order.carvingStyle;
+                document.getElementById('orderStatus').value = order.status;
+                document.getElementById('priority').value = order.priority;
+                document.getElementById('deliveryDate').value = order.deliveryDate;
+                document.getElementById('groovingReq').value = order.processRequirements?.grooving || '';
+                document.getElementById('joiningReq').value = order.processRequirements?.joining || '';
+                document.getElementById('carvingReq').value = order.processRequirements?.carving || '';
+                document.getElementById('remarks').value = order.remarks || '';
+            } else {
+                title.textContent = '新建订单';
+                editingOrderId = null;
+                document.getElementById('orderForm').reset();
+                document.getElementById('orderId').value = '';
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        function closeOrderModal() {
+            document.getElementById('orderModal').classList.remove('active');
+            editingOrderId = null;
+        }
+        
+        async function editOrder(id) {
+            try {
+                const response = await fetch(`/api/orders/${id}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    openOrderModal(result.data);
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('加载订单详情失败: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteOrder(id) {
+            if (!confirm('确定要删除此订单吗？')) return;
+            
+            try {
+                const response = await fetch(`/api/orders/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message);
+                    loadOrders();
+                    loadStatistics();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('删除订单失败: ' + error.message, 'error');
+            }
+        }
+        
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const orderData = {
+                customerName: document.getElementById('customerName').value,
+                productName: document.getElementById('productName').value,
+                woodType: document.getElementById('woodType').value,
+                quantity: parseInt(document.getElementById('quantity').value),
+                dimensions: {
+                    length: parseInt(document.getElementById('dimLength').value),
+                    width: parseInt(document.getElementById('dimWidth').value),
+                    height: parseInt(document.getElementById('dimHeight').value),
+                    unit: 'mm'
+                },
+                grooveType: document.getElementById('grooveType').value,
+                carvingStyle: document.getElementById('carvingStyle').value,
+                status: document.getElementById('orderStatus').value,
+                priority: document.getElementById('priority').value,
+                deliveryDate: document.getElementById('deliveryDate').value,
+                processRequirements: {
+                    grooving: document.getElementById('groovingReq').value,
+                    joining: document.getElementById('joiningReq').value,
+                    carving: document.getElementById('carvingReq').value
+                },
+                remarks: document.getElementById('remarks').value
+            };
+            
+            try {
+                let response;
+                if (editingOrderId) {
+                    response = await fetch(`/api/orders/${editingOrderId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(orderData)
+                    });
+                } else {
+                    response = await fetch('/api/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(orderData)
+                    });
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message);
+                    closeOrderModal();
+                    loadOrders();
+                    loadStatistics();
+                } else {
+                    showMessage(result.message + ': ' + (result.errors?.join(', ') || ''), 'error');
+                }
+            } catch (error) {
+                showMessage('保存订单失败: ' + error.message, 'error');
+            }
+        });
+        
+        async function viewProcess(orderId) {
+            switchTab('process');
+            document.getElementById('processOrderSelect').value = orderId;
+            await loadOrderSelectOptions();
+            document.getElementById('processOrderSelect').value = orderId;
+            loadProcessInstructions();
+        }
+        
+        async function loadProcessInstructions() {
+            const orderId = document.getElementById('processOrderSelect').value;
+            
+            if (!orderId) {
+                document.getElementById('processContent').innerHTML = `
+                    <div style="text-align: center; color: #999; padding: 50px;">
+                        请选择订单查看详细的挖槽、拼接、雕花工序指导
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const [orderRes, processRes] = await Promise.all([
+                    fetch(`/api/orders/${orderId}`),
+                    fetch(`/api/orders/${orderId}/process-instructions`)
+                ]);
+                
+                const orderResult = await orderRes.json();
+                const processResult = await processRes.json();
+                
+                if (!orderResult.success || !processResult.success) {
+                    showMessage('加载工序指导失败', 'error');
+                    return;
+                }
+                
+                const order = orderResult.data;
+                const process = processResult.data;
+                
+                document.getElementById('processContent').innerHTML = `
+                    <div class="process-section">
+                        <h3>📋 订单基本信息</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                            <div><strong>订单编号:</strong> ${order.orderNo}</div>
+                            <div><strong>客户:</strong> ${order.customerName}</div>
+                            <div><strong>产品:</strong> ${order.productName}</div>
+                            <div><strong>木料品种:</strong> ${order.woodType}</div>
+                            <div><strong>尺寸:</strong> ${order.dimensions.length}×${order.dimensions.width}×${order.dimensions.height}mm</div>
+                            <div><strong>数量:</strong> ${order.quantity}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="process-card grooving">
+                        <h4>🔧 挖槽工序指导</h4>
+                        <div>
+                            <strong>槽型选择:</strong> ${process.grooving.grooveType}
+                            ${process.grooving.specifications ? `
+                                <div style="margin-top: 10px;">
+                                    <strong>技术参数:</strong><br>
+                                    ${Object.entries(process.grooving.specifications).filter(([k]) => k !== 'id' && k !== 'name').map(([k, v]) => 
+                                        `<span class="specs-tag">${k}: ${v}</span>`
+                                    ).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <strong>操作说明:</strong>
+                            <ul>
+                                ${process.grooving.instructions.map(i => `<li>${i}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ${order.processRequirements?.grooving ? `
+                            <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 6px;">
+                                <strong>⚠️ 客户特殊要求:</strong> ${order.processRequirements.grooving}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="process-card joining">
+                        <h4>🔗 拼接工序指导</h4>
+                        <div>
+                            <strong>木料类型:</strong> ${process.joining.woodType}
+                            ${process.joining.woodProperties?.description ? `
+                                <div style="margin-top: 10px;">
+                                    <span class="specs-tag">材料特性: ${process.joining.woodProperties.description}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <strong>操作说明:</strong>
+                            <ul>
+                                ${process.joining.instructions.map(i => `<li>${i}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ${order.processRequirements?.joining ? `
+                            <div style="margin-top: 15px; padding: 10px; background: #d4edda; border-radius: 6px;">
+                                <strong>⚠️ 客户特殊要求:</strong> ${order.processRequirements.joining}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="process-card carving">
+                        <h4>🎨 雕花工序指导</h4>
+                        <div>
+                            <strong>雕花风格:</strong> ${process.carving.style}
+                            ${process.carving.styleInfo ? `
+                                <div style="margin-top: 10px;">
+                                    <span class="specs-tag">工艺: ${process.carving.styleInfo.style}</span>
+                                    <span class="specs-tag">难度: ${process.carving.styleInfo.difficulty}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <strong>操作说明:</strong>
+                            <ul>
+                                ${process.carving.instructions.map(i => `<li>${i}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ${order.processRequirements?.carving ? `
+                            <div style="margin-top: 15px; padding: 10px; background: #cce5ff; border-radius: 6px;">
+                                <strong>⚠️ 客户特殊要求:</strong> ${order.processRequirements.carving}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${order.remarks ? `
+                        <div class="process-section">
+                            <h3>📝 备注信息</h3>
+                            <p>${order.remarks}</p>
+                        </div>
+                    ` : ''}
+                `;
+            } catch (error) {
+                showMessage('加载工序指导失败: ' + error.message, 'error');
+            }
+        }
+        
+        loadSelectOptions();
+        loadOrders();
+        loadStatistics();
+    </script>
+</body>
+</html>

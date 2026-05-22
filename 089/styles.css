@@ -1,0 +1,203 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+    background-color: #f5f7fa;
+}
+
+#app {
+    min-height: 100vh;
+}
+
+.el-container {
+    min-height: 100vh;
+}
+
+.el-header {
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    color: white;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-content h1 {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: 2px;
+}
+
+.el-main {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.order-form-container,
+.admin-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+    padding: 30px;
+}
+
+.page-title {
+    font-size: 20px;
+    color: #303133;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #8B4513;
+}
+
+.form-layout {
+    display: flex;
+    gap: 40px;
+}
+
+.form-left,
+.form-right {
+    flex: 1;
+}
+
+.submit-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ebeef5;
+    text-align: center;
+}
+
+.status-tag {
+    font-weight: 500;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-下料 {
+    background-color: #ecf5ff;
+    color: #409EFF;
+}
+
+.status-折弯 {
+    background-color: #f0f9eb;
+    color: #67C23A;
+}
+
+.status-焊接 {
+    background-color: #fdf6ec;
+    color: #E6A23C;
+}
+
+.status-打磨 {
+    background-color: #fef0f0;
+    color: #F56C6C;
+}
+
+.status-表面处理 {
+    background-color: #f4e4ff;
+    color: #909399;
+}
+
+.status-防锈 {
+    background-color: #e6f7ff;
+    color: #1890ff;
+}
+
+.status-完工 {
+    background-color: #52c41a;
+    color: white;
+}
+
+.order-table {
+    margin-top: 20px;
+}
+
+.el-input-number {
+    width: 100%;
+}
+
+.el-select {
+    width: 100%;
+}
+
+.el-textarea {
+    width: 100%;
+}
+
+.el-button--primary {
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    border: none;
+}
+
+.el-button--primary:hover {
+    background: linear-gradient(135deg, #A0522D 0%, #CD853F 100%);
+}
+
+.empty-tip {
+    text-align: center;
+    padding: 60px 0;
+    color: #909399;
+    font-size: 16px;
+}
+
+.detail-content {
+    padding: 10px 0;
+}
+
+.detail-row {
+    display: flex;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-label {
+    width: 100px;
+    color: #909399;
+    font-weight: 500;
+}
+
+.detail-value {
+    flex: 1;
+    color: #303133;
+}
+
+.operator-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f5f7fa;
+    border-radius: 4px;
+}
+
+.operator-tip {
+    margin-left: 12px;
+    color: #909399;
+    font-size: 14px;
+}
+
+.history-section {
+    border-top: 1px solid #ebeef5;
+    margin-top: 10px;
+}

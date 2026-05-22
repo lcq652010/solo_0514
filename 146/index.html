@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>传统木雕貔貅摆件定制系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <el-container>
+            <el-header>
+                <div class="header-content">
+                    <h1>传统木雕貔貅摆件定制系统</h1>
+                    <el-menu 
+                        :default-active="currentPage" 
+                        mode="horizontal" 
+                        @select="handleMenuSelect"
+                        class="nav-menu"
+                    >
+                        <el-menu-item index="order">客户下单</el-menu-item>
+                        <el-menu-item index="admin">管理员后台</el-menu-item>
+                    </el-menu>
+                </div>
+            </el-header>
+            
+            <el-main>
+                <order-page v-if="currentPage === 'order'" @order-submitted="handleOrderSubmitted" @navigate-to-admin="handleNavigateToAdmin"></order-page>
+                <admin-page v-if="currentPage === 'admin'" :orders="orders" @status-updated="handleStatusUpdated" @clear-new-flag="handleClearNewFlag"></admin-page>
+            </el-main>
+            
+            <el-footer>
+                <p>&copy; 2024 传统木雕工艺坊 - 匠心传承，精雕细琢</p>
+            </el-footer>
+        </el-container>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

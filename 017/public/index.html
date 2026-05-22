@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考勤管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        .checkin-section {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .checkin-card {
+            flex: 1;
+            min-width: 250px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .checkin-card h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .checkin-card select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .checkin-time {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+        }
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .filter-group label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+        .filter-group input,
+        .filter-group select {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+        .btn-filter {
+            background: #667eea;
+            color: white;
+            padding: 10px 25px;
+            align-self: flex-end;
+        }
+        .btn-reset {
+            background: #6c757d;
+            color: white;
+            padding: 10px 25px;
+            align-self: flex-end;
+        }
+        .statistics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-card.normal {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .stat-card.late {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .stat-card.early {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-normal {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-late {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status-early {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-unchecked {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .pagination button {
+            padding: 8px 15px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+        }
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pagination span {
+            color: #666;
+        }
+        .message {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏢 考勤管理系统</h1>
+            <p>Attendance Management System</p>
+        </div>
+        <div class="content">
+            <div id="message" class="message"></div>
+            
+            <div class="section">
+                <div class="section-title">📋 今日打卡</div>
+                <div class="checkin-section">
+                    <div class="checkin-card">
+                        <h3>上班打卡</h3>
+                        <select id="checkinEmployee">
+                            <option value="">选择员工</option>
+                        </select>
+                        <div class="checkin-time" id="currentTime">00:00:00</div>
+                        <button class="btn btn-primary" onclick="checkIn()">上班打卡</button>
+                    </div>
+                    <div class="checkin-card">
+                        <h3>下班打卡</h3>
+                        <select id="checkoutEmployee">
+                            <option value="">选择员工</option>
+                        </select>
+                        <div class="checkin-time" id="currentTime2">00:00:00</div>
+                        <button class="btn btn-success" onclick="checkOut()">下班打卡</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">📊 今日统计</div>
+                <div class="statistics" id="statistics">
+                    <div class="stat-card">
+                        <div class="stat-number" id="statTotal">0</div>
+                        <div class="stat-label">总打卡人数</div>
+                    </div>
+                    <div class="stat-card normal">
+                        <div class="stat-number" id="statNormal">0</div>
+                        <div class="stat-label">正常</div>
+                    </div>
+                    <div class="stat-card late">
+                        <div class="stat-number" id="statLate">0</div>
+                        <div class="stat-label">迟到</div>
+                    </div>
+                    <div class="stat-card early">
+                        <div class="stat-number" id="statEarly">0</div>
+                        <div class="stat-label">早退</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">🔍 多条件筛选</div>
+                <div class="filter-section">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>员工姓名</label>
+                            <input type="text" id="filterName" placeholder="输入员工姓名">
+                        </div>
+                        <div class="filter-group">
+                            <label>所属部门</label>
+                            <select id="filterDepartment">
+                                <option value="">全部部门</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>考勤状态</label>
+                            <select id="filterStatus">
+                                <option value="">全部状态</option>
+                                <option value="正常">正常</option>
+                                <option value="迟到">迟到</option>
+                                <option value="早退">早退</option>
+                                <option value="迟到早退">迟到早退</option>
+                                <option value="未打卡">未打卡</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-filter" onclick="filterRecords()">查询</button>
+                        <button class="btn btn-reset" onclick="resetFilter()">重置</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">📝 考勤记录</div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>员工姓名</th>
+                                <th>部门</th>
+                                <th>日期</th>
+                                <th>上班时间</th>
+                                <th>下班时间</th>
+                                <th>考勤状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTable">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="pagination">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const pageSize = 5;
+        
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+            document.getElementById('currentTime').textContent = timeStr;
+            document.getElementById('currentTime2').textContent = timeStr;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        async function loadEmployees() {
+            const response = await fetch('/api/employees');
+            const employees = await response.json();
+            
+            const checkinSelect = document.getElementById('checkinEmployee');
+            const checkoutSelect = document.getElementById('checkoutEmployee');
+            
+            employees.forEach(emp => {
+                const option1 = new Option(`${emp.name} - ${emp.department}`, emp.id);
+                const option2 = new Option(`${emp.name} - ${emp.department}`, emp.id);
+                checkinSelect.add(option1);
+                checkoutSelect.add(option2);
+            });
+        }
+        
+        async function loadDepartments() {
+            const response = await fetch('/api/departments');
+            const result = await response.json();
+            
+            const departmentSelect = document.getElementById('filterDepartment');
+            result.data.forEach(dept => {
+                const option = new Option(dept, dept);
+                departmentSelect.add(option);
+            });
+        }
+        
+        function showMessage(message, type = 'success') {
+            const msgEl = document.getElementById('message');
+            msgEl.textContent = message;
+            msgEl.className = `message ${type}`;
+            msgEl.style.display = 'block';
+            
+            setTimeout(() => {
+                msgEl.style.display = 'none';
+            }, 3000);
+        }
+        
+        async function checkIn() {
+            const employeeId = document.getElementById('checkinEmployee').value;
+            if (!employeeId) {
+                showMessage('请选择员工', 'error');
+                return;
+            }
+            
+            const now = new Date();
+            const checkInTime = now.toLocaleTimeString('zh-CN', { hour12: false });
+            
+            try {
+                const response = await fetch('/api/attendance/checkin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ employeeId, checkInTime })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message);
+                    loadAttendanceRecords();
+                    loadStatistics();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('打卡失败：' + error.message, 'error');
+            }
+        }
+        
+        async function checkOut() {
+            const employeeId = document.getElementById('checkoutEmployee').value;
+            if (!employeeId) {
+                showMessage('请选择员工', 'error');
+                return;
+            }
+            
+            const now = new Date();
+            const checkOutTime = now.toLocaleTimeString('zh-CN', { hour12: false });
+            
+            try {
+                const response = await fetch('/api/attendance/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ employeeId, checkOutTime })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message);
+                    loadAttendanceRecords();
+                    loadStatistics();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('打卡失败：' + error.message, 'error');
+            }
+        }
+        
+        async function loadStatistics() {
+            const response = await fetch('/api/attendance/statistics');
+            const result = await response.json();
+            
+            document.getElementById('statTotal').textContent = result.data.total;
+            document.getElementById('statNormal').textContent = result.data.normal;
+            document.getElementById('statLate').textContent = result.data.late;
+            document.getElementById('statEarly').textContent = result.data.earlyLeave;
+        }
+        
+        async function loadAttendanceRecords() {
+            const employeeName = document.getElementById('filterName').value;
+            const department = document.getElementById('filterDepartment').value;
+            const status = document.getElementById('filterStatus').value;
+            
+            let url = `/api/attendance?page=${currentPage}&pageSize=${pageSize}`;
+            if (employeeName) url += `&employeeName=${encodeURIComponent(employeeName)}`;
+            if (department) url += `&department=${encodeURIComponent(department)}`;
+            if (status) url += `&status=${encodeURIComponent(status)}`;
+            
+            const response = await fetch(url);
+            const result = await response.json();
+            
+            const tableBody = document.getElementById('attendanceTable');
+            tableBody.innerHTML = '';
+            
+            result.data.forEach(record => {
+                const row = document.createElement('tr');
+                
+                let statusClass = 'status-normal';
+                if (record.status.includes('迟到')) statusClass = 'status-late';
+                else if (record.status.includes('早退')) statusClass = 'status-early';
+                else if (record.status === '未打卡') statusClass = 'status-unchecked';
+                
+                row.innerHTML = `
+                    <td>${record.id}</td>
+                    <td>${record.employeeName}</td>
+                    <td>${record.department}</td>
+                    <td>${record.date}</td>
+                    <td>${record.checkIn || '-'}</td>
+                    <td>${record.checkOut || '-'}</td>
+                    <td><span class="status-badge ${statusClass}">${record.status}</span></td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            renderPagination(result.pagination);
+        }
+        
+        function renderPagination(pagination) {
+            const paginationEl = document.getElementById('pagination');
+            paginationEl.innerHTML = '';
+            
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '上一页';
+            prevBtn.disabled = pagination.page <= 1;
+            prevBtn.onclick = () => {
+                currentPage--;
+                loadAttendanceRecords();
+            };
+            paginationEl.appendChild(prevBtn);
+            
+            const pageInfo = document.createElement('span');
+            pageInfo.textContent = `第 ${pagination.page} 页 / 共 ${pagination.totalPages} 页 (${pagination.total} 条记录)`;
+            paginationEl.appendChild(pageInfo);
+            
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = '下一页';
+            nextBtn.disabled = pagination.page >= pagination.totalPages;
+            nextBtn.onclick = () => {
+                currentPage++;
+                loadAttendanceRecords();
+            };
+            paginationEl.appendChild(nextBtn);
+        }
+        
+        function filterRecords() {
+            currentPage = 1;
+            loadAttendanceRecords();
+        }
+        
+        function resetFilter() {
+            document.getElementById('filterName').value = '';
+            document.getElementById('filterDepartment').value = '';
+            document.getElementById('filterStatus').value = '';
+            currentPage = 1;
+            loadAttendanceRecords();
+        }
+        
+        loadEmployees();
+        loadDepartments();
+        loadAttendanceRecords();
+        loadStatistics();
+    </script>
+</body>
+</html>

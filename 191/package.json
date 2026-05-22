@@ -1,0 +1,16 @@
+{
+  "name": "bone-carving-custom",
+  "version": "1.0.0",
+  "description": "兽骨雕挂牌定制系统",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve -p 8080",
+    "start": "npx serve -p 8080"
+  },
+  "keywords": ["vue2", "element-ui", "bone-carving"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}

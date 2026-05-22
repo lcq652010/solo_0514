@@ -1,0 +1,27 @@
+{
+  "name": "gov-device-management",
+  "version": "1.0.0",
+  "description": "政务服务自助证照打印终端运维管理系统",
+  "main": "index.js",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^2.7.14",
+    "vue-router": "^3.6.5",
+    "element-ui": "^2.15.13",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue2": "^2.2.0",
+    "vite": "^4.5.0",
+    "sass": "^1.69.0",
+    "sass-loader": "^13.3.2"
+  },
+  "keywords": ["vue2", "element-ui", "政务系统"],
+  "author": "",
+  "license": "MIT"
+}

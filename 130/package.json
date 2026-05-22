@@ -1,0 +1,22 @@
+{
+  "name": "property-repair-system",
+  "version": "1.0.0",
+  "description": "物业报修管理系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^2.7.14",
+    "vue-router": "^3.6.5",
+    "element-ui": "^2.15.13",
+    "axios": "^1.4.0"
+  },
+  "devDependencies": {
+    "vite": "^4.4.9",
+    "vite-plugin-vue2": "^2.0.3",
+    "vue-template-compiler": "^2.7.14"
+  }
+}

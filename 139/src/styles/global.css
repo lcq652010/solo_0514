@@ -1,0 +1,106 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  background-color: #f5f7fa;
+}
+
+.header {
+  background-color: #409EFF;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  height: 60px !important;
+}
+
+.logo {
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  margin-right: 40px;
+}
+
+.logo i {
+  margin-right: 10px;
+  font-size: 24px;
+}
+
+.nav-menu {
+  background-color: transparent;
+  border-bottom: none;
+  flex: 1;
+}
+
+.nav-menu .el-menu-item {
+  color: #fff;
+}
+
+.nav-menu .el-menu-item:hover,
+.nav-menu .el-menu-item.is-active {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-bottom: 2px solid #fff;
+}
+
+.main-content {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: calc(100vh - 60px);
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #303133;
+  margin-bottom: 20px;
+}
+
+.page-card {
+  background: #fff;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.search-bar {
+  margin-bottom: 20px;
+}
+
+.table-container {
+  margin-top: 20px;
+}
+
+.pagination-container {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.form-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form-footer {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.progress-card {
+  margin-bottom: 20px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 0;
+  color: #909399;
+}
+
+.empty-state i {
+  font-size: 60px;
+  margin-bottom: 20px;
+}

@@ -1,0 +1,88 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #app {
+  height: 100%;
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+}
+
+.page-container {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100%;
+}
+
+.page-header {
+  margin-bottom: 20px;
+  
+  .page-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #303133;
+  }
+}
+
+.card-wrapper {
+  background: #fff;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.table-toolbar {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.status-tag {
+  &.normal {
+    color: #67c23a;
+    background: rgba(103, 194, 58, 0.1);
+    border-color: rgba(103, 194, 58, 0.2);
+  }
+  
+  &.warning {
+    color: #e6a23c;
+    background: rgba(230, 162, 60, 0.1);
+    border-color: rgba(230, 162, 60, 0.2);
+  }
+  
+  &.danger {
+    color: #f56c6c;
+    background: rgba(245, 108, 108, 0.1);
+    border-color: rgba(245, 108, 108, 0.2);
+  }
+  
+  &.info {
+    color: #909399;
+    background: rgba(144, 147, 153, 0.1);
+    border-color: rgba(144, 147, 153, 0.2);
+  }
+}

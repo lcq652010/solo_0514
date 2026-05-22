@@ -1,0 +1,29 @@
+{
+  "name": "agricultural-products-management",
+  "version": "1.0.0",
+  "description": "农产品批发管理系统",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "vue": "^2.7.14",
+    "vue-router": "^3.6.5",
+    "element-ui": "^2.15.13",
+    "axios": "^1.6.0",
+    "moment": "^2.29.4"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^5.0.8",
+    "sass": "^1.69.0",
+    "sass-loader": "^13.3.2",
+    "vue-template-compiler": "^2.7.14"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

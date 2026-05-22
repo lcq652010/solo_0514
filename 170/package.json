@@ -1,0 +1,13 @@
+{
+  "name": "wheat-straw-painting",
+  "version": "1.0.0",
+  "description": "麦秆画定制系统",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server --port=8080",
+    "serve": "python -m http.server 8080"
+  },
+  "keywords": ["vue2", "element-ui", "麦秆画"],
+  "author": "",
+  "license": "ISC"
+}

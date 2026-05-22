@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电力营业厅自助终端运维管理系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 25px 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 200px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-default {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-default:hover {
+            background: #e8e8e8;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            color: #555;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .row-fault {
+            background: #fff1f0 !important;
+            border-left: 4px solid #ff4d4f;
+        }
+
+        .row-offline {
+            background: #f5f5f5 !important;
+            border-left: 4px solid #8c8c8c;
+        }
+
+        .row-fault:hover,
+        .row-offline:hover {
+            opacity: 0.85;
+        }
+
+        .status-normal {
+            color: #52c41a;
+            font-weight: 600;
+        }
+
+        .status-fault {
+            color: #ff4d4f;
+            font-weight: 600;
+        }
+
+        .status-offline {
+            color: #8c8c8c;
+            font-weight: 600;
+        }
+
+        .status-maintenance {
+            color: #faad14;
+            font-weight: 600;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 25px;
+            gap: 8px;
+        }
+
+        .pagination button {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .pagination button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .pagination .active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .pagination-info {
+            margin-left: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination-jump {
+            margin-left: 15px;
+            color: #666;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .jump-input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .jump-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-error {
+            border-color: #ff4d4f !important;
+        }
+
+        .error-text {
+            color: #ff4d4f;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group label .required {
+            color: #ff4d4f;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-control[readonly] {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            flex: 1;
+            min-width: 150px;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-item.total {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .stat-item.normal {
+            background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+            color: white;
+        }
+
+        .stat-item.fault {
+            background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+            color: white;
+        }
+
+        .stat-item.offline {
+            background: linear-gradient(135deg, #8c8c8c 0%, #a6a6a6 100%);
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>⚡ 电力营业厅自助业务办理终端运维管理系统</h1>
+                <p>实时监控设备状态，高效管理运维工单</p>
+            </div>
+
+            <div class="content">
+                <div class="stats-bar">
+                    <div class="stat-item total">
+                        <div class="stat-number">{{ totalDevices }}</div>
+                        <div class="stat-label">设备总数</div>
+                    </div>
+                    <div class="stat-item normal">
+                        <div class="stat-number">{{ normalCount }}</div>
+                        <div class="stat-label">正常运行</div>
+                    </div>
+                    <div class="stat-item fault">
+                        <div class="stat-number">{{ faultCount }}</div>
+                        <div class="stat-label">故障设备</div>
+                    </div>
+                    <div class="stat-item offline">
+                        <div class="stat-number">{{ offlineCount }}</div>
+                        <div class="stat-label">离线设备</div>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input 
+                            type="text" 
+                            class="search-input" 
+                            placeholder="按设备编号搜索..."
+                            v-model="searchDeviceId"
+                        >
+                        <input 
+                            type="text" 
+                            class="search-input" 
+                            placeholder="按营业厅名称搜索..."
+                            v-model="searchHallName"
+                        >
+                        <select class="search-input" v-model="statusFilter">
+                            <option value="">全部状态</option>
+                            <option value="normal">正常</option>
+                            <option value="fault">故障</option>
+                            <option value="offline">离线</option>
+                            <option value="maintenance">维护中</option>
+                        </select>
+                        <button class="btn btn-default" @click="resetSearch">重置搜索</button>
+                    </div>
+                    <button class="btn btn-primary" @click="openReportModal">
+                        📝 故障上报
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table v-if="filteredDevices.length > 0">
+                        <thead>
+                            <tr>
+                                <th>设备编号</th>
+                                <th>所属营业厅</th>
+                                <th>布设位置</th>
+                                <th>设备状态</th>
+                                <th>电表读取模块</th>
+                                <th>打印机</th>
+                                <th>身份证阅读器</th>
+                                <th>最后在线时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="device in paginatedDevices" :key="device.id" :class="getRowClass(device.status)">
+                                <td>{{ device.deviceId }}</td>
+                                <td>{{ device.hallName }}</td>
+                                <td>{{ device.location }}</td>
+                                <td>
+                                    <span :class="getStatusClass(device.status)">
+                                        {{ getStatusText(device.status) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span :class="getStatusClass(device.meterStatus)">
+                                        {{ getStatusText(device.meterStatus) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span :class="getStatusClass(device.printerStatus)">
+                                        {{ getStatusText(device.printerStatus) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span :class="getStatusClass(device.idCardStatus)">
+                                        {{ getStatusText(device.idCardStatus) }}
+                                    </span>
+                                </td>
+                                <td>{{ device.lastOnline }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="empty-state" v-else>
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+                            <path d="M7 12h2v5H7zm4-3h2v8h-2zm4-3h2v11h-2z"/>
+                        </svg>
+                        <p>暂无符合条件的设备数据</p>
+                    </div>
+                </div>
+
+                <div class="pagination" v-if="totalPages > 1">
+                    <button @click="currentPage = 1" :disabled="currentPage === 1">首页</button>
+                    <button @click="currentPage--" :disabled="currentPage === 1">上一页</button>
+                    <button 
+                        v-for="page in visiblePages" 
+                        :key="page"
+                        :class="{ active: page === currentPage }"
+                        @click="goToPage(page)"
+                    >
+                        {{ page }}
+                    </button>
+                    <button @click="currentPage++" :disabled="currentPage === totalPages">下一页</button>
+                    <button @click="currentPage = totalPages" :disabled="currentPage === totalPages">末页</button>
+                    <span class="pagination-jump">
+                        跳转到
+                        <input type="number" class="jump-input" v-model.number="jumpPage" min="1" :max="totalPages" @keyup.enter="goToPage(jumpPage)">
+                        页
+                    </span>
+                    <span class="pagination-info">
+                        第 {{ currentPage }} / {{ totalPages }} 页，共 {{ filteredDevices.length }} 条记录
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" v-if="showModal" @click.self="closeModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>故障上报</h3>
+                    <button class="modal-close" @click="closeModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>工单编号 <span class="required">*</span></label>
+                        <input type="text" class="form-control" v-model="reportForm.orderNo" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>选择设备 <span class="required">*</span></label>
+                        <select 
+                            class="form-control" 
+                            :class="{ 'form-error': formErrors.selectedDeviceId }"
+                            v-model="reportForm.selectedDeviceId"
+                            @change="validateForm"
+                        >
+                            <option value="">请选择故障设备</option>
+                            <option v-for="device in devices" :key="device.id" :value="device.id">
+                                {{ device.deviceId }} - {{ device.hallName }}
+                            </option>
+                        </select>
+                        <div class="error-text" v-if="formErrors.selectedDeviceId">{{ formErrors.selectedDeviceId }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>设备信息</label>
+                        <input type="text" class="form-control" :value="selectedDeviceInfo" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>故障描述 <span class="required">*</span></label>
+                        <textarea 
+                            class="form-control" 
+                            :class="{ 'form-error': formErrors.description }"
+                            v-model="reportForm.description" 
+                            placeholder="请详细描述故障情况..."
+                            @input="validateForm"
+                        ></textarea>
+                        <div class="error-text" v-if="formErrors.description">{{ formErrors.description }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>上报时间</label>
+                        <input type="text" class="form-control" :value="reportTime" readonly>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default" @click="closeModal">取消</button>
+                    <button class="btn btn-primary" @click="submitReport" :disabled="!isFormValid">提交上报</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

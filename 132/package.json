@@ -1,0 +1,19 @@
+{
+  "name": "archive-terminal-management",
+  "version": "1.0.0",
+  "description": "档案馆自助查阅打印终端运维管理系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^2.7.14",
+    "vue-template-compiler": "^2.7.14"
+  },
+  "devDependencies": {
+    "vite": "^4.5.2",
+    "vite-plugin-vue2": "^2.0.3"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "wood-carving-order",
+  "version": "1.0.0",
+  "description": "传统木雕瑞兽镇纸定制系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "vue": "^2.6.14",
+    "vue-router": "^3.5.3",
+    "element-ui": "^2.15.13"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^4.5.19",
+    "@vue/cli-plugin-babel": "^4.5.19",
+    "vue-template-compiler": "^2.6.14"
+  }
+}

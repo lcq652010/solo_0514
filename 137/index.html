@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>传统竹制折扇定制系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <el-container>
+            <el-header>
+                <div class="header-content">
+                    <h1>🎋 传统竹制折扇定制系统</h1>
+                    <el-radio-group v-model="currentPage" size="medium">
+                        <el-radio-button label="order">客户下单</el-radio-button>
+                        <el-radio-button label="admin">管理员后台</el-radio-button>
+                    </el-radio-group>
+                </div>
+            </el-header>
+            <el-main>
+                <order-page v-if="currentPage === 'order'" @submit-order="handleSubmitOrder"></order-page>
+                <admin-page v-else :orders="orders" @update-process="handleUpdateProcess"></admin-page>
+            </el-main>
+        </el-container>
+    </div>
+
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

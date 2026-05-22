@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>校园一卡通自助充值打印终端运维管理系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.13/lib/theme-chalk/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      background-color: #f5f7fa;
+    }
+    .app-container {
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 30px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-top: 5px;
+    }
+    .search-bar {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+    .status-normal {
+      color: #67c23a;
+      font-weight: 600;
+    }
+    .status-warning {
+      color: #e6a23c;
+      font-weight: 600;
+    }
+    .status-error {
+      color: #f56c6c;
+      font-weight: 600;
+    }
+    .status-offline {
+      color: #909399;
+      font-weight: 600;
+    }
+    .table-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+    .pagination-container {
+      margin-top: 20px;
+      text-align: right;
+    }
+    .row-warning {
+      background-color: #fdf6ec !important;
+    }
+    .row-error {
+      background-color: #fef0f0 !important;
+    }
+    .row-offline {
+      background-color: #f4f4f5 !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="app-container">
+    <div class="header">
+      <h1>校园一卡通自助充值打印终端运维管理系统</h1>
+      <p>Campus Card Self-Service Terminal Operation & Management System</p>
+    </div>
+
+    <div class="search-bar">
+      <el-row :gutter="20">
+        <el-col :span="5">
+          <el-input
+            v-model="searchForm.deviceNo"
+            placeholder="请输入设备编号/楼栋/校区"
+            prefix-icon="el-icon-search"
+            clearable
+            @keyup.enter.native="handleSearch"
+          ></el-input>
+        </el-col>
+        <el-col :span="4">
+          <el-select
+            v-model="searchForm.campus"
+            placeholder="请选择校区"
+            clearable
+            style="width: 100%"
+          >
+            <el-option label="全部校区" value=""></el-option>
+            <el-option label="东校区" value="东校区"></el-option>
+            <el-option label="西校区" value="西校区"></el-option>
+            <el-option label="南校区" value="南校区"></el-option>
+            <el-option label="北校区" value="北校区"></el-option>
+          </el-select>
+        </el-col>
+        <el-col :span="4">
+          <el-select
+            v-model="searchForm.status"
+            placeholder="请选择状态"
+            clearable
+            style="width: 100%"
+          >
+            <el-option label="全部状态" value=""></el-option>
+            <el-option label="运行正常" value="normal"></el-option>
+            <el-option label="运行告警" value="warning"></el-option>
+            <el-option label="设备故障" value="error"></el-option>
+            <el-option label="离线" value="offline"></el-option>
+          </el-select>
+        </el-col>
+        <el-col :span="5">
+          <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+          <el-button icon="el-icon-refresh" @click="handleReset">重置</el-button>
+          <el-button type="info" icon="el-icon-refresh-left" @click="simulateStatusChange">模拟状态变动</el-button>
+        </el-col>
+        <el-col :span="6" style="text-align: right;">
+          <el-button type="success" icon="el-icon-warning" @click="openReportDialog">故障上报</el-button>
+        </el-col>
+      </el-row>
+    </div>
+
+    <div class="table-container">
+      <el-table
+        :data="tableData"
+        border
+        style="width: 100%"
+        :header-cell-style="{ background: '#f5f7fa', color: '#606266', fontWeight: '600' }"
+        :row-class-name="tableRowClassName"
+        key="table-key"
+      >
+        <el-table-column prop="deviceNo" label="设备编号" width="130" align="center">
+          <template slot-scope="scope">
+            <el-tag type="info" size="mini">{{ scope.row.deviceNo }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="campus" label="校区位置" width="100" align="center"></el-table-column>
+        <el-table-column prop="building" label="安装楼栋" width="180" align="center"></el-table-column>
+        <el-table-column prop="status" label="整体状态" width="110" align="center">
+          <template slot-scope="scope">
+            <el-tag :type="getStatusTagType(scope.row.status)" size="small">
+              <i :class="getStatusIcon(scope.row.status)" style="margin-right: 4px;"></i>
+              {{ getStatusText(scope.row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="模块状态" align="center">
+          <template slot-scope="scope">
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+              <el-tooltip content="图书识别" placement="top">
+                <el-tag :type="getModuleTagType(scope.row.modules.bookRecognition)" size="mini">
+                  <i class="el-icon-reading"></i> 图书
+                </el-tag>
+              </el-tooltip>
+              <el-tooltip content="身份读取" placement="top">
+                <el-tag :type="getModuleTagType(scope.row.modules.idRead)" size="mini">
+                  <i class="el-icon-postcard"></i> 身份
+                </el-tag>
+              </el-tooltip>
+              <el-tooltip content="小票打印" placement="top">
+                <el-tag :type="getModuleTagType(scope.row.modules.receiptPrint)" size="mini">
+                  <i class="el-icon-printer"></i> 打印
+                </el-tag>
+              </el-tooltip>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="lastOnlineTime" label="最后在线时间" width="170" align="center"></el-table-column>
+        <el-table-column label="操作" width="160" align="center">
+          <template slot-scope="scope">
+            <el-button size="mini" type="primary" icon="el-icon-view" plain>详情</el-button>
+            <el-button size="mini" type="danger" icon="el-icon-warning" plain @click="openReportDialog(scope.row)">上报故障</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="pagination-container">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="pagination.currentPage"
+          :page-sizes="[5, 10, 20, 50]"
+          :page-size="pagination.pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="pagination.total"
+        ></el-pagination>
+      </div>
+    </div>
+
+    <el-dialog
+      title="故障上报"
+      :visible.sync="reportDialogVisible"
+      width="650px"
+      @close="resetReportForm"
+      @open="onDialogOpen"
+    >
+      <el-form :model="reportForm" :rules="reportRules" ref="reportForm" label-width="110px">
+        <el-form-item label="工单编号">
+          <el-input v-model="reportForm.orderNo" disabled>
+            <template slot="append">
+              <i class="el-icon-document" style="color: #67c23a;"></i>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="选择设备" prop="deviceId">
+          <el-select 
+            v-model="reportForm.deviceId" 
+            placeholder="请选择故障设备" 
+            style="width: 100%" 
+            filterable
+            no-data-text="未找到匹配设备"
+            :loading="deviceLoading"
+          >
+            <el-option-group
+              v-for="group in deviceGroups"
+              :key="group.label"
+              :label="group.label"
+            >
+              <el-option
+                v-for="device in group.options"
+                :key="device.id"
+                :label="`${device.deviceNo} | ${device.building}`"
+                :value="device.id"
+              >
+                <span style="float: left">{{ device.deviceNo }}</span>
+                <span style="float: right; color: #8492a6; font-size: 13px">
+                  {{ device.campus }} - {{ device.building }}
+                </span>
+              </el-option>
+            </el-option-group>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="设备状态" v-if="selectedDevice">
+          <el-tag :type="getStatusTagType(selectedDevice.status)" size="small">
+            {{ getStatusText(selectedDevice.status) }}
+          </el-tag>
+          <span style="margin-left: 10px; color: #909399; font-size: 12px;">
+            最后在线: {{ selectedDevice.lastOnlineTime }}
+          </span>
+        </el-form-item>
+        <el-form-item label="故障类型" prop="faultType">
+          <el-select v-model="reportForm.faultType" placeholder="请选择故障类型" style="width: 100%">
+            <el-option label="无法开机" value="无法开机"></el-option>
+            <el-option label="打印故障" value="打印故障"></el-option>
+            <el-option label="充值失败" value="充值失败"></el-option>
+            <el-option label="网络异常" value="网络异常"></el-option>
+            <el-option label="触摸屏失灵" value="触摸屏失灵"></el-option>
+            <el-option label="卡纸故障" value="卡纸故障"></el-option>
+            <el-option label="出纸异常" value="出纸异常"></el-option>
+            <el-option label="其他故障" value="其他故障"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="紧急程度" prop="priority">
+          <el-radio-group v-model="reportForm.priority">
+            <el-radio-button label="普通">普通</el-radio-button>
+            <el-radio-button label="紧急">紧急</el-radio-button>
+            <el-radio-button label="非常紧急">非常紧急</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="故障详情" prop="faultDetail">
+          <el-input
+            v-model="reportForm.faultDetail"
+            type="textarea"
+            :rows="4"
+            placeholder="请详细描述故障发生时间、具体现象、是否有报错提示等信息..."
+            maxlength="500"
+            show-word-limit
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="上报人" prop="reporter">
+          <el-input v-model="reportForm.reporter" placeholder="请输入上报人姓名"></el-input>
+        </el-form-item>
+        <el-form-item label="联系电话" prop="contactPhone">
+          <el-input v-model="reportForm.contactPhone" placeholder="请输入联系电话" maxlength="11"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="reportDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitReport" :loading="submitLoading">提 交</el-button>
+      </span>
+    </el-dialog>
+  </div>
+
+  <script src="https://unpkg.com/vue@2.7.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.13/lib/index.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data() {
+        return {
+          searchForm: {
+            deviceNo: '',
+            campus: '',
+            status: ''
+          },
+          pagination: {
+            currentPage: 1,
+            pageSize: 10,
+            total: 0
+          },
+          tableKey: 0,
+          allDevices: [],
+          tableData: [],
+          reportDialogVisible: false,
+          deviceLoading: false,
+          submitLoading: false,
+          reportForm: {
+            orderNo: '',
+            deviceId: '',
+            faultType: '',
+            priority: '普通',
+            faultDetail: '',
+            reporter: '',
+            contactPhone: ''
+          },
+          reportRules: {
+            deviceId: [
+              { required: true, message: '请选择故障设备', trigger: 'change' }
+            ],
+            faultType: [
+              { required: true, message: '请选择故障类型', trigger: 'change' }
+            ],
+            priority: [
+              { required: true, message: '请选择紧急程度', trigger: 'change' }
+            ],
+            faultDetail: [
+              { required: true, message: '请填写故障详情', trigger: 'blur' },
+              { min: 10, message: '故障详情至少10个字符', trigger: 'blur' },
+              { max: 500, message: '故障详情不能超过500个字符', trigger: 'blur' }
+            ],
+            reporter: [
+              { required: true, message: '请输入上报人姓名', trigger: 'blur' },
+              { min: 2, message: '姓名至少2个字符', trigger: 'blur' }
+            ],
+            contactPhone: [
+              { required: true, message: '请输入联系电话', trigger: 'blur' },
+              { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+            ]
+          },
+          mockData: [
+            { id: 1, deviceNo: 'CZ-001', campus: '东校区', building: '图书馆一楼大厅', status: 'normal', lastOnlineTime: '2024-01-15 14:30:25', modules: { bookRecognition: 'normal', idRead: 'normal', receiptPrint: 'normal' } },
+            { id: 2, deviceNo: 'CZ-002', campus: '东校区', building: '教学楼A座一楼', status: 'normal', lastOnlineTime: '2024-01-15 14:28:15', modules: { bookRecognition: 'normal', idRead: 'normal', receiptPrint: 'normal' } },
+            { id: 3, deviceNo: 'CZ-003', campus: '东校区', building: '学生宿舍1号楼', status: 'warning', lastOnlineTime: '2024-01-15 14:25:33', modules: { bookRecognition: 'normal', idRead: 'warning', receiptPrint: 'normal' } },
+            { id: 4, deviceNo: 'CZ-004', campus: '西校区', building: '行政楼大厅', status: 'normal', lastOnlineTime: '2024-01-15 14:30:10', modules: { bookRecognition: 'normal', idRead: 'normal', receiptPrint: 'normal' } },
+            { id: 5, deviceNo: 'CZ-005', campus: '西校区', building: '实验楼B座', status: 'error', lastOnlineTime: '2024-01-15 13:45:22', modules: { bookRecognition: 'error', idRead: 'normal', receiptPrint: 'warning' } },
+            { id: 6, deviceNo: 'CZ-006', campus: '西校区', building: '学生食堂门口', status: 'normal', lastOnlineTime: '2024-01-15 14:29:55', modules: { bookRecognition: 'normal', idRead: 'normal', receiptPrint: 'normal' } },
+            { id: 7, deviceNo: 'CZ-007', campus: '南校区', building: '体育馆入口', status: 'offline', lastOnlineTime: '2024-01-14 18:30:00', modules: { bookRecognition: 'offline', idRead: 'offline', receiptPrint: 'offline' } },
+            { id: 8, deviceNo: 'CZ-008', campus: '南校区', building: '教学楼C座', status: 'normal', lastOnlineTime: '2024-01-15 14:30:05', modules: { bookRecognition: 'normal', idRead: 'normal', receiptPrint: 'normal' } },
+            { id: 9, deviceNo: 'CZ-009', campus: '南校区', building: '学生活动中心', status: 'warning', lastOnlineTime: '2024-01-15 14:22:18', modules: { bookRecognition: 'normal', idRead: 'normal', receiptPrint: 'warning' } },
+            { id: 10, deviceNo: 'CZ-010', campus: '北校区', building: '图书馆二楼', status: 'normal', lastOnlineTime: '2024-01-15 14:30:30', modules: { bookRecognition: 'normal', idRead: 'normal', receiptPrint: 'normal' } },
+            { id: 11, deviceNo: 'CZ-011', campus: '北校区', building: '研究生公寓', status: 'error', lastOnlineTime: '2024-01-15 12:15:45', modules: { bookRecognition: 'error', idRead: 'error', receiptPrint: 'normal' } },
+            { id: 12, deviceNo: 'CZ-012', campus: '北校区', building: '后勤服务楼', status: 'normal', lastOnlineTime: '2024-01-15 14:28:50', modules: { bookRecognition: 'normal', idRead: 'normal', receiptPrint: 'normal' } },
+            { id: 13, deviceNo: 'CZ-013', campus: '东校区', building: '校医院大厅', status: 'normal', lastOnlineTime: '2024-01-15 14:27:35', modules: { bookRecognition: 'normal', idRead: 'normal', receiptPrint: 'normal' } },
+            { id: 14, deviceNo: 'CZ-014', campus: '西校区', building: '国际交流中心', status: 'offline', lastOnlineTime: '2024-01-13 09:00:00', modules: { bookRecognition: 'offline', idRead: 'offline', receiptPrint: 'offline' } },
+            { id: 15, deviceNo: 'CZ-015', campus: '南校区', building: '艺术楼大厅', status: 'normal', lastOnlineTime: '2024-01-15 14:26:40', modules: { bookRecognition: 'normal', idRead: 'normal', receiptPrint: 'normal' } },
+            { id: 16, deviceNo: 'CZ-016', campus: '东校区', building: '工程训练中心', status: 'error', lastOnlineTime: '2024-01-15 11:20:10', modules: { bookRecognition: 'warning', idRead: 'error', receiptPrint: 'error' } },
+            { id: 17, deviceNo: 'CZ-017', campus: '北校区', building: '学子餐厅', status: 'warning', lastOnlineTime: '2024-01-15 14:05:30', modules: { bookRecognition: 'normal', idRead: 'warning', receiptPrint: 'normal' } },
+            { id: 18, deviceNo: 'CZ-018', campus: '西校区', building: '外语学院楼', status: 'normal', lastOnlineTime: '2024-01-15 14:25:00', modules: { bookRecognition: 'normal', idRead: 'normal', receiptPrint: 'normal' } }
+          ]
+        }
+      },
+      computed: {
+        deviceGroups() {
+          const groups = {};
+          this.allDevices.forEach(device => {
+            if (!groups[device.campus]) {
+              groups[device.campus] = [];
+            }
+            groups[device.campus].push(device);
+          });
+          return Object.keys(groups).map(campus => ({
+            label: campus,
+            options: groups[campus]
+          }));
+        },
+        selectedDevice() {
+          if (!this.reportForm.deviceId) return null;
+          return this.allDevices.find(d => d.id === this.reportForm.deviceId);
+        }
+      },
+      created() {
+        this.allDevices = this.mockData;
+        this.loadData();
+      },
+      methods: {
+        loadData() {
+          let filteredData = [...this.mockData];
+          
+          if (this.searchForm.deviceNo) {
+            const keyword = this.searchForm.deviceNo.toLowerCase().trim();
+            filteredData = filteredData.filter(item => {
+              const deviceNoMatch = item.deviceNo.toLowerCase().includes(keyword);
+              const buildingMatch = item.building.toLowerCase().includes(keyword);
+              const campusMatch = item.campus.toLowerCase().includes(keyword);
+              const idMatch = String(item.id).includes(keyword);
+              return deviceNoMatch || buildingMatch || campusMatch || idMatch;
+            });
+          }
+          
+          if (this.searchForm.campus) {
+            filteredData = filteredData.filter(item => 
+              item.campus.includes(this.searchForm.campus)
+            );
+          }
+
+          if (this.searchForm.status) {
+            filteredData = filteredData.filter(item => 
+              item.status === this.searchForm.status
+            );
+          }
+          
+          this.pagination.total = filteredData.length;
+          
+          const start = (this.pagination.currentPage - 1) * this.pagination.pageSize;
+          const end = start + this.pagination.pageSize;
+          this.tableData = filteredData.slice(start, end);
+          
+          this.tableKey++;
+          
+          this.$nextTick(() => {
+            this.$forceUpdate();
+          });
+        },
+        handleSearch() {
+          this.pagination.currentPage = 1;
+          this.loadData();
+          this.$message({
+            type: 'info',
+            message: `查询完成，共找到 ${this.pagination.total} 条记录`,
+            duration: 2000
+          });
+        },
+        handleReset() {
+          this.searchForm.deviceNo = '';
+          this.searchForm.campus = '';
+          this.searchForm.status = '';
+          this.pagination.currentPage = 1;
+          this.loadData();
+        },
+        handleSizeChange(val) {
+          this.pagination.pageSize = val;
+          this.pagination.currentPage = 1;
+          this.loadData();
+          this.$message({
+            type: 'info',
+            message: `已切换为每页显示 ${val} 条记录`,
+            duration: 1500
+          });
+        },
+        handleCurrentChange(val) {
+          this.pagination.currentPage = val;
+          this.loadData();
+          const start = (val - 1) * this.pagination.pageSize + 1;
+          const end = Math.min(val * this.pagination.pageSize, this.pagination.total);
+          this.$message({
+            type: 'info',
+            message: `已加载第 ${val} 页数据（显示 ${start}-${end} 条）`,
+            duration: 1500
+          });
+        },
+        tableRowClassName({ row }) {
+          if (row.status === 'error') return 'row-error';
+          if (row.status === 'warning') return 'row-warning';
+          if (row.status === 'offline') return 'row-offline';
+          return '';
+        },
+        getModuleTagType(status) {
+          const typeMap = {
+            normal: 'success',
+            warning: 'warning',
+            error: 'danger',
+            offline: 'info'
+          };
+          return typeMap[status] || 'info';
+        },
+        getStatusTagType(status) {
+          const typeMap = {
+            normal: 'success',
+            warning: 'warning',
+            error: 'danger',
+            offline: 'info'
+          };
+          return typeMap[status] || 'info';
+        },
+        getStatusClass(status) {
+          const classMap = {
+            normal: 'status-normal',
+            warning: 'status-warning',
+            error: 'status-error',
+            offline: 'status-offline'
+          };
+          return classMap[status] || '';
+        },
+        getStatusIcon(status) {
+          const iconMap = {
+            normal: 'el-icon-circle-check',
+            warning: 'el-icon-question',
+            error: 'el-icon-circle-close',
+            offline: 'el-icon-minus'
+          };
+          return iconMap[status] || '';
+        },
+        getStatusText(status) {
+          const textMap = {
+            normal: '运行正常',
+            warning: '运行告警',
+            error: '设备故障',
+            offline: '离线'
+          };
+          return textMap[status] || status;
+        },
+        generateOrderNo() {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const day = String(now.getDate()).padStart(2, '0');
+          const hours = String(now.getHours()).padStart(2, '0');
+          const minutes = String(now.getMinutes()).padStart(2, '0');
+          const seconds = String(now.getSeconds()).padStart(2, '0');
+          const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+          return `GD${year}${month}${day}${hours}${minutes}${seconds}${random}`;
+        },
+        onDialogOpen() {
+          this.deviceLoading = true;
+          setTimeout(() => {
+            this.deviceLoading = false;
+          }, 300);
+        },
+        openReportDialog(device) {
+          this.reportForm.orderNo = this.generateOrderNo();
+          if (device) {
+            this.reportForm.deviceId = device.id;
+          }
+          this.reportDialogVisible = true;
+        },
+        resetReportForm() {
+          this.$nextTick(() => {
+            if (this.$refs.reportForm) {
+              this.$refs.reportForm.resetFields();
+            }
+            this.reportForm.orderNo = '';
+            this.reportForm.priority = '普通';
+          });
+        },
+        submitReport() {
+          if (!this.reportForm.deviceId) {
+            this.$message({
+              type: 'error',
+              message: '请先选择故障设备！',
+              duration: 2500
+            });
+            return;
+          }
+
+          const selectedDevice = this.allDevices.find(d => d.id === this.reportForm.deviceId);
+          if (!selectedDevice) {
+            this.$message({
+              type: 'error',
+              message: '未找到所选设备信息，请重新选择！',
+              duration: 2500
+            });
+            return;
+          }
+          
+          this.$refs.reportForm.validate((valid) => {
+            if (valid) {
+              this.submitLoading = true;
+              setTimeout(() => {
+                this.submitLoading = false;
+                this.$message({
+                  type: 'success',
+                  message: `工单 ${this.reportForm.orderNo} 提交成功！运维人员将尽快处理。`,
+                  duration: 3000
+                });
+                this.reportDialogVisible = false;
+                this.resetReportForm();
+              }, 1000);
+            } else {
+              this.$message({
+                type: 'error',
+                message: '请检查并完善表单信息',
+                duration: 2000
+              });
+            }
+          });
+        },
+        simulateStatusChange() {
+          const randomIndex = Math.floor(Math.random() * this.mockData.length);
+          const statuses = ['normal', 'warning', 'error', 'offline'];
+          const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+          const moduleStatuses = ['normal', 'warning', 'error', 'offline'];
+          
+          const device = this.mockData[randomIndex];
+          const oldStatus = device.status;
+          device.status = randomStatus;
+          device.modules.bookRecognition = moduleStatuses[Math.floor(Math.random() * moduleStatuses.length)];
+          device.modules.idRead = moduleStatuses[Math.floor(Math.random() * moduleStatuses.length)];
+          device.modules.receiptPrint = moduleStatuses[Math.floor(Math.random() * moduleStatuses.length)];
+          
+          const now = new Date();
+          device.lastOnlineTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+          
+          this.loadData();
+          
+          this.$notify({
+            title: '设备状态变更通知',
+            message: `设备 ${device.deviceNo} (${device.building}) 状态已从「${this.getStatusText(oldStatus)}」变更为「${this.getStatusText(randomStatus)}」`,
+            type: randomStatus === 'normal' ? 'success' : 'warning',
+            duration: 4000
+          });
+        }
+      },
+      watch: {
+        'reportForm.deviceId'(newVal) {
+          if (newVal && this.selectedDevice && this.selectedDevice.status !== 'normal') {
+            this.$notify({
+              title: '设备状态提示',
+              message: `该设备当前状态：${this.getStatusText(this.selectedDevice.status)}`,
+              type: 'warning',
+              duration: 3000
+            });
+          }
+        }
+      }
+    })
+  </script>
+</body>
+</html>

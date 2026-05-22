@@ -1,0 +1,20 @@
+{
+  "name": "tin-tea-can-customization",
+  "version": "1.0.0",
+  "description": "传统锡制茶叶罐定制系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^2.7.14",
+    "vue-router": "^3.6.5",
+    "element-ui": "^2.15.13"
+  },
+  "devDependencies": {
+    "vite": "^4.5.0",
+    "vite-plugin-vue2": "^2.0.3"
+  }
+}

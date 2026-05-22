@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>车站自助票务打印终端运维管理系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: #f0f2f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .search-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .search-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .search-group label {
+            color: #666;
+            font-size: 14px;
+        }
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 200px;
+            transition: all 0.3s;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #1890ff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #40a9ff;
+        }
+        .btn-success {
+            background: #52c41a;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #73d13d;
+        }
+        .btn-default {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #d9d9d9;
+        }
+        .btn-default:hover {
+            background: #e6f7ff;
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            background: #fafafa;
+        }
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e8e8e8;
+            color: #666;
+        }
+        tbody tr:hover {
+            background: #f5f5f5;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+        .status-online {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 2px solid #b7eb8f;
+            box-shadow: 0 0 8px rgba(82, 196, 26, 0.3);
+        }
+        .status-offline {
+            background: #fff1f0;
+            color: #f5222d;
+            border: 2px solid #ffa39e;
+            box-shadow: 0 0 12px rgba(245, 34, 45, 0.4);
+            animation: blink 1s infinite;
+        }
+        .status-fault {
+            background: #fffbe6;
+            color: #faad14;
+            border: 2px solid #ffe58f;
+            box-shadow: 0 0 12px rgba(250, 173, 20, 0.4);
+            animation: shake 0.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+        .row-fault {
+            background: linear-gradient(90deg, #fff1f0 0%, transparent 100%);
+        }
+        .row-offline {
+            background: linear-gradient(90deg, #fff7e6 0%, transparent 100%);
+        }
+        .row-fault:hover, .row-offline:hover {
+            background: linear-gradient(90deg, #ffccc7 0%, #fff1f0 100%);
+        }
+        .device-selector {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+        }
+        .device-option {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.2s;
+        }
+        .device-option:hover {
+            background: #e6f7ff;
+        }
+        .device-option.selected {
+            background: #1890ff;
+            color: white;
+        }
+        .device-option.selected .device-code {
+            color: white;
+        }
+        .device-code {
+            font-weight: 600;
+            color: #1890ff;
+            font-size: 14px;
+        }
+        .device-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .error-text {
+            color: #f5222d;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1890ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .pagination {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #e8e8e8;
+        }
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .page-btn {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .page-btn:hover:not(:disabled) {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+        .page-btn:disabled {
+            cursor: not-allowed;
+            color: #d9d9d9;
+        }
+        .page-btn.active {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #999;
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 14px;
+        }
+        .form-group label .required {
+            color: #f5222d;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .ticket-info {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+        .ticket-info p {
+            color: #52c41a;
+            font-size: 14px;
+        }
+        .ticket-info .ticket-no {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .action-btn {
+            padding: 4px 12px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .module-status {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .module-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .module-normal {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 2px solid #b7eb8f;
+        }
+        .module-warning {
+            background: #fffbe6;
+            color: #faad14;
+            border: 2px solid #ffe58f;
+            animation: shake 0.5s infinite;
+        }
+        .module-error {
+            background: #fff1f0;
+            color: #f5222d;
+            border: 2px solid #ffa39e;
+            animation: blink 1s infinite;
+        }
+        .status-filter {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .filter-btn {
+            padding: 6px 16px;
+            border: 1px solid #d9d9d9;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .filter-btn:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+        .filter-btn.active {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+        .filter-btn.all {
+            background: #f0f0f0;
+        }
+        .filter-btn.all.active {
+            background: #1890ff;
+        }
+        .module-tooltip {
+            position: relative;
+        }
+        .module-tooltip::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            margin-bottom: 5px;
+        }
+        .module-tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>🚄 车站自助票务打印终端运维管理系统</h1>
+            </div>
+
+            <div class="search-bar">
+                <div class="search-group">
+                    <label>设备编号：</label>
+                    <input type="text" v-model="searchForm.deviceCode" @input="handleSearch" class="search-input" placeholder="输入部分编号即可搜索">
+                </div>
+                <div class="search-group">
+                    <label>站点名称：</label>
+                    <input type="text" v-model="searchForm.station" @input="handleSearch" class="search-input" placeholder="输入部分站点名称即可">
+                </div>
+                <div class="status-filter">
+                    <label>设备状态：</label>
+                    <button :class="['filter-btn', 'all', {active: searchForm.status === ''}]" @click="filterByStatus('')">全部</button>
+                    <button :class="['filter-btn', {active: searchForm.status === 'online'}]" @click="filterByStatus('online')" style="color: #52c41a;">✓ 在线</button>
+                    <button :class="['filter-btn', {active: searchForm.status === 'offline'}]" @click="filterByStatus('offline')" style="color: #f5222d;">✗ 离线</button>
+                    <button :class="['filter-btn', {active: searchForm.status === 'fault'}]" @click="filterByStatus('fault')" style="color: #faad14;">⚠ 故障</button>
+                </div>
+                <button class="btn btn-primary" @click="handleSearch">🔍 搜索</button>
+                <button class="btn btn-default" @click="handleReset">🔄 重置</button>
+                <button class="btn btn-success" @click="openReportModal">📝 故障上报</button>
+            </div>
+
+            <div class="loading-overlay" v-if="isLoading">
+                <div class="loading-spinner"></div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>设备编号</th>
+                            <th>车站站点</th>
+                            <th>具体点位</th>
+                            <th>设备状态</th>
+                            <th>身份识别</th>
+                            <th>票据打印</th>
+                            <th>网络通信</th>
+                            <th>最后在线时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(device, index) in currentPageData" :key="device.id" 
+                            :class="{'row-fault': device.status === 'fault', 'row-offline': device.status === 'offline'}">
+                            <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
+                            <td>{{ device.deviceCode }}</td>
+                            <td>{{ device.station }}</td>
+                            <td>{{ device.location }}</td>
+                            <td>
+                                <span :class="['status-badge', 'status-' + device.status]">
+                                    {{ getStatusText(device.status) }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="module-status">
+                                    <span :class="['module-badge', 'module-tooltip', getModuleClass(device.idModule)]" data-label="身份识别">
+                                        {{ getModuleIcon(device.idModule) }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="module-status">
+                                    <span :class="['module-badge', 'module-tooltip', getModuleClass(device.printModule)]" data-label="票据打印">
+                                        {{ getModuleIcon(device.printModule) }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="module-status">
+                                    <span :class="['module-badge', 'module-tooltip', getModuleClass(device.networkModule)]" data-label="网络通信">
+                                        {{ getModuleIcon(device.networkModule) }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>{{ device.lastOnline }}</td>
+                            <td>
+                                <button class="btn btn-primary action-btn" @click="reportDevice(device)">故障上报</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pagination">
+                    <div class="pagination-info">
+                        共 {{ total }} 条记录，第 {{ currentPage }} / {{ totalPages }} 页
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" :disabled="currentPage === 1" @click="goToPage(1)">首页</button>
+                        <button class="page-btn" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">上一页</button>
+                        <button v-for="page in visiblePages" :key="page" 
+                                :class="['page-btn', { active: page === currentPage }]"
+                                @click="goToPage(page)">{{ page }}</button>
+                        <button class="page-btn" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">下一页</button>
+                        <button class="page-btn" :disabled="currentPage === totalPages" @click="goToPage(totalPages)">末页</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" v-if="showModal" @click.self="closeModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3>📋 故障上报</h3>
+                        <button class="modal-close" @click="closeModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="ticket-info">
+                            <p>工单编号：<span class="ticket-no">{{ ticketNo }}</span></p>
+                        </div>
+                        <div class="form-group">
+                            <label><span class="required">*</span> 选择设备</label>
+                            <input type="text" v-model="deviceSearch" class="form-control" placeholder="搜索设备编号或站点..." style="margin-bottom: 10px;">
+                            <div class="device-selector">
+                                <div v-for="device in filteredDevices" :key="device.id" 
+                                     :class="['device-option', {selected: reportForm.deviceId === device.id}]"
+                                     @click="selectDevice(device)">
+                                    <div class="device-code">{{ device.deviceCode }}</div>
+                                    <div class="device-info">{{ device.station }} - {{ device.location }}</div>
+                                </div>
+                                <div v-if="filteredDevices.length === 0" class="device-option" style="text-align: center; color: #999;">
+                                    未找到匹配的设备
+                                </div>
+                            </div>
+                            <div v-if="formErrors.deviceId" class="error-text">{{ formErrors.deviceId }}</div>
+                        </div>
+                        <div class="form-group">
+                            <label><span class="required">*</span> 故障描述</label>
+                            <textarea v-model="reportForm.description" class="form-control" 
+                                      placeholder="请详细描述故障情况（至少10个字）..."
+                                      style="border-color: formErrors.description ? '#f5222d' : ''"></textarea>
+                            <div v-if="formErrors.description" class="error-text">{{ formErrors.description }}</div>
+                        </div>
+                        <div class="form-group">
+                            <label><span class="required">*</span> 上报人</label>
+                            <input type="text" v-model="reportForm.reporter" class="form-control" 
+                                   placeholder="请输入上报人姓名"
+                                   style="border-color: formErrors.reporter ? '#f5222d' : ''">
+                            <div v-if="formErrors.reporter" class="error-text">{{ formErrors.reporter }}</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-default" @click="closeModal">取消</button>
+                        <button class="btn btn-primary" @click="submitReport">提交上报</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                searchForm: {
+                    deviceCode: '',
+                    station: '',
+                    status: ''
+                },
+                showModal: false,
+                reportForm: {
+                    deviceId: '',
+                    description: '',
+                    reporter: ''
+                },
+                formErrors: {
+                    deviceId: '',
+                    description: '',
+                    reporter: ''
+                },
+                ticketNo: '',
+                deviceSearch: '',
+                isLoading: false,
+                deviceList: [
+                    { id: 1, deviceCode: 'STN-BJ-001', station: '北京南站', location: '候车大厅A区入口', status: 'online', idModule: 'normal', printModule: 'normal', networkModule: 'normal', lastOnline: '2026-05-17 08:30:00' },
+                    { id: 2, deviceCode: 'STN-BJ-002', station: '北京南站', location: '候车大厅B区出口', status: 'fault', idModule: 'error', printModule: 'warning', networkModule: 'normal', lastOnline: '2026-05-17 07:15:00' },
+                    { id: 3, deviceCode: 'STN-SH-001', station: '上海虹桥站', location: '出发层2号门', status: 'online', idModule: 'normal', printModule: 'normal', networkModule: 'normal', lastOnline: '2026-05-17 08:45:00' },
+                    { id: 4, deviceCode: 'STN-SH-002', station: '上海虹桥站', location: '到达层1号口', status: 'offline', idModule: 'error', printModule: 'error', networkModule: 'error', lastOnline: '2026-05-16 18:20:00' },
+                    { id: 5, deviceCode: 'STN-GZ-001', station: '广州南站', location: '三楼候车区', status: 'online', idModule: 'normal', printModule: 'normal', networkModule: 'normal', lastOnline: '2026-05-17 09:00:00' },
+                    { id: 6, deviceCode: 'STN-GZ-002', station: '广州南站', location: '一楼售票厅', status: 'fault', idModule: 'warning', printModule: 'error', networkModule: 'normal', lastOnline: '2026-05-17 06:30:00' },
+                    { id: 7, deviceCode: 'STN-SZ-001', station: '深圳北站', location: '东广场入口', status: 'online', idModule: 'normal', printModule: 'normal', networkModule: 'warning', lastOnline: '2026-05-17 08:00:00' },
+                    { id: 8, deviceCode: 'STN-CQ-001', station: '重庆北站', location: '北广场候车厅', status: 'online', idModule: 'normal', printModule: 'warning', networkModule: 'normal', lastOnline: '2026-05-17 07:45:00' },
+                    { id: 9, deviceCode: 'STN-CD-001', station: '成都东站', location: 'A1检票口旁', status: 'offline', idModule: 'error', printModule: 'error', networkModule: 'error', lastOnline: '2026-05-15 12:00:00' },
+                    { id: 10, deviceCode: 'STN-WH-001', station: '武汉站', location: '西进站口', status: 'online', idModule: 'normal', printModule: 'normal', networkModule: 'normal', lastOnline: '2026-05-17 08:20:00' },
+                    { id: 11, deviceCode: 'STN-XA-001', station: '西安北站', location: '候车大厅中心', status: 'fault', idModule: 'warning', printModule: 'error', networkModule: 'warning', lastOnline: '2026-05-17 05:00:00' },
+                    { id: 12, deviceCode: 'STN-NJ-001', station: '南京南站', location: '出发层3号门', status: 'online', idModule: 'normal', printModule: 'normal', networkModule: 'normal', lastOnline: '2026-05-17 08:10:00' },
+                    { id: 13, deviceCode: 'STN-HZ-001', station: '杭州东站', location: '东广场售票厅', status: 'online', idModule: 'normal', printModule: 'warning', networkModule: 'normal', lastOnline: '2026-05-17 07:55:00' },
+                    { id: 14, deviceCode: 'STN-TJ-001', station: '天津站', location: '进站口右侧', status: 'offline', idModule: 'error', printModule: 'error', networkModule: 'error', lastOnline: '2026-05-14 09:30:00' },
+                    { id: 15, deviceCode: 'STN-SY-001', station: '沈阳北站', location: '二楼候车区', status: 'online', idModule: 'normal', printModule: 'normal', networkModule: 'normal', lastOnline: '2026-05-17 07:30:00' }
+                ],
+                currentPage: 1,
+                pageSize: 8
+            },
+            computed: {
+                filteredData() {
+                    return this.deviceList.filter(device => {
+                        const matchCode = !this.searchForm.deviceCode || 
+                            device.deviceCode.toLowerCase().includes(this.searchForm.deviceCode.toLowerCase()) ||
+                            device.deviceCode.toLowerCase().indexOf(this.searchForm.deviceCode.toLowerCase()) > -1;
+                        const matchStation = !this.searchForm.station || 
+                            device.station.includes(this.searchForm.station) ||
+                            device.station.indexOf(this.searchForm.station) > -1 ||
+                            device.location.includes(this.searchForm.station);
+                        const matchStatus = !this.searchForm.status || device.status === this.searchForm.status;
+                        return matchCode && matchStation && matchStatus;
+                    });
+                },
+                currentPageData() {
+                    const start = (this.currentPage - 1) * this.pageSize;
+                    const end = start + this.pageSize;
+                    return this.filteredData.slice(start, end);
+                },
+                total() {
+                    return this.filteredData.length;
+                },
+                totalPages() {
+                    return Math.ceil(this.total / this.pageSize) || 1;
+                },
+                visiblePages() {
+                    const pages = [];
+                    const start = Math.max(1, this.currentPage - 2);
+                    const end = Math.min(this.totalPages, start + 4);
+                    for (let i = start; i <= end; i++) {
+                        pages.push(i);
+                    }
+                    return pages;
+                },
+                filteredDevices() {
+                    if (!this.deviceSearch) return this.deviceList;
+                    const keyword = this.deviceSearch.toLowerCase();
+                    return this.deviceList.filter(device => 
+                        device.deviceCode.toLowerCase().includes(keyword) ||
+                        device.station.includes(keyword) ||
+                        device.location.includes(keyword)
+                    );
+                }
+            },
+            methods: {
+                getStatusText(status) {
+                    const statusMap = {
+                        online: '✓ 在线',
+                        offline: '✗ 离线',
+                        fault: '⚠ 故障'
+                    };
+                    return statusMap[status] || status;
+                },
+                getModuleClass(status) {
+                    const classMap = {
+                        normal: 'module-normal',
+                        warning: 'module-warning',
+                        error: 'module-error'
+                    };
+                    return classMap[status] || 'module-normal';
+                },
+                getModuleIcon(status) {
+                    const iconMap = {
+                        normal: '✓',
+                        warning: '!',
+                        error: '✗'
+                    };
+                    return iconMap[status] || '✓';
+                },
+                filterByStatus(status) {
+                    this.searchForm.status = status;
+                    this.isLoading = true;
+                    setTimeout(() => {
+                        this.currentPage = 1;
+                        this.isLoading = false;
+                    }, 200);
+                },
+                handleSearch() {
+                    this.isLoading = true;
+                    setTimeout(() => {
+                        this.currentPage = 1;
+                        this.isLoading = false;
+                    }, 300);
+                },
+                handleReset() {
+                    this.searchForm = { deviceCode: '', station: '', status: '' };
+                    this.currentPage = 1;
+                },
+                goToPage(page) {
+                    if (page >= 1 && page <= this.totalPages) {
+                        this.isLoading = true;
+                        setTimeout(() => {
+                            this.currentPage = page;
+                            this.isLoading = false;
+                        }, 200);
+                    }
+                },
+                generateTicketNo() {
+                    const now = new Date();
+                    const dateStr = now.getFullYear().toString() + 
+                        (now.getMonth() + 1).toString().padStart(2, '0') +
+                        now.getDate().toString().padStart(2, '0');
+                    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+                    return 'GD' + dateStr + random;
+                },
+                selectDevice(device) {
+                    this.reportForm.deviceId = device.id;
+                    this.formErrors.deviceId = '';
+                },
+                openReportModal() {
+                    this.ticketNo = this.generateTicketNo();
+                    this.reportForm = { deviceId: '', description: '', reporter: '' };
+                    this.formErrors = { deviceId: '', description: '', reporter: '' };
+                    this.deviceSearch = '';
+                    this.showModal = true;
+                },
+                reportDevice(device) {
+                    this.ticketNo = this.generateTicketNo();
+                    this.reportForm = { 
+                        deviceId: device.id, 
+                        description: '', 
+                        reporter: '' 
+                    };
+                    this.formErrors = { deviceId: '', description: '', reporter: '' };
+                    this.deviceSearch = '';
+                    this.showModal = true;
+                },
+                closeModal() {
+                    this.showModal = false;
+                },
+                validateForm() {
+                    let isValid = true;
+                    this.formErrors = { deviceId: '', description: '', reporter: '' };
+                    
+                    if (!this.reportForm.deviceId) {
+                        this.formErrors.deviceId = '请选择一台设备';
+                        isValid = false;
+                    }
+                    
+                    if (!this.reportForm.description) {
+                        this.formErrors.description = '请填写故障描述';
+                        isValid = false;
+                    } else if (this.reportForm.description.length < 10) {
+                        this.formErrors.description = '故障描述至少需要10个字';
+                        isValid = false;
+                    }
+                    
+                    if (!this.reportForm.reporter) {
+                        this.formErrors.reporter = '请填写上报人姓名';
+                        isValid = false;
+                    } else if (this.reportForm.reporter.length < 2) {
+                        this.formErrors.reporter = '请填写真实姓名';
+                        isValid = false;
+                    }
+                    
+                    return isValid;
+                },
+                submitReport() {
+                    if (!this.validateForm()) {
+                        if (!this.reportForm.deviceId) {
+                            alert('⚠️ 请先选择一台设备！');
+                        }
+                        return;
+                    }
+                    
+                    const device = this.deviceList.find(d => d.id == this.reportForm.deviceId);
+                    device.status = 'fault';
+                    
+                    const desc = this.reportForm.description.toLowerCase();
+                    if (desc.includes('身份') || desc.includes('识别') || desc.includes('读卡')) {
+                        device.idModule = 'error';
+                    } else if (desc.includes('打印') || desc.includes('票据') || desc.includes('纸')) {
+                        device.printModule = 'error';
+                    } else if (desc.includes('网络') || desc.includes('连接') || desc.includes('通信')) {
+                        device.networkModule = 'error';
+                    } else {
+                        if (device.idModule === 'normal') device.idModule = 'warning';
+                        if (device.printModule === 'normal') device.printModule = 'warning';
+                        if (device.networkModule === 'normal') device.networkModule = 'warning';
+                    }
+                    
+                    const now = new Date();
+                    device.lastOnline = now.getFullYear() + '-' + 
+                        String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(now.getDate()).padStart(2, '0') + ' ' + 
+                        String(now.getHours()).padStart(2, '0') + ':' + 
+                        String(now.getMinutes()).padStart(2, '0') + ':' + 
+                        String(now.getSeconds()).padStart(2, '0');
+                    
+                    alert('✅ 故障上报成功！\n\n工单编号：' + this.ticketNo + '\n设备编号：' + device.deviceCode + '\n设备位置：' + device.station + ' - ' + device.location + '\n上报人：' + this.reportForm.reporter + '\n故障描述：' + this.reportForm.description.substring(0, 30) + '...\n\n设备状态已自动更新为故障状态');
+                    this.closeModal();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

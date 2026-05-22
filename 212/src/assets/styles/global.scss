@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Serif SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #5D4037;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+
+  i {
+    font-size: 32px;
+    margin-right: 12px;
+    color: #8B4513;
+  }
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(139, 69, 19, 0.1);
+  padding: 24px;
+  margin-bottom: 24px;
+  transition: transform 0.3s, box-shadow 0.3s;
+
+  &:hover {
+    box-shadow: 0 6px 30px rgba(139, 69, 19, 0.15);
+  }
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #5D4037;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #D7CCC8;
+}
+
+.el-button--primary {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  border: none;
+
+  &:hover {
+    background: linear-gradient(135deg, #6D3610 0%, #8B4513 100%);
+  }
+}
+
+.el-button--success {
+  background: linear-gradient(135deg, #228B22 0%, #2E8B57 100%);
+  border: none;
+
+  &:hover {
+    background: linear-gradient(135deg, #1B6E1B 0%, #228B22 100%);
+  }
+}
+
+.el-radio-button__orig-radio:checked + .el-radio-button__inner {
+  background-color: #8B4513;
+  border-color: #8B4513;
+  box-shadow: -1px 0 0 0 #8B4513;
+}
+
+.el-select-dropdown__item.selected {
+  color: #8B4513;
+  font-weight: 500;
+}
+
+.el-input-number__decrease:hover,
+.el-input-number__increase:hover {
+  color: #8B4513;
+}
+
+.process-steps {
+  .el-step__title.is-process,
+  .el-step__title.is-finish {
+    color: #8B4513;
+  }
+
+  .el-step__icon.is-process,
+  .el-step__icon.is-finish {
+    background-color: #8B4513;
+    border-color: #8B4513;
+  }
+
+  .el-step__line-inner {
+    background-color: #8B4513;
+  }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}

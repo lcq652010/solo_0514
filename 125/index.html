@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>传统桃木剑挂件定制系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+    }
+    #app {
+      min-height: 100vh;
+    }
+    .header {
+      background: linear-gradient(90deg, #8B4513 0%, #A0522D 50%, #8B4513 100%);
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .header h1 {
+      font-size: 28px;
+      letter-spacing: 4px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      background: #D2691E;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .nav-tabs .el-tabs__nav-wrap::after {
+      background-color: transparent;
+    }
+    .nav-tabs .el-tabs__item {
+      color: #fff !important;
+      font-size: 16px;
+      padding: 0 40px;
+      height: 50px;
+      line-height: 50px;
+    }
+    .nav-tabs .el-tabs__item.is-active {
+      background-color: #8B4513;
+      color: #FFD700 !important;
+    }
+    .nav-tabs .el-tabs__active-bar {
+      background-color: #FFD700;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .card-title {
+      font-size: 20px;
+      color: #8B4513;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+    }
+    .card-title i {
+      margin-right: 10px;
+      color: #D2691E;
+    }
+    .form-section {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .submit-btn {
+      width: 100%;
+      height: 50px;
+      font-size: 18px;
+      background: linear-gradient(90deg, #D2691E, #8B4513);
+      border: none;
+      margin-top: 20px;
+    }
+    .submit-btn:hover {
+      background: linear-gradient(90deg, #CD853F, #A0522D);
+    }
+    .order-card {
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .process-steps {
+      margin: 20px 0;
+    }
+    .process-tag {
+      margin: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .process-tag:hover {
+      transform: scale(1.1);
+    }
+    .process-tag.completed {
+      background-color: #67C23A;
+      border-color: #67C23A;
+      color: white;
+    }
+    .process-tag.current {
+      background-color: #E6A23C;
+      border-color: #E6A23C;
+      color: white;
+      animation: pulse 1.5s infinite;
+    }
+    .process-tag.next {
+      background-color: #409EFF;
+      border-color: #409EFF;
+      color: white;
+      cursor: pointer;
+    }
+    .process-tag.next:hover {
+      background-color: #66b1ff;
+      border-color: #66b1ff;
+    }
+    .process-tag.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background-color: #f5f7fa;
+      border-color: #dcdfe6;
+      color: #c0c4cc;
+    }
+    .process-tag.disabled:hover {
+      transform: none;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .order-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    .info-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .info-label {
+      color: #909399;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .info-value {
+      color: #303133;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #909399;
+    }
+    .empty-state i {
+      font-size: 60px;
+      margin-bottom: 20px;
+      color: #DCDFE6;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="header">
+      <h1>🏮 传统桃木剑挂件定制 🏮</h1>
+    </div>
+    
+    <el-tabs v-model="activeTab" class="nav-tabs">
+      <el-tab-pane label="客户下单" name="order"></el-tab-pane>
+      <el-tab-pane label="管理员订单管理" name="admin"></el-tab-pane>
+    </el-tabs>
+
+    <div class="container">
+      <!-- 客户下单页面 -->
+      <div v-show="activeTab === 'order'">
+        <div class="form-section">
+          <h2 class="card-title">
+            <i class="el-icon-edit"></i>
+            桃木剑挂件定制订单
+          </h2>
+          <el-divider></el-divider>
+          
+          <el-form :model="orderForm" :rules="formRules" ref="orderForm" label-width="120px" size="medium">
+            <el-row :gutter="20">
+              <el-col :xs="24" :md="12">
+                <el-form-item label="桃木等级" prop="woodLevel">
+                  <el-select v-model="orderForm.woodLevel" placeholder="请选择桃木等级" style="width: 100%">
+                    <el-option label="普通桃木 (经济实惠)" value="普通"></el-option>
+                    <el-option label="优质桃木 (纹理清晰)" value="优质"></el-option>
+                    <el-option label="百年桃木 (收藏级)" value="百年"></el-option>
+                    <el-option label="千年桃木 (传世珍品)" value="千年"></el-option>
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :xs="24" :md="12">
+                <el-form-item label="客户姓名" prop="customerName">
+                  <el-input v-model="orderForm.customerName" placeholder="请输入您的姓名"></el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-row :gutter="20">
+              <el-col :xs="24" :md="12">
+                <el-form-item label="剑体长度 (cm)" prop="length">
+                  <el-input-number v-model="orderForm.length" :min="15" :max="80" :step="1" style="width: 100%"></el-input-number>
+                </el-form-item>
+              </el-col>
+              <el-col :xs="24" :md="12">
+                <el-form-item label="剑身宽度 (cm)" prop="width">
+                  <el-input-number v-model="orderForm.width" :min="3" :max="12" :step="0.5" style="width: 100%"></el-input-number>
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-row :gutter="20">
+              <el-col :xs="24" :md="12">
+                <el-form-item label="雕刻纹饰" prop="pattern">
+                  <el-select v-model="orderForm.pattern" placeholder="请选择雕刻纹饰" style="width: 100%">
+                    <el-option label="无纹饰 (素面)" value="无纹饰"></el-option>
+                    <el-option label="祥云纹 (吉祥如意)" value="祥云纹"></el-option>
+                    <el-option label="龙凤纹 (尊贵典雅)" value="龙凤纹"></el-option>
+                    <el-option label="八卦纹 (辟邪镇宅)" value="八卦纹"></el-option>
+                    <el-option label="龙虎纹 (威猛霸气)" value="龙虎纹"></el-option>
+                    <el-option label="自定义纹饰" value="自定义"></el-option>
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :xs="24" :md="12">
+                <el-form-item label="挂穗颜色" prop="tasselColor">
+                  <el-select v-model="orderForm.tasselColor" placeholder="请选择挂穗颜色" style="width: 100%">
+                    <el-option label="中国红 (喜庆吉祥)" value="中国红"></el-option>
+                    <el-option label="明黄色 (皇家气派)" value="明黄色"></el-option>
+                    <el-option label="墨绿色 (沉稳大气)" value="墨绿色"></el-option>
+                    <el-option label="藏青色 (深邃神秘)" value="藏青色"></el-option>
+                    <el-option label="紫色 (紫气东来)" value="紫色"></el-option>
+                  </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-form-item label="联系电话" prop="phone">
+              <el-input v-model="orderForm.phone" placeholder="请输入您的联系电话" maxlength="11"></el-input>
+            </el-form-item>
+
+            <el-form-item label="备注说明">
+              <el-input 
+                type="textarea" 
+                :rows="4" 
+                v-model="orderForm.remarks" 
+                placeholder="如有特殊要求请在此说明，如自定义纹饰详情、特殊尺寸等...">
+              </el-input>
+            </el-form-item>
+
+            <el-form-item>
+              <el-button type="primary" class="submit-btn" @click="submitOrder" :loading="submitting">
+                <i class="el-icon-check"></i> 提交定制订单
+              </el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </div>
+
+      <!-- 管理员订单页面 -->
+      <div v-show="activeTab === 'admin'">
+        <div class="form-section">
+          <h2 class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <span>
+              <i class="el-icon-document"></i>
+              订单管理列表
+            </span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <el-input 
+                v-model="operatorName" 
+                placeholder="请输入操作人姓名" 
+                size="small"
+                style="width: 150px;"
+                prefix-icon="el-icon-user">
+              </el-input>
+              <el-button 
+                type="primary" 
+                size="small" 
+                icon="el-icon-refresh"
+                @click="refreshOrders"
+                :loading="refreshing">
+                刷新列表
+              </el-button>
+            </div>
+          </h2>
+          <el-divider></el-divider>
+
+          <div v-if="orders.length === 0" class="empty-state">
+            <i class="el-icon-document-copy"></i>
+            <p>暂无订单数据</p>
+          </div>
+
+          <el-collapse v-model="activeOrders" accordion>
+            <el-collapse-item 
+              v-for="(order, index) in orders" 
+              :key="order.id" 
+              :name="order.id">
+              <template slot="title">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding-right: 20px;">
+                  <span>
+                    <el-tag type="info" size="small" style="margin-right: 10px;">订单号: {{ order.id }}</el-tag>
+                    <strong>{{ order.customerName }}</strong>
+                    <span style="color: #909399; margin-left: 10px;">{{ order.orderTime }}</span>
+                  </span>
+                  <el-tag :type="getProcessType(order.currentProcess)" size="small">
+                    {{ order.currentProcess }}
+                  </el-tag>
+                </div>
+              </template>
+
+              <div class="order-card">
+                <div class="order-info">
+                  <div class="info-item">
+                    <span class="info-label">桃木等级</span>
+                    <span class="info-value">{{ order.woodLevel }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">剑体尺寸</span>
+                    <span class="info-value">{{ order.length }}cm × {{ order.width }}cm</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">雕刻纹饰</span>
+                    <span class="info-value">{{ order.pattern }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">挂穗颜色</span>
+                    <span class="info-value">{{ order.tasselColor }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">联系电话</span>
+                    <span class="info-value">{{ order.phone }}</span>
+                  </div>
+                  <div class="info-item" v-if="order.remarks">
+                    <span class="info-label">备注</span>
+                    <span class="info-value">{{ order.remarks }}</span>
+                  </div>
+                </div>
+
+                <el-divider content-position="left">
+                  <span style="color: #8B4513; font-weight: bold;">生产工序进度</span>
+                </el-divider>
+
+                <div class="process-steps">
+                  <el-tag 
+                    v-for="process in processes" 
+                    :key="process"
+                    size="medium"
+                    class="process-tag"
+                    :class="{
+                      'completed': getProcessIndex(process) < getProcessIndex(order.currentProcess),
+                      'current': process === order.currentProcess,
+                      'next': getProcessIndex(process) === getProcessIndex(order.currentProcess) + 1,
+                      'disabled': getProcessIndex(process) > getProcessIndex(order.currentProcess) + 1
+                    }"
+                    @click="updateProcess(order.id, process)">
+                    {{ getProcessIndex(process) + 1 }}. {{ process }}
+                  </el-tag>
+                </div>
+
+                <el-divider content-position="left" style="margin-top: 25px;">
+                  <span style="color: #8B4513; font-weight: bold;">工序操作历史</span>
+                </el-divider>
+                
+                <div v-if="order.processHistory && order.processHistory.length > 0" style="margin-bottom: 20px;">
+                  <el-timeline>
+                    <el-timeline-item 
+                      v-for="(history, index) in order.processHistory" 
+                      :key="index"
+                      :timestamp="history.time"
+                      placement="top">
+                      <el-card shadow="never" style="background: #f9f5f0; border: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <div>
+                            <el-tag size="small" type="success">{{ history.process }}</el-tag>
+                            <span style="margin-left: 10px; color: #606266;">{{ history.remark }}</span>
+                          </div>
+                          <div style="color: #909399; font-size: 12px;">
+                            <i class="el-icon-user" style="margin-right: 5px;"></i>
+                            {{ history.operator }}
+                          </div>
+                        </div>
+                      </el-card>
+                    </el-timeline-item>
+                  </el-timeline>
+                </div>
+                <div v-else style="text-align: center; color: #909399; padding: 20px;">
+                  暂无工序操作记录
+                </div>
+
+                <div style="margin-top: 20px; text-align: right;">
+                  <el-button 
+                    type="danger" 
+                    size="small" 
+                    icon="el-icon-delete"
+                    @click="deleteOrder(order.id)">
+                    删除订单
+                  </el-button>
+                </div>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@2.7.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        activeTab: 'order',
+        submitting: false,
+        refreshing: false,
+        activeOrders: [],
+        operatorName: '管理员',
+        processes: ['选料', '裁切', '塑形', '雕刻', '打磨', '上漆', '装配', '完工'],
+        orderForm: {
+          woodLevel: '',
+          customerName: '',
+          length: 30,
+          width: 5,
+          pattern: '',
+          tasselColor: '',
+          phone: '',
+          remarks: ''
+        },
+        formRules: {
+          woodLevel: [
+            { required: true, message: '请选择桃木等级', trigger: 'change' }
+          ],
+          customerName: [
+            { required: true, message: '请输入客户姓名', trigger: 'blur' }
+          ],
+          length: [
+            { required: true, message: '请输入剑体长度', trigger: 'change' },
+            { type: 'number', min: 15, max: 80, message: '剑体长度应在 15-80cm 之间', trigger: 'change' }
+          ],
+          width: [
+            { required: true, message: '请输入剑身宽度', trigger: 'change' },
+            { type: 'number', min: 3, max: 12, message: '剑身宽度应在 3-12cm 之间', trigger: 'change' }
+          ],
+          pattern: [
+            { required: true, message: '请选择雕刻纹饰', trigger: 'change' }
+          ],
+          tasselColor: [
+            { required: true, message: '请选择挂穗颜色', trigger: 'change' }
+          ],
+          phone: [
+            { required: true, message: '请输入联系电话', trigger: 'blur' },
+            { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+          ]
+        },
+        orders: []
+      },
+      created() {
+        this.loadOrders();
+      },
+      methods: {
+        loadOrders() {
+          const saved = localStorage.getItem('swordOrders');
+          if (saved) {
+            this.orders = JSON.parse(saved);
+          }
+        },
+        saveOrders() {
+          localStorage.setItem('swordOrders', JSON.stringify(this.orders));
+        },
+        refreshOrders() {
+          this.refreshing = true;
+          setTimeout(() => {
+            this.loadOrders();
+            this.refreshing = false;
+            this.$message({
+              type: 'success',
+              message: '订单列表已刷新'
+            });
+          }, 800);
+        },
+        submitOrder() {
+          this.$refs.orderForm.validate((valid) => {
+            if (valid) {
+              this.submitting = true;
+              setTimeout(() => {
+                const newOrder = {
+                  id: 'ORD' + Date.now().toString().slice(-6),
+                  ...this.orderForm,
+                  currentProcess: '选料',
+                  orderTime: this.formatDate(new Date()),
+                  processHistory: [
+                    {
+                      process: '选料',
+                      operator: '系统',
+                      time: this.formatDate(new Date()),
+                      remark: '订单创建，开始选料'
+                    }
+                  ]
+                };
+                this.orders.unshift(newOrder);
+                this.saveOrders();
+                
+                this.$message({
+                  type: 'success',
+                  message: '订单提交成功！感谢您的定制！',
+                  duration: 3000
+                });
+                
+                this.$refs.orderForm.resetFields();
+                this.orderForm.length = 30;
+                this.orderForm.width = 5;
+                this.submitting = false;
+              }, 1000);
+            } else {
+              this.$message.error('请完善表单信息');
+              return false;
+            }
+          });
+        },
+        getProcessIndex(process) {
+          return this.processes.indexOf(process);
+        },
+        getProcessType(process) {
+          const index = this.getProcessIndex(process);
+          if (index === this.processes.length - 1) return 'success';
+          if (index >= 4) return 'warning';
+          return 'info';
+        },
+        updateProcess(orderId, newProcess) {
+          const order = this.orders.find(o => o.id === orderId);
+          if (order) {
+            const currentIndex = this.getProcessIndex(order.currentProcess);
+            const newIndex = this.getProcessIndex(newProcess);
+            
+            if (currentIndex === this.processes.length - 1) {
+              this.$message({
+                type: 'warning',
+                message: '该订单已完工，无需继续推进'
+              });
+              return;
+            }
+            
+            if (newIndex !== currentIndex + 1) {
+              this.$message({
+                type: 'error',
+                message: '请按顺序推进工序，不可跳步！'
+              });
+              return;
+            }
+            
+            if (!this.operatorName || this.operatorName.trim() === '') {
+              this.$message({
+                type: 'warning',
+                message: '请先输入操作人姓名'
+              });
+              return;
+            }
+            
+            order.currentProcess = newProcess;
+            if (!order.processHistory) {
+              order.processHistory = [];
+            }
+            order.processHistory.push({
+              process: newProcess,
+              operator: this.operatorName,
+              time: this.formatDate(new Date()),
+              remark: `工序推进至: ${newProcess}`
+            });
+            
+            this.saveOrders();
+            this.$message({
+              type: 'success',
+              message: `订单 ${orderId} 工序已更新为: ${newProcess} (操作人: ${this.operatorName})`
+            });
+          }
+        },
+        deleteOrder(orderId) {
+          this.$confirm('确定要删除此订单吗？删除后无法恢复！', '警告', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            this.orders = this.orders.filter(o => o.id !== orderId);
+            this.saveOrders();
+            this.$message({
+              type: 'success',
+              message: '订单已删除'
+            });
+          }).catch(() => {});
+        },
+        formatDate(date) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "campus-card-terminal-mgmt",
+  "version": "1.0.0",
+  "description": "校园一卡通自助充值打印终端运维管理系统",
+  "main": "index.html",
+  "scripts": {
+    "dev": "serve -s .",
+    "start": "serve -s ."
+  },
+  "keywords": ["vue2", "campus", "management"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "milk-tea-shop",
+  "version": "1.0.0",
+  "description": "奶茶门店点单系统",
+  "scripts": {
+    "dev": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "vue": "^2.6.14",
+    "vue-router": "^3.5.3",
+    "element-ui": "^2.15.13"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^4.5.19",
+    "vue-template-compiler": "^2.6.14",
+    "sass": "^1.54.0",
+    "sass-loader": "^10.3.1"
+  },
+  "browserslist": ["> 1%", "last 2 versions", "not dead"]
+}

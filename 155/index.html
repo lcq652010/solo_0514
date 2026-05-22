@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>皮影戏偶定制系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+    }
+    #app {
+      min-height: 100vh;
+    }
+    .header {
+      background: linear-gradient(90deg, #8B0000 0%, #CD5C5C 100%);
+      color: white;
+      padding: 20px 40px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .nav-tabs {
+      margin-top: 15px;
+    }
+    .main-container {
+      padding: 30px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #8B0000;
+      border-left: 4px solid #8B0000;
+      padding-left: 12px;
+      margin-bottom: 20px;
+    }
+    .form-section {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .material-item, .category-item, .style-item, .joint-item {
+      border: 2px solid #e4e7ed;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .material-item:hover, .category-item:hover, .style-item:hover, .joint-item:hover {
+      border-color: #CD5C5C;
+      transform: translateY(-2px);
+    }
+    .material-item.active, .category-item.active, .style-item.active, .joint-item.active {
+      border-color: #8B0000;
+      background: #fff5f5;
+    }
+    .material-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .submit-btn {
+      width: 100%;
+      height: 50px;
+      font-size: 18px;
+      background: linear-gradient(90deg, #8B0000 0%, #CD5C5C 100%);
+      border: none;
+    }
+    .submit-btn:hover {
+      opacity: 0.9;
+    }
+    .process-timeline {
+      padding: 20px 0;
+    }
+    .order-card {
+      margin-bottom: 20px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .order-header {
+      background: linear-gradient(90deg, #8B0000 0%, #CD5C5C 100%);
+      color: white;
+      padding: 15px 20px;
+    }
+    .order-info {
+      padding: 20px;
+    }
+    .order-detail-item {
+      display: flex;
+      padding: 8px 0;
+      border-bottom: 1px dashed #e4e7ed;
+    }
+    .order-detail-item:last-child {
+      border-bottom: none;
+    }
+    .order-detail-label {
+      width: 100px;
+      color: #606266;
+      font-weight: 500;
+    }
+    .order-detail-value {
+      flex: 1;
+      color: #303133;
+    }
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .status-completed {
+      background: #f0f9eb;
+      color: #67c23a;
+    }
+    .status-processing {
+      background: #ecf5ff;
+      color: #409eff;
+    }
+    .status-pending {
+      background: #fdf6ec;
+      color: #e6a23c;
+    }
+    .shake-animation {
+      animation: shake 0.5s ease-in-out;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+      20%, 40%, 60%, 80% { transform: translateX(3px); }
+    }
+    .process-history {
+      margin-top: 15px;
+      padding: 10px;
+      background: #f5f7fa;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .process-history-title {
+      font-weight: 600;
+      color: #606266;
+      margin-bottom: 8px;
+    }
+    .process-history-item {
+      padding: 4px 0;
+      color: #909399;
+      border-bottom: 1px dashed #e4e7ed;
+    }
+    .process-history-item:last-child {
+      border-bottom: none;
+    }
+    .height-range-display {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: linear-gradient(90deg, #e74c3c 0%, #f39c12 50%, #27ae60 100%);
+      border-radius: 6px;
+      color: white;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+    .height-indicator {
+      background: white;
+      color: #8B0000;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .new-order-badge {
+      position: absolute;
+      top: 10px;
+      right: -30px;
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: white;
+      padding: 4px 35px;
+      font-size: 12px;
+      font-weight: 600;
+      transform: rotate(45deg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .order-card-wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+    .new-order-card {
+      border: 2px solid #e74c3c;
+      background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="header">
+      <h1>🎭 皮影戏偶定制系统</h1>
+      <p>传承非遗文化，打造专属皮影</p>
+      <el-tabs v-model="activeTab" class="nav-tabs" @tab-click="handleTabClick">
+        <el-tab-pane label="客户下单" name="order"></el-tab-pane>
+        <el-tab-pane label="管理员订单" name="admin"></el-tab-pane>
+      </el-tabs>
+    </div>
+
+    <div class="main-container">
+      <div v-if="activeTab === 'order'">
+        <el-form :model="orderForm" :rules="rules" ref="orderForm" label-position="top">
+          <div class="form-section">
+            <div class="card-title">皮影材质选择</div>
+            <el-row :gutter="20">
+              <el-col :span="6" v-for="item in materials" :key="item.value">
+                <div class="material-item" :class="{ active: orderForm.material === item.value }" @click="orderForm.material = item.value">
+                  <div class="material-icon">{{ item.icon }}</div>
+                  <div style="font-weight: 600; color: #303133;">{{ item.label }}</div>
+                  <div style="font-size: 12px; color: #909399; margin-top: 5px;">{{ item.desc }}</div>
+                  <div style="color: #8B0000; font-weight: 600; margin-top: 5px;">¥{{ item.price }}</div>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+
+          <div class="form-section">
+            <div class="card-title">角色品类选择</div>
+            <el-row :gutter="20">
+              <el-col :span="6" v-for="item in categories" :key="item.value">
+                <div class="category-item" :class="{ active: orderForm.category === item.value }" @click="orderForm.category = item.value">
+                  <div class="material-icon">{{ item.icon }}</div>
+                  <div style="font-weight: 600; color: #303133;">{{ item.label }}</div>
+                  <div style="font-size: 12px; color: #909399; margin-top: 5px;">{{ item.desc }}</div>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+
+          <div class="form-section">
+            <div class="card-title">戏偶规格</div>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="戏偶高度（cm）" prop="height">
+                  <el-input-number v-model="orderForm.height" :min="20" :max="100" :step="5" style="width: 100%;" size="large"></el-input-number>
+                  <div class="height-range-display">
+                    <span>最小 20cm</span>
+                    <span class="height-indicator">当前: {{ orderForm.height }}cm</span>
+                    <span>最大 100cm</span>
+                  </div>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="客户姓名" prop="customerName">
+                  <el-input v-model="orderForm.customerName" placeholder="请输入您的姓名" size="large"></el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="联系电话" prop="phone">
+                  <el-input v-model="orderForm.phone" placeholder="请输入联系电话" size="large"></el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="备注说明">
+                  <el-input v-model="orderForm.remark" type="textarea" :rows="2" placeholder="其他特殊要求" size="large"></el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </div>
+
+          <div class="form-section">
+            <div class="card-title">彩绘风格选择</div>
+            <el-row :gutter="20">
+              <el-col :span="8" v-for="item in styles" :key="item.value">
+                <div class="style-item" :class="{ active: orderForm.style === item.value }" @click="orderForm.style = item.value">
+                  <div style="width: 100%; height: 80px; border-radius: 6px; margin-bottom: 10px;" :style="{ background: item.color }"></div>
+                  <div style="font-weight: 600; color: #303133;">{{ item.label }}</div>
+                  <div style="font-size: 12px; color: #909399; margin-top: 5px;">{{ item.desc }}</div>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+
+          <div class="form-section">
+            <div class="card-title">关节活动配置</div>
+            <el-row :gutter="20">
+              <el-col :span="12" v-for="item in joints" :key="item.value">
+                <div class="joint-item" :class="{ active: orderForm.joint === item.value }" @click="orderForm.joint = item.value">
+                  <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="text-align: left;">
+                      <div style="font-weight: 600; color: #303133; font-size: 16px;">{{ item.label }}</div>
+                      <div style="font-size: 12px; color: #909399; margin-top: 5px;">{{ item.desc }}</div>
+                      <div style="color: #8B0000; font-weight: 600; margin-top: 8px;">+¥{{ item.price }}</div>
+                    </div>
+                    <div style="font-size: 40px;">{{ item.icon }}</div>
+                  </div>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+
+          <div class="form-section" style="text-align: center;">
+            <div style="font-size: 18px; margin-bottom: 20px;">
+              订单总价：<span style="color: #8B0000; font-size: 28px; font-weight: 700;">¥{{ totalPrice }}</span>
+            </div>
+            <el-button type="primary" class="submit-btn" size="large" @click="submitOrder">
+              <i class="el-icon-check"></i> 提交定制订单
+            </el-button>
+          </div>
+        </el-form>
+      </div>
+
+      <div v-if="activeTab === 'admin'">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div class="card-title" style="margin-bottom: 0;">订单管理列表</div>
+          <el-button type="primary" @click="refreshOrders">
+            <i class="el-icon-refresh"></i> 刷新
+          </el-button>
+        </div>
+
+        <el-empty v-if="orders.length === 0" description="暂无订单数据"></el-empty>
+
+        <div :class="{ 'shake-animation': listShaking }">
+          <div v-for="order in orders" :key="order.id" class="order-card-wrapper">
+            <div v-if="order.isNew" class="new-order-badge">待处理</div>
+            <div class="order-card" :class="{ 'new-order-card': order.isNew }">
+              <div class="order-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <span style="font-size: 16px; font-weight: 600;">订单号：{{ order.id }}</span>
+                <span style="margin-left: 20px; opacity: 0.9;">客户：{{ order.customerName }}</span>
+                <span style="margin-left: 20px; opacity: 0.9;">电话：{{ order.phone }}</span>
+              </div>
+              <span class="status-badge" :class="getStatusClass(order.processIndex)">
+                {{ getStatusText(order.processIndex) }}
+              </span>
+            </div>
+          </div>
+          <div class="order-info">
+            <el-row :gutter="20">
+              <el-col :span="10">
+                <div class="order-detail-item">
+                  <span class="order-detail-label">皮影材质</span>
+                  <span class="order-detail-value">{{ getMaterialLabel(order.material) }}</span>
+                </div>
+                <div class="order-detail-item">
+                  <span class="order-detail-label">角色品类</span>
+                  <span class="order-detail-value">{{ getCategoryLabel(order.category) }}</span>
+                </div>
+                <div class="order-detail-item">
+                  <span class="order-detail-label">戏偶高度</span>
+                  <span class="order-detail-value">{{ order.height }} cm</span>
+                </div>
+                <div class="order-detail-item">
+                  <span class="order-detail-label">彩绘风格</span>
+                  <span class="order-detail-value">{{ getStyleLabel(order.style) }}</span>
+                </div>
+                <div class="order-detail-item">
+                  <span class="order-detail-label">关节配置</span>
+                  <span class="order-detail-value">{{ getJointLabel(order.joint) }}</span>
+                </div>
+                <div class="order-detail-item">
+                  <span class="order-detail-label">订单总价</span>
+                  <span class="order-detail-value" style="color: #8B0000; font-weight: 600;">¥{{ order.totalPrice }}</span>
+                </div>
+                <div v-if="order.remark" class="order-detail-item">
+                  <span class="order-detail-label">备注</span>
+                  <span class="order-detail-value">{{ order.remark }}</span>
+                </div>
+              </el-col>
+              <el-col :span="14">
+                <div style="font-weight: 600; color: #303133; margin-bottom: 15px;">生产工序进度</div>
+                <el-steps :active="order.processIndex" finish-status="success" align-center>
+                  <el-step v-for="step in processSteps" :key="step" :title="step"></el-step>
+                </el-steps>
+                <div style="margin-top: 20px; text-align: center;">
+                  <el-button v-if="order.processIndex < processSteps.length - 1" type="primary" size="small" @click="openProcessDialog(order)">
+                    推进工序 <i class="el-icon-arrow-right"></i>
+                  </el-button>
+                  <el-button v-if="order.processIndex === processSteps.length - 1" type="success" size="small" disabled>
+                    <i class="el-icon-check"></i> 已完工
+                  </el-button>
+                </div>
+                <div v-if="order.processHistory && order.processHistory.length > 0" class="process-history">
+                  <div class="process-history-title">📋 工序变更记录</div>
+                  <div v-for="(record, idx) in order.processHistory" :key="idx" class="process-history-item">
+                    {{ record.time }} | 操作人：{{ record.operator }}
+                    <br>从【{{ record.from }}】推进到【{{ record.to }}】
+                    <br>原因：{{ record.reason }}
+                  </div>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <el-dialog title="推进工序" :visible.sync="processDialogVisible" width="400px">
+      <el-form label-position="top">
+        <el-form-item label="当前工序">
+          <el-tag type="info" size="medium">{{ currentProcessFrom }}</el-tag>
+        </el-form-item>
+        <el-form-item label="下一工序">
+          <el-tag type="success" size="medium">{{ currentProcessTo }}</el-tag>
+        </el-form-item>
+        <el-form-item label="变更原因" required>
+          <el-input v-model="processReason" type="textarea" :rows="3" placeholder="请输入工序变更原因"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="processDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmProcessChange" :disabled="!processReason">确认推进</el-button>
+      </span>
+    </el-dialog>
+  </div>
+
+  <script src="https://unpkg.com/vue@2.7.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        activeTab: 'order',
+        orderForm: {
+          material: '',
+          category: '',
+          height: 50,
+          style: '',
+          joint: '',
+          customerName: '',
+          phone: '',
+          remark: ''
+        },
+        rules: {
+          material: [{ required: true, message: '请选择皮影材质', trigger: 'change' }],
+          category: [{ required: true, message: '请选择角色品类', trigger: 'change' }],
+          height: [
+            { required: true, message: '请输入戏偶高度', trigger: 'change' },
+            { type: 'number', min: 20, max: 100, message: '高度需在20-100cm之间', trigger: 'change' }
+          ],
+          style: [{ required: true, message: '请选择彩绘风格', trigger: 'change' }],
+          joint: [{ required: true, message: '请选择关节配置', trigger: 'change' }],
+          customerName: [{ required: true, message: '请输入客户姓名', trigger: 'blur' }],
+          phone: [
+            { required: true, message: '请输入联系电话', trigger: 'blur' },
+            { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+          ]
+        },
+        processDialogVisible: false,
+        currentOrder: null,
+        processReason: '',
+        listShaking: false,
+        currentOperator: '管理员_001',
+        materials: [
+          { value: 'donkey', label: '驴皮', icon: '🐴', desc: '传统材质，韧性好', price: 280 },
+          { value: 'cow', label: '牛皮', icon: '🐮', desc: '厚实耐用，质感佳', price: 320 },
+          { value: 'sheep', label: '羊皮', icon: '🐑', desc: '轻薄细腻，透明度高', price: 260 },
+          { value: 'synthetic', label: '合成材料', icon: '🎨', desc: '环保经济，色彩鲜艳', price: 180 }
+        ],
+        categories: [
+          { value: 'character', label: '人物角色', icon: '👤', desc: '生旦净末丑各类角色' },
+          { value: 'animal', label: '动物形象', icon: '🐉', desc: '龙凤虎鹤等瑞兽动物' },
+          { value: 'scenery', label: '布景道具', icon: '🏯', desc: '桌椅山水等场景道具' },
+          { value: 'custom', label: '定制形象', icon: '✨', desc: '根据照片或描述定制' }
+        ],
+        styles: [
+          { value: 'traditional', label: '传统风格', color: 'linear-gradient(135deg, #8B0000, #D4AF37)', desc: '经典传统配色' },
+          { value: 'modern', label: '现代简约', color: 'linear-gradient(135deg, #2c3e50, #3498db)', desc: '时尚现代风格' },
+          { value: 'folk', label: '民俗特色', color: 'linear-gradient(135deg, #e74c3c, #f39c12)', desc: '浓郁地方特色' }
+        ],
+        joints: [
+          { value: 'basic', label: '基础活动', icon: '🔧', desc: '3处关节活动，基础展示', price: 0 },
+          { value: 'standard', label: '标准活动', icon: '⚙️', desc: '6处关节活动，灵活表演', price: 80 },
+          { value: 'premium', label: '高级活动', icon: '🦾', desc: '12处关节活动，专业演出', price: 180 },
+          { value: 'full', label: '全身活动', icon: '🤖', desc: '全身关节可动，收藏级', price: 280 }
+        ],
+        processSteps: ['选皮', '雕刻', '镂空', '上色', '上油', '装订关节', '装配', '完工'],
+        orders: []
+      },
+      computed: {
+        totalPrice() {
+          const materialPrice = this.materials.find(m => m.value === this.orderForm.material)?.price || 0
+          const jointPrice = this.joints.find(j => j.value === this.orderForm.joint)?.price || 0
+          return materialPrice + jointPrice + Math.floor(this.orderForm.height / 10) * 10
+        },
+        currentProcessFrom() {
+          return this.currentOrder ? this.processSteps[this.currentOrder.processIndex] : ''
+        },
+        currentProcessTo() {
+          return this.currentOrder ? this.processSteps[this.currentOrder.processIndex + 1] : ''
+        }
+      },
+      methods: {
+        handleTabClick(tab) {
+          this.activeTab = tab.name
+        },
+        validateForm() {
+          const errors = []
+          if (!this.orderForm.material) {
+            errors.push('请选择皮影材质')
+          }
+          if (!this.orderForm.category) {
+            errors.push('请选择角色品类')
+          }
+          if (!this.orderForm.height || this.orderForm.height < 20 || this.orderForm.height > 100) {
+            errors.push('戏偶高度需在20-100cm之间')
+          }
+          if (!this.orderForm.style) {
+            errors.push('请选择彩绘风格')
+          }
+          if (!this.orderForm.joint) {
+            errors.push('请选择关节配置')
+          }
+          if (!this.orderForm.customerName) {
+            errors.push('请输入客户姓名')
+          }
+          if (!this.orderForm.phone || !/^1[3-9]\d{9}$/.test(this.orderForm.phone)) {
+            errors.push('请输入正确的手机号')
+          }
+          return errors
+        },
+        submitOrder() {
+          const errors = this.validateForm()
+          if (errors.length > 0) {
+            this.$message.error(errors.join('；'))
+            return
+          }
+          
+          const order = {
+            id: 'ORD' + Date.now().toString().slice(-8),
+            ...this.orderForm,
+            totalPrice: this.totalPrice,
+            createTime: new Date().toLocaleString(),
+            processIndex: 0,
+            processHistory: [],
+            isNew: true
+          }
+          this.orders.unshift(order)
+          this.$message.success('订单提交成功！我们将尽快为您制作')
+          this.resetForm()
+          
+          this.activeTab = 'admin'
+          this.refreshOrders()
+        },
+        resetForm() {
+          this.$refs.orderForm.resetFields()
+          this.orderForm.height = 50
+        },
+        openProcessDialog(order) {
+          this.currentOrder = order
+          this.processReason = ''
+          this.processDialogVisible = true
+        },
+        confirmProcessChange() {
+          if (!this.processReason.trim()) {
+            this.$message.warning('请输入变更原因')
+            return
+          }
+          
+          const fromStep = this.processSteps[this.currentOrder.processIndex]
+          this.currentOrder.processIndex++
+          const toStep = this.processSteps[this.currentOrder.processIndex]
+          
+          if (!this.currentOrder.processHistory) {
+            this.$set(this.currentOrder, 'processHistory', [])
+          }
+          
+          this.currentOrder.processHistory.push({
+            time: new Date().toLocaleString(),
+            from: fromStep,
+            to: toStep,
+            reason: this.processReason,
+            operator: this.currentOperator
+          })
+          
+          this.$set(this.currentOrder, 'isNew', false)
+          
+          this.processDialogVisible = false
+          this.$message.success(`工序已推进至：${toStep}`)
+        },
+        getMaterialLabel(value) {
+          return this.materials.find(m => m.value === value)?.label || value
+        },
+        getCategoryLabel(value) {
+          return this.categories.find(c => c.value === value)?.label || value
+        },
+        getStyleLabel(value) {
+          return this.styles.find(s => s.value === value)?.label || value
+        },
+        getJointLabel(value) {
+          return this.joints.find(j => j.value === value)?.label || value
+        },
+        getStatusClass(index) {
+          if (index === this.processSteps.length - 1) return 'status-completed'
+          if (index > 0) return 'status-processing'
+          return 'status-pending'
+        },
+        getStatusText(index) {
+          if (index === this.processSteps.length - 1) return '已完工'
+          if (index > 0) return '制作中'
+          return '待开始'
+        },
+        refreshOrders() {
+          this.listShaking = true
+          setTimeout(() => {
+            this.listShaking = false
+          }, 500)
+          this.$message.success('订单列表已刷新')
+        }
+      },
+      mounted() {
+        this.orders = [
+          {
+            id: 'ORD20240003',
+            material: 'sheep',
+            category: 'scenery',
+            height: 55,
+            style: 'modern',
+            joint: 'basic',
+            customerName: '王五',
+            phone: '13700137003',
+            remark: '定制布景道具',
+            totalPrice: 315,
+            createTime: new Date().toLocaleString(),
+            processIndex: 0,
+            processHistory: [],
+            isNew: true
+          },
+          {
+            id: 'ORD20240001',
+            material: 'donkey',
+            category: 'character',
+            height: 60,
+            style: 'traditional',
+            joint: 'standard',
+            customerName: '张三',
+            phone: '13800138001',
+            remark: '希望能加急',
+            totalPrice: 420,
+            createTime: '2024-01-15 10:30:00',
+            processIndex: 3,
+            processHistory: [
+              { time: '2024-01-15 11:00:00', from: '选皮', to: '雕刻', reason: '材质检验合格，开始雕刻', operator: '管理员_001' },
+              { time: '2024-01-15 14:30:00', from: '雕刻', to: '镂空', reason: '雕刻完成，进行镂空处理', operator: '管理员_001' },
+              { time: '2024-01-15 16:00:00', from: '镂空', to: '上色', reason: '镂空工艺完成，准备彩绘', operator: '管理员_002' }
+            ],
+            isNew: false
+          },
+          {
+            id: 'ORD20240002',
+            material: 'cow',
+            category: 'animal',
+            height: 45,
+            style: 'folk',
+            joint: 'premium',
+            customerName: '李四',
+            phone: '13900139002',
+            remark: '',
+            totalPrice: 545,
+            createTime: '2024-01-16 14:20:00',
+            processIndex: 7,
+            processHistory: [
+              { time: '2024-01-16 15:00:00', from: '选皮', to: '雕刻', reason: '开始生产', operator: '管理员_001' },
+              { time: '2024-01-16 16:00:00', from: '雕刻', to: '镂空', reason: '雕刻完成', operator: '管理员_001' },
+              { time: '2024-01-16 17:00:00', from: '镂空', to: '上色', reason: '镂空完成', operator: '管理员_002' },
+              { time: '2024-01-16 18:00:00', from: '上色', to: '上油', reason: '上色完成', operator: '管理员_002' },
+              { time: '2024-01-17 09:00:00', from: '上油', to: '装订关节', reason: '油干完成', operator: '管理员_001' },
+              { time: '2024-01-17 10:00:00', from: '装订关节', to: '装配', reason: '关节装订完成', operator: '管理员_001' },
+              { time: '2024-01-17 11:00:00', from: '装配', to: '完工', reason: '全部工序完成', operator: '管理员_001' }
+            ],
+            isNew: false
+          }
+        ]
+      }
+    })
+  </script>
+</body>
+</html>

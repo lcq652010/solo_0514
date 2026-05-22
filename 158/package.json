@@ -1,0 +1,17 @@
+{
+  "name": "paper-cutting-custom",
+  "version": "1.0.0",
+  "description": "剪纸窗花定制系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "live-server --port=8080",
+    "serve": "http-server -p 8080"
+  },
+  "keywords": ["vue2", "element-ui", "paper-cutting"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "http-server": "^14.1.1"
+  }
+}

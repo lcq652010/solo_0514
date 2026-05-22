@@ -1,0 +1,16 @@
+{
+  "name": "bamboo-tea-filter",
+  "version": "1.0.0",
+  "description": "传统竹编茶滤定制下单与管理系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "serve -s . -l 8080",
+    "start": "serve -s . -l 8080"
+  },
+  "keywords": ["vue", "element-ui", "bamboo", "tea-filter"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "serve": "^14.2.1"
+  }
+}

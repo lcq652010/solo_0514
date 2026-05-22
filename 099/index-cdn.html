@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>驾校自助体检拍照终端运维管理系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.12/lib/theme-chalk/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      background-color: #f5f7fa;
+    }
+    #app {
+      width: 100%;
+      min-height: 100vh;
+    }
+    .device-management {
+      width: 100%;
+      min-height: 100vh;
+      background-color: #f5f7fa;
+    }
+    .header {
+      background: linear-gradient(135deg, #409eff 0%, #66b1ff 100%);
+      padding: 20px 40px;
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    }
+    .header h1 {
+      color: #fff;
+      font-size: 24px;
+      font-weight: 500;
+      margin: 0;
+    }
+    .content {
+      padding: 20px 40px;
+    }
+    .search-bar {
+      background: #fff;
+      padding: 20px;
+      border-radius: 4px;
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .search-bar .filter-label {
+      color: #606266;
+      margin-right: 5px;
+    }
+    .table-container {
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+    .pagination {
+      background: #fff;
+      padding: 20px;
+      border-radius: 4px;
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+      margin-top: 20px;
+      text-align: right;
+    }
+    .status-normal {
+      color: #67c23a;
+      font-weight: 500;
+    }
+    .status-fault {
+      color: #f56c6c;
+      font-weight: 500;
+    }
+    .status-offline {
+      color: #909399;
+      font-weight: 500;
+    }
+    .status-maintaining {
+      color: #e6a23c;
+      font-weight: 500;
+    }
+    .module-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin: 2px;
+    }
+    .module-normal {
+      background-color: #f0f9eb;
+      color: #67c23a;
+    }
+    .module-fault {
+      background-color: #fef0f0;
+      color: #f56c6c;
+    }
+    .el-table .row-fault {
+      background-color: #fef0f0 !important;
+    }
+    .el-table .row-offline {
+      background-color: #f4f4f5 !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="device-management">
+      <div class="header">
+        <h1>驾校自助体检拍照终端运维管理系统</h1>
+      </div>
+      
+      <div class="content">
+        <div class="search-bar">
+          <el-input
+            v-model="searchForm.keyword"
+            placeholder="请输入设备编号或网点名称"
+            style="width: 300px;"
+            clearable
+          ></el-input>
+          <span class="filter-label">设备状态：</span>
+          <el-select
+            v-model="searchForm.status"
+            placeholder="请选择状态"
+            style="width: 150px;"
+            clearable>
+            <el-option label="正常" value="normal"></el-option>
+            <el-option label="故障" value="fault"></el-option>
+            <el-option label="离线" value="offline"></el-option>
+            <el-option label="维护中" value="maintaining"></el-option>
+          </el-select>
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleReset">重置</el-button>
+          <el-button type="success" @click="openReportDialog" style="margin-left: auto;">故障上报</el-button>
+        </div>
+
+        <div class="table-container">
+          <el-table 
+            :data="tableData" 
+            border 
+            style="width: 100%"
+            :row-class-name="getRowClassName"
+            v-loading="loading">
+            <el-table-column prop="deviceCode" label="设备编号" width="150" align="center"></el-table-column>
+            <el-table-column prop="networkName" label="服务网点" width="180" align="center"></el-table-column>
+            <el-table-column prop="installLocation" label="安装位置" width="150" align="center"></el-table-column>
+            <el-table-column prop="status" label="设备状态" width="100" align="center">
+              <template slot-scope="scope">
+                <el-tag :type="getStatusTagType(scope.row.status)" size="small">
+                  {{ getStatusText(scope.row.status) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="模块运行状态" min-width="300" align="center">
+              <template slot-scope="scope">
+                <span 
+                  v-for="(module, key) in scope.row.modules" 
+                  :key="key"
+                  :class="['module-status', module.status === 'normal' ? 'module-normal' : 'module-fault']">
+                  {{ getModuleName(key) }}: {{ module.status === 'normal' ? '正常' : '异常' }}
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="150" align="center">
+              <template slot-scope="scope">
+                <el-button size="small" type="primary" @click="handleReport(scope.row)">上报故障</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+
+        <div class="pagination">
+          <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="pagination.currentPage"
+            :page-sizes="[5, 10, 20, 50]"
+            :page-size="pagination.pageSize"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="pagination.total">
+          </el-pagination>
+        </div>
+      </div>
+
+      <el-dialog
+        title="故障上报"
+        :visible.sync="reportDialogVisible"
+        width="550px"
+        @close="resetReportForm"
+        :close-on-click-modal="false">
+        <el-form :model="reportForm" label-width="100px" ref="reportForm" :rules="reportRules">
+          <el-form-item label="工单编号">
+            <el-input v-model="reportForm.orderNo" disabled></el-input>
+          </el-form-item>
+          <el-form-item label="选择设备" prop="deviceId">
+            <el-select 
+              v-model="reportForm.deviceId" 
+              placeholder="请选择设备" 
+              style="width: 100%;"
+              filterable
+              clearable>
+              <el-option
+                v-for="device in allDevices"
+                :key="device.id"
+                :label="device.deviceCode + ' - ' + device.networkName"
+                :value="device.id">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="故障模块" prop="faultModule">
+            <el-checkbox-group v-model="reportForm.faultModule">
+              <el-checkbox label="camera">摄像头</el-checkbox>
+              <el-checkbox label="printer">打印机</el-checkbox>
+              <el-checkbox label="cardReader">身份读卡</el-checkbox>
+              <el-checkbox label="other">其他</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+          <el-form-item label="故障描述" prop="faultDescription">
+            <el-input
+              type="textarea"
+              v-model="reportForm.faultDescription"
+              placeholder="请详细描述故障情况"
+              :rows="4"
+              maxlength="500"
+              show-word-limit>
+            </el-input>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="reportDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="submitReport" :disabled="!reportForm.deviceId">确 定</el-button>
+        </span>
+      </el-dialog>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.12/lib/index.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: function() {
+        return {
+          searchForm: {
+            keyword: '',
+            status: ''
+          },
+          pagination: {
+            currentPage: 1,
+            pageSize: 10,
+            total: 0
+          },
+          loading: false,
+          allDevices: [],
+          tableData: [],
+          reportDialogVisible: false,
+          reportForm: {
+            orderNo: '',
+            deviceId: '',
+            faultModule: [],
+            faultDescription: ''
+          },
+          reportRules: {
+            deviceId: [
+              { required: true, message: '请选择设备', trigger: 'change' }
+            ],
+            faultDescription: [
+              { required: true, message: '请填写故障描述', trigger: 'blur' },
+              { min: 5, message: '故障描述至少5个字符', trigger: 'blur' }
+            ]
+          },
+          mockDevices: [
+            { id: 1, deviceCode: 'TZJ-001', networkName: '朝阳驾校', installLocation: '一楼大厅', status: 'normal', modules: { camera: { status: 'normal' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 2, deviceCode: 'TZJ-002', networkName: '海淀驾校', installLocation: '二楼报名处', status: 'fault', modules: { camera: { status: 'fault' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 3, deviceCode: 'TZJ-003', networkName: '西城驾校', installLocation: '主楼一层', status: 'offline', modules: { camera: { status: 'fault' }, printer: { status: 'fault' }, cardReader: { status: 'fault' } } },
+            { id: 4, deviceCode: 'TZJ-004', networkName: '东城驾校', installLocation: '体检中心', status: 'maintaining', modules: { camera: { status: 'normal' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 5, deviceCode: 'TZJ-005', networkName: '丰台驾校', installLocation: '南门入口', status: 'normal', modules: { camera: { status: 'normal' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 6, deviceCode: 'TZJ-006', networkName: '石景山驾校', installLocation: '办公楼一层', status: 'normal', modules: { camera: { status: 'normal' }, printer: { status: 'fault' }, cardReader: { status: 'normal' } } },
+            { id: 7, deviceCode: 'TZJ-007', networkName: '通州驾校', installLocation: '服务大厅', status: 'fault', modules: { camera: { status: 'normal' }, printer: { status: 'fault' }, cardReader: { status: 'fault' } } },
+            { id: 8, deviceCode: 'TZJ-008', networkName: '昌平驾校', installLocation: '驾校入口', status: 'normal', modules: { camera: { status: 'normal' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 9, deviceCode: 'TZJ-009', networkName: '大兴驾校', installLocation: '综合楼一层', status: 'offline', modules: { camera: { status: 'fault' }, printer: { status: 'fault' }, cardReader: { status: 'fault' } } },
+            { id: 10, deviceCode: 'TZJ-010', networkName: '顺义驾校', installLocation: '报名大厅', status: 'maintaining', modules: { camera: { status: 'normal' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 11, deviceCode: 'TZJ-011', networkName: '房山驾校', installLocation: '主楼大厅', status: 'normal', modules: { camera: { status: 'normal' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 12, deviceCode: 'TZJ-012', networkName: '门头沟驾校', installLocation: '服务中心', status: 'normal', modules: { camera: { status: 'normal' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 13, deviceCode: 'TZJ-013', networkName: '怀柔驾校', installLocation: '体检区', status: 'fault', modules: { camera: { status: 'fault' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 14, deviceCode: 'TZJ-014', networkName: '平谷驾校', installLocation: '报名处', status: 'normal', modules: { camera: { status: 'normal' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 15, deviceCode: 'TZJ-015', networkName: '密云驾校', installLocation: '大厅左侧', status: 'offline', modules: { camera: { status: 'fault' }, printer: { status: 'fault' }, cardReader: { status: 'fault' } } },
+            { id: 16, deviceCode: 'TZJ-016', networkName: '延庆驾校', installLocation: '办公楼大厅', status: 'normal', modules: { camera: { status: 'normal' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 17, deviceCode: 'TZJ-017', networkName: '朝阳驾校二部', installLocation: '西区大厅', status: 'maintaining', modules: { camera: { status: 'normal' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 18, deviceCode: 'TZJ-018', networkName: '海淀驾校二部', installLocation: '东区一层', status: 'normal', modules: { camera: { status: 'normal' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 19, deviceCode: 'TZJ-019', networkName: '西城驾校二部', installLocation: '南区入口', status: 'normal', modules: { camera: { status: 'normal' }, printer: { status: 'normal' }, cardReader: { status: 'normal' } } },
+            { id: 20, deviceCode: 'TZJ-020', networkName: '东城驾校二部', installLocation: '北区服务台', status: 'fault', modules: { camera: { status: 'normal' }, printer: { status: 'fault' }, cardReader: { status: 'normal' } } }
+          ]
+        }
+      },
+      created: function() {
+        this.allDevices = this.mockDevices.slice();
+        this.loadData();
+      },
+      watch: {
+        'pagination.currentPage': function() {
+          this.loadData();
+        },
+        'pagination.pageSize': function() {
+          this.loadData();
+        }
+      },
+      methods: {
+        loadData: function() {
+          var self = this;
+          this.loading = true;
+          
+          setTimeout(function() {
+            var filteredData = self.mockDevices.slice();
+            
+            if (self.searchForm.keyword) {
+              var keyword = self.searchForm.keyword.toLowerCase();
+              filteredData = filteredData.filter(function(item) {
+                return item.deviceCode.toLowerCase().indexOf(keyword) > -1 ||
+                       item.networkName.toLowerCase().indexOf(keyword) > -1;
+              });
+            }
+            
+            if (self.searchForm.status) {
+              filteredData = filteredData.filter(function(item) {
+                return item.status === self.searchForm.status;
+              });
+            }
+            
+            self.pagination.total = filteredData.length;
+            
+            var start = (self.pagination.currentPage - 1) * self.pagination.pageSize;
+            var end = start + self.pagination.pageSize;
+            self.tableData = filteredData.slice(start, end);
+            self.loading = false;
+          }, 300);
+        },
+        handleSearch: function() {
+          this.pagination.currentPage = 1;
+          this.loadData();
+        },
+        handleReset: function() {
+          this.searchForm.keyword = '';
+          this.searchForm.status = '';
+          this.pagination.currentPage = 1;
+          this.loadData();
+        },
+        handleSizeChange: function(val) {
+          this.pagination.pageSize = val;
+          this.pagination.currentPage = 1;
+        },
+        handleCurrentChange: function(val) {
+          this.pagination.currentPage = val;
+        },
+        getStatusTagType: function(status) {
+          var typeMap = {
+            'normal': 'success',
+            'fault': 'danger',
+            'offline': 'info',
+            'maintaining': 'warning'
+          };
+          return typeMap[status] || '';
+        },
+        getStatusText: function(status) {
+          var statusMap = {
+            'normal': '正常',
+            'fault': '故障',
+            'offline': '离线',
+            'maintaining': '维护中'
+          };
+          return statusMap[status] || status;
+        },
+        getModuleName: function(key) {
+          var nameMap = {
+            'camera': '摄像头',
+            'printer': '打印机',
+            'cardReader': '身份读卡'
+          };
+          return nameMap[key] || key;
+        },
+        getRowClassName: function({ row, rowIndex }) {
+          if (row.status === 'fault') {
+            return 'row-fault';
+          }
+          if (row.status === 'offline') {
+            return 'row-offline';
+          }
+          return '';
+        },
+        generateOrderNo: function() {
+          var date = new Date();
+          var year = date.getFullYear();
+          var month = String(date.getMonth() + 1).padStart(2, '0');
+          var day = String(date.getDate()).padStart(2, '0');
+          var hours = String(date.getHours()).padStart(2, '0');
+          var minutes = String(date.getMinutes()).padStart(2, '0');
+          var seconds = String(date.getSeconds()).padStart(2, '0');
+          var random = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+          return 'GZ' + year + month + day + hours + minutes + seconds + random;
+        },
+        openReportDialog: function() {
+          this.reportForm.orderNo = this.generateOrderNo();
+          this.reportDialogVisible = true;
+        },
+        handleReport: function(row) {
+          this.reportForm.orderNo = this.generateOrderNo();
+          this.reportForm.deviceId = row.id;
+          this.reportDialogVisible = true;
+        },
+        resetReportForm: function() {
+          this.$refs.reportForm.clearValidate();
+          this.reportForm = {
+            orderNo: '',
+            deviceId: '',
+            faultModule: [],
+            faultDescription: ''
+          };
+        },
+        submitReport: function() {
+          var self = this;
+          if (!this.reportForm.deviceId) {
+            this.$message.warning('请选择设备');
+            return;
+          }
+          this.$refs.reportForm.validate(function(valid) {
+            if (valid) {
+              self.$message.success('工单 ' + self.reportForm.orderNo + ' 提交成功！');
+              self.reportDialogVisible = false;
+              self.resetReportForm();
+            } else {
+              self.$message.error('请完善表单信息');
+              return false;
+            }
+          });
+        }
+      }
+    });
+  </script>
+</body>
+</html>

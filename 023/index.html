@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>传统铜制镇纸定制订单管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background: white;
+            color: #667eea;
+        }
+        .tab:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .tab.active:hover {
+            background: white;
+        }
+        .content {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .content.active {
+            display: block;
+        }
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .form-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        label small {
+            color: #666;
+            font-weight: normal;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        input.error {
+            border-color: #e74c3c;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .stat-card p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .filter-item {
+            flex: 1;
+            min-width: 150px;
+        }
+        .filter-item select, .filter-item input {
+            width: 100%;
+        }
+        .order-list {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background: #f8f9fa;
+            color: #333;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        th:hover {
+            background: #e9ecef;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-待接单 { background: #fff3cd; color: #856404; }
+        .status-制版 { background: #cce5ff; color: #004085; }
+        .status-熔铜 { background: #f8d7da; color: #721c24; }
+        .status-浇铸 { background: #e2e3e5; color: #383d41; }
+        .status-打磨 { background: #d1ecf1; color: #0c5460; }
+        .status-錾刻 { background: #d4edda; color: #155724; }
+        .status-做旧 { background: #f5c6cb; color: #721c24; }
+        .status-完工 { background: #c3e6cb; color: #155724; }
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+        @media (max-width: 768px) {
+            .row, .row-3 {
+                grid-template-columns: 1fr;
+            }
+            .filters {
+                flex-direction: column;
+            }
+        }
+        .process-info {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #1565c0;
+            border-left: 4px solid #2196f3;
+        }
+        .detail-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .detail-modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .modal-header h2 {
+            color: #667eea;
+            margin: 0;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .detail-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        .detail-item label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .detail-item .value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        .process-card {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .process-card h4 {
+            color: #f57f17;
+            margin-bottom: 10px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            align-items: center;
+        }
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .price-preview {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #4caf50;
+        }
+        .price-preview h4 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏮 传统铜制镇纸定制订单管理系统</h1>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('create')">提交定制订单</button>
+            <button class="tab" onclick="showTab('manage')">订单管理</button>
+            <button class="tab" onclick="showTab('stats')">数据统计</button>
+        </div>
+
+        <div id="create" class="content active">
+            <h2 style="margin-bottom: 20px; color: #333;">提交镇纸定制需求</h2>
+            <div id="createMessage" class="message"></div>
+            <form id="orderForm">
+                
+                <div class="form-section">
+                    <h3>👤 客户信息</h3>
+                    <div class="row">
+                        <div class="form-group">
+                            <label>客户姓名 *</label>
+                            <input type="text" name="customer_name" required>
+                            <div class="error-message" id="customer_name_error"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>联系电话 *</label>
+                            <input type="tel" name="customer_phone" required>
+                            <div class="error-message" id="customer_phone_error"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>收货地址</label>
+                        <input type="text" name="customer_address">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>📐 规格尺寸 <small>(浇铸工艺依据)</small></h3>
+                    <div class="row">
+                        <div class="form-group">
+                            <label>镇纸样式 *</label>
+                            <select name="paperweight_style" id="paperweight_style" required>
+                                <option value="">请选择</option>
+                            </select>
+                            <div class="error-message" id="paperweight_style_error"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>数量 *</label>
+                            <input type="number" name="quantity" id="quantity" min="1" value="1" required>
+                            <div class="error-message" id="quantity_error"></div>
+                        </div>
+                    </div>
+                    <div class="row-3">
+                        <div class="form-group">
+                            <label>长度 (cm) *</label>
+                            <input type="number" name="length_cm" id="length_cm" step="0.1" min="1" required>
+                            <div class="error-message" id="length_cm_error"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>宽度 (cm) *</label>
+                            <input type="number" name="width_cm" id="width_cm" step="0.1" min="1" required>
+                            <div class="error-message" id="width_cm_error"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>厚度 (cm) *</label>
+                            <input type="number" name="thickness_cm" id="thickness_cm" step="0.1" min="0.5" required>
+                            <div class="error-message" id="thickness_cm_error"></div>
+                        </div>
+                    </div>
+                    <div class="process-info">
+                        💡 尺寸信息用于计算铜材用量、确定浇铸模具大小、估算浇铸时间和冷却时间
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>🔩 铜材类型 <small>(熔铜、浇铸工艺依据)</small></h3>
+                    <div class="form-group">
+                        <label>铜材牌号 *</label>
+                        <select name="copper_type" id="copper_type" required>
+                        </select>
+                    </div>
+                    <div class="process-info" id="copperInfo">
+                        💡 不同铜材熔点不同，浇铸温度和保温时间需根据铜材类型调整
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>🎨 錾刻纹样 <small>(錾刻工艺依据)</small></h3>
+                    <div class="row">
+                        <div class="form-group">
+                            <label>錾刻纹样</label>
+                            <select name="carving_pattern" id="carving_pattern">
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>文字刻字</label>
+                            <input type="text" name="inscription" placeholder="如需刻字请填写内容">
+                        </div>
+                    </div>
+                    <div class="process-info">
+                        💡 纹样复杂度决定錾刻工时，简单纹样1-2天，复杂纹样3-5天
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>✨ 表面工艺 <small>(做旧、表面处理依据)</small></h3>
+                    <div class="form-group">
+                        <label>表面处理方式 *</label>
+                        <select name="surface_finish" id="surface_finish" required>
+                        </select>
+                    </div>
+                    <div class="process-info">
+                        💡 不同表面工艺处理时间不同，做旧需多次反复氧化处理
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>💰 价格预览</h3>
+                    <div id="pricePreview" class="price-preview" style="display:none;">
+                        <h4>自动计价结果</h4>
+                        <div class="price-row">
+                            <span>铜材成本:</span>
+                            <span id="preview_copper_cost">¥0.00</span>
+                        </div>
+                        <div class="price-row">
+                            <span>錾刻成本:</span>
+                            <span id="preview_carving_cost">¥0.00</span>
+                        </div>
+                        <div class="price-row">
+                            <span>表面处理成本:</span>
+                            <span id="preview_surface_cost">¥0.00</span>
+                        </div>
+                        <div class="price-row" style="border-top: 1px solid #ccc; padding-top: 5px; margin-top: 5px;">
+                            <strong>总价:</strong>
+                            <strong id="preview_total_price">¥0.00</strong>
+                        </div>
+                        <div class="price-row" style="color: #666; font-size: 12px;">
+                            <span>预计工期:</span>
+                            <span id="preview_estimated_days">0 天</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="calculatePrice()" style="margin-top:10px;">计算价格</button>
+                </div>
+
+                <div class="form-section">
+                    <h3>📝 其他要求</h3>
+                    <div class="form-group">
+                        <label>特殊说明</label>
+                        <textarea name="requirements" placeholder="如有特殊要求请在此说明..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">提交订单</button>
+            </form>
+        </div>
+
+        <div id="manage" class="content">
+            <h2 style="margin-bottom: 20px; color: #333;">订单管理</h2>
+            <div id="manageMessage" class="message"></div>
+            
+            <div class="filters">
+                <div class="filter-item">
+                    <label>按状态筛选</label>
+                    <select id="statusFilter" onchange="loadOrders(1)">
+                        <option value="">全部状态</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>按样式筛选</label>
+                    <select id="styleFilter" onchange="loadOrders(1)">
+                        <option value="">全部样式</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>按铜材筛选</label>
+                    <select id="copperFilter" onchange="loadOrders(1)">
+                        <option value="">全部铜材</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>每页数量</label>
+                    <select id="pageSizeFilter" onchange="loadOrders(1)">
+                        <option value="5">5条/页</option>
+                        <option value="10" selected>10条/页</option>
+                        <option value="20">20条/页</option>
+                        <option value="50">50条/页</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="order-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortBy('order_no')">订单编号</th>
+                            <th onclick="sortBy('customer_name')">客户</th>
+                            <th>规格</th>
+                            <th onclick="sortBy('copper_type')">铜材</th>
+                            <th>工艺</th>
+                            <th onclick="sortBy('total_price')">总价</th>
+                            <th>匠人</th>
+                            <th onclick="sortBy('delivery_date')">交付日期</th>
+                            <th onclick="sortBy('status')">状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="pagination">
+            </div>
+        </div>
+
+        <div id="stats" class="content">
+            <h2 style="margin-bottom: 20px; color: #333;">订单数据统计</h2>
+            <div class="stats-grid" id="statsGrid">
+            </div>
+            <button onclick="loadStats()" class="btn btn-primary" style="margin-top: 20px;">刷新统计</button>
+        </div>
+    </div>
+
+    <div id="detailModal" class="detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>订单详情</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalBody">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let orderStatuses = [];
+        let copperTypes = [];
+        let carvingPatterns = [];
+        let surfaceFinishes = [];
+        let styles = [];
+        let craftsmen = [];
+        
+        let currentPage = 1;
+        let pageSize = 10;
+        let sortField = 'created_at';
+        let sortOrder = 'desc';
+
+        const copperInfo = {
+            'H62黄铜': { melting: '900-940°C', casting: '960-1000°C', note: '流动性好，适合复杂造型' },
+            'H65黄铜': { melting: '920-960°C', casting: '980-1020°C', note: '色泽金黄，装饰性强' },
+            'H68黄铜': { melting: '930-970°C', casting: '990-1030°C', note: '延展性好，适合精细纹样' },
+            'T2紫铜': { melting: '1083°C', casting: '1150-1200°C', note: '纯度高，导电性好，色泽红亮' },
+            'T3紫铜': { melting: '1080°C', casting: '1150-1200°C', note: '含少量杂质，成本较低' },
+            'QSn4-3青铜': { melting: '995°C', casting: '1050-1100°C', note: '耐磨耐腐蚀，硬度高' },
+            'QSn6.5-0.1青铜': { melting: '960°C', casting: '1020-1060°C', note: '弹性好，耐磨性能优良' },
+            'B10白铜': { melting: '1100-1150°C', casting: '1180-1230°C', note: '银白色泽，耐腐蚀' },
+            'B30白铜': { melting: '1200-1250°C', casting: '1280-1330°C', note: '高强度，高镍含量高，色泽银白' }
+        };
+
+        async function init() {
+            await loadStatuses();
+            await loadCopperTypes();
+            await loadCarvingPatterns();
+            await loadSurfaceFinishes();
+            await loadStyles();
+            await loadCraftsmen();
+            setupEventListeners();
+            setupFormAutoCalculate();
+            await loadOrders(1);
+            await loadStats();
+        }
+
+        async function loadStatuses() {
+            try {
+                const response = await fetch(`${API_BASE}/statuses`);
+                const result = await response.json();
+                orderStatuses = result.data;
+                const filterSelect = document.getElementById('statusFilter');
+                orderStatuses.forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status;
+                    option.textContent = status;
+                    filterSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('加载状态失败:', error);
+            }
+        }
+
+        async function loadCopperTypes() {
+            try {
+                const response = await fetch(`${API_BASE}/copper-types`);
+                const result = await response.json();
+                copperTypes = result.data;
+                const select = document.getElementById('copper_type');
+                const filterSelect = document.getElementById('copperFilter');
+                copperTypes.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.name;
+                    option.textContent = type.name;
+                    select.appendChild(option);
+                    
+                    const filterOption = document.createElement('option');
+                    filterOption.value = type.name;
+                    filterOption.textContent = type.name;
+                    filterSelect.appendChild(filterOption);
+                });
+            } catch (error) {
+                console.error('加载铜材类型失败:', error);
+            }
+        }
+
+        async function loadCarvingPatterns() {
+            try {
+                const response = await fetch(`${API_BASE}/carving-patterns`);
+                const result = await response.json();
+                carvingPatterns = result.data;
+                const select = document.getElementById('carving_pattern');
+                select.innerHTML = '<option value="无纹样">无纹样</option>';
+                carvingPatterns.forEach(pattern => {
+                    const option = document.createElement('option');
+                    option.value = pattern.name;
+                    option.textContent = `${pattern.name} (难度系数: ${pattern.difficulty})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('加载錾刻纹样失败:', error);
+            }
+        }
+
+        async function loadSurfaceFinishes() {
+            try {
+                const response = await fetch(`${API_BASE}/surface-finishes`);
+                const result = await response.json();
+                surfaceFinishes = result.data;
+                const select = document.getElementById('surface_finish');
+                surfaceFinishes.forEach(finish => {
+                    const option = document.createElement('option');
+                    option.value = finish.name;
+                    option.textContent = finish.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('加载表面工艺失败:', error);
+            }
+        }
+
+        async function loadStyles() {
+            try {
+                const response = await fetch(`${API_BASE}/styles`);
+                const result = await response.json();
+                styles = result.data;
+                const select = document.getElementById('paperweight_style');
+                const filterSelect = document.getElementById('styleFilter');
+                styles.forEach(style => {
+                    const option = document.createElement('option');
+                    option.value = style;
+                    option.textContent = style;
+                    select.appendChild(option);
+                    
+                    const filterOption = document.createElement('option');
+                    filterOption.value = style;
+                    filterOption.textContent = style;
+                    filterSelect.appendChild(filterOption);
+                });
+            } catch (error) {
+                console.error('加载镇纸样式失败:', error);
+            }
+        }
+
+        async function loadCraftsmen() {
+            try {
+                const response = await fetch(`${API_BASE}/craftsmen`);
+                const result = await response.json();
+                craftsmen = result.data;
+            } catch (error) {
+                console.error('加载匠人列表失败:', error);
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('copper_type').addEventListener('change', function() {
+                const info = copperInfo[this.value];
+                if (info) {
+                    document.getElementById('copperInfo').innerHTML = 
+                        `💡 熔点: ${info.melting} | 浇铸温度: ${info.casting} | ${info.note}`;
+                }
+            });
+        }
+
+        function setupFormAutoCalculate() {
+            const fields = ['length_cm', 'width_cm', 'thickness_cm', 'quantity', 'copper_type', 'carving_pattern', 'surface_finish'];
+            fields.forEach(field => {
+                const el = document.getElementById(field);
+                if (el) {
+                    el.addEventListener('change', calculatePrice);
+                    el.addEventListener('input', calculatePrice);
+                }
+            });
+        }
+
+        async function calculatePrice() {
+            const length = parseFloat(document.getElementById('length_cm').value);
+            const width = parseFloat(document.getElementById('width_cm').value);
+            const thickness = parseFloat(document.getElementById('thickness_cm').value);
+            const copperType = document.getElementById('copper_type').value;
+            const carvingPattern = document.getElementById('carving_pattern').value;
+            const surfaceFinish = document.getElementById('surface_finish').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+
+            if (!length || !width || !thickness || !copperType || !quantity) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/calculate-price`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        length_cm: length,
+                        width_cm: width,
+                        thickness_cm: thickness,
+                        copper_type: copperType,
+                        carving_pattern: carvingPattern || '无纹样',
+                        surface_finish: surfaceFinish,
+                        quantity: quantity
+                    })
+                });
+                const result = await response.json();
+                if (result.code === 200) {
+                    document.getElementById('pricePreview').style.display = 'block';
+                    document.getElementById('preview_copper_cost').textContent = `¥${result.data.copper_cost.toFixed(2)}`;
+                    document.getElementById('preview_carving_cost').textContent = `¥${result.data.carving_cost.toFixed(2)}`;
+                    document.getElementById('preview_surface_cost').textContent = `¥${result.data.surface_cost.toFixed(2)}`;
+                    document.getElementById('preview_total_price').textContent = `¥${result.data.total_price.toFixed(2)}`;
+                    document.getElementById('preview_estimated_days').textContent = `${result.data.estimated_days} 天`;
+                }
+            } catch (error) {
+                console.error('计算价格失败:', error);
+            }
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            if (tabId === 'manage') loadOrders(1);
+            if (tabId === 'stats') loadStats();
+        }
+
+        function showMessage(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = `message ${type}`;
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 3000);
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('input.error, select.error').forEach(el => el.classList.remove('error'));
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearErrors();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.quantity = parseInt(data.quantity);
+            data.length_cm = parseFloat(data.length_cm);
+            data.width_cm = parseFloat(data.width_cm);
+            data.thickness_cm = parseFloat(data.thickness_cm);
+            
+            try {
+                const response = await fetch(`${API_BASE}/orders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.code === 200) {
+                    showMessage('createMessage', `订单提交成功！订单号: ${result.data.order_no}，总价: ¥${result.data.total_price.toFixed(2)}`, 'success');
+                    e.target.reset();
+                    document.getElementById('pricePreview').style.display = 'none';
+                } else {
+                    showMessage('createMessage', `提交失败: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage('createMessage', '网络错误，请检查服务器是否启动', 'error');
+            }
+        });
+
+        async function loadOrders(page = 1) {
+            currentPage = page;
+            pageSize = parseInt(document.getElementById('pageSizeFilter').value);
+            const status = document.getElementById('statusFilter').value;
+            const style = document.getElementById('styleFilter').value;
+            const copperType = document.getElementById('copperFilter').value;
+            
+            const params = new URLSearchParams({
+                page: currentPage,
+                page_size: pageSize,
+                sort_by: sortField,
+                sort_order: sortOrder
+            });
+            if (status) params.append('status', status);
+            if (style) params.append('style', style);
+            if (copperType) params.append('copper_type', copperType);
+            
+            try {
+                const response = await fetch(`${API_BASE}/orders?${params}`);
+                const result = await response.json();
+                if (result.code === 200) {
+                    const orders = result.data.list;
+                    const pagination = result.data.pagination;
+                    
+                    const tbody = document.getElementById('orderTableBody');
+                    tbody.innerHTML = orders.map(order => `
+                        <tr>
+                            <td><strong>${order.order_no}</strong></td>
+                            <td>${order.customer_name}<br><small>${order.customer_phone}</small></td>
+                            <td>${order.paperweight_style}<br><small>${order.length_cm}×${order.width_cm}×${order.thickness_cm}cm</small></td>
+                            <td>${order.copper_type}</td>
+                            <td>${order.carving_pattern || '-'}<br><small>${order.surface_finish}</small></td>
+                            <td><strong>¥${order.total_price.toFixed(2)}</strong></td>
+                            <td>${order.craftsman_name || '未分配'}</td>
+                            <td>${order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('zh-CN') : '-'}</td>
+                            <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick="showOrderDetail('${order.order_no}')">详情</button>
+                                <select onchange="updateStatus('${order.order_no}', this.value)" style="width: 80px; padding: 4px; font-size: 11px; margin-top: 5px;">
+                                    <option value="">更新状态</option>
+                                    ${orderStatuses.map(s => `<option value="${s}" ${s === order.status ? 'selected' : ''}>${s}</option>`).join('')}
+                                </select>
+                            </td>
+                        </tr>
+                    `).join('');
+                    
+                    renderPagination(pagination);
+                }
+            } catch (error) {
+                console.error('加载订单失败:', error);
+            }
+        }
+
+        function sortBy(field) {
+            if (sortField === field) {
+                sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortField = field;
+                sortOrder = 'desc';
+            }
+            loadOrders(1);
+        }
+
+        function renderPagination(pagination) {
+            const paginationEl = document.getElementById('pagination');
+            const totalPages = pagination.total_pages;
+            
+            let html = `<button onclick="loadOrders(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>`;
+            
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            if (startPage > 1) {
+                html += `<button onclick="loadOrders(1)">1</button>`;
+                if (startPage > 2) {
+                    html += `<span>...</span>`;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button onclick="loadOrders(${i})" ${i === currentPage ? 'class="active"' : ''}>${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<span>...</span>`;
+                }
+                html += `<button onclick="loadOrders(${totalPages})">${totalPages}</button>`;
+            }
+            
+            html += `<button onclick="loadOrders(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>`;
+            html += `<span>共 ${pagination.total} 条</span>`;
+            
+            paginationEl.innerHTML = html;
+        }
+
+        async function showOrderDetail(orderNo) {
+            try {
+                const response = await fetch(`${API_BASE}/orders/${orderNo}`);
+                const result = await response.json();
+                if (result.code === 200) {
+                    const order = result.data;
+                    const copperData = copperInfo[order.copper_type] || {};
+                    
+                    document.getElementById('modalBody').innerHTML = `
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>订单编号</label>
+                                <div class="value">${order.order_no}</div>
+                            </div>
+                            <div class="detail-item">
+                                <label>订单状态</label>
+                                <div class="value"><span class="status-badge status-${order.status}">${order.status}</span></div>
+                            </div>
+                            <div class="detail-item">
+                                <label>客户姓名</label>
+                                <div class="value">${order.customer_name}</div>
+                            </div>
+                            <div class="detail-item">
+                                <label>联系电话</label>
+                                <div class="value">${order.customer_phone}</div>
+                            </div>
+                            <div class="detail-item">
+                                <label>收货地址</label>
+                                <div class="value">${order.customer_address || '-'}</div>
+                            </div>
+                            <div class="detail-item">
+                                <label>镇纸样式</label>
+                                <div class="value">${order.paperweight_style}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="process-card">
+                            <h4>🔥 熔铜 & 浇铸工艺参数</h4>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <label>铜材类型</label>
+                                    <div class="value">${order.copper_type}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <label>尺寸规格</label>
+                                    <div class="value">${order.length_cm} × ${order.width_cm} × ${order.thickness_cm} cm</div>
+                                </div>
+                                <div class="detail-item">
+                                    <label>熔点</label>
+                                    <div class="value">${copperData.melting || '-'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <label>浇铸温度</label>
+                                    <div class="value">${copperData.casting || '-'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <label>数量</label>
+                                    <div class="value">${order.quantity} 件</div>
+                                </div>
+                                <div class="detail-item">
+                                    <label>铜材特性</label>
+                                    <div class="value">${copperData.note || '-'}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="process-card">
+                            <h4>✏️ 錾刻工艺要求</h4>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <label>錾刻纹样</label>
+                                    <div class="value">${order.carving_pattern || '无纹样'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <label>文字刻字</label>
+                                    <div class="value">${order.inscription || '无刻字'}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="process-card">
+                            <h4>✨ 表面处理工艺</h4>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <label>表面工艺</label>
+                                    <div class="value">${order.surface_finish}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-grid" style="margin-top: 15px;">
+                            <div class="detail-item">
+                                <label>单价</label>
+                                <div class="value">¥${order.unit_price.toFixed(2)}</div>
+                            </div>
+                            <div class="detail-item">
+                                <label>总价</label>
+                                <div class="value"><strong>¥${order.total_price.toFixed(2)}</strong></div>
+                            </div>
+                            <div class="detail-item">
+                                <label>铜材成本</label>
+                                <div class="value">¥${order.copper_cost.toFixed(2)}</div>
+                            </div>
+                            <div class="detail-item">
+                                <label>錾刻成本</label>
+                                <div class="value">¥${order.carving_cost.toFixed(2)}</div>
+                            </div>
+                            <div class="detail-item">
+                                <label>表面处理成本</label>
+                                <div class="value">¥${order.surface_cost.toFixed(2)}</div>
+                            </div>
+                            <div class="detail-item">
+                                <label>预计工期</label>
+                                <div class="value">${order.estimated_days} 天</div>
+                            </div>
+                        </div>
+
+                        <div class="detail-item" style="margin-top: 15px;">
+                            <label>特殊要求</label>
+                            <div class="value">${order.requirements || '无'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <label>创建时间</label>
+                            <div class="value">${new Date(order.created_at).toLocaleString('zh-CN')}</div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <h4 style="margin-bottom: 10px;">分配匠人</h4>
+                            <select onchange="assignCraftsman('${order.order_no}', this.value)" style="width: 200px; padding: 8px;">
+                                <option value="">选择匠人</option>
+                                ${craftsmen.map(c => `<option value="${c.id}" ${order.craftsman_id === c.id ? 'selected' : ''}>${c.name} (${c.skill_level})</option>`).join('')}
+                            </select>
+                            ${order.craftsman_name ? `<span style="margin-left: 10px; color: #666;">当前: ${order.craftsman_name}</span>` : ''}
+                        </div>
+                    `;
+                    document.getElementById('detailModal').classList.add('active');
+                }
+            } catch (error) {
+                console.error('加载订单详情失败:', error);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        async function assignCraftsman(orderNo, craftsmanId) {
+            if (!craftsmanId) return;
+            const craftsman = craftsmen.find(c => c.id === parseInt(craftsmanId));
+            if (!craftsman) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/orders/${orderNo}/craftsman`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ craftsman_id: craftsman.id, craftsman_name: craftsman.name })
+                });
+                const result = await response.json();
+                if (result.code === 200) {
+                    showMessage('manageMessage', `已为订单 ${orderNo} 分配匠人: ${craftsman.name}`, 'success');
+                    loadOrders(currentPage);
+                }
+            } catch (error) {
+                showMessage('manageMessage', '分配失败', 'error');
+            }
+        }
+
+        async function updateStatus(orderNo, newStatus) {
+            if (!newStatus) return;
+            try {
+                const response = await fetch(`${API_BASE}/orders/${orderNo}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                const result = await response.json();
+                if (result.code === 200) {
+                    showMessage('manageMessage', `订单 ${orderNo} 状态已更新为: ${newStatus}`, 'success');
+                    loadOrders(currentPage);
+                }
+            } catch (error) {
+                showMessage('manageMessage', '更新失败', 'error');
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const result = await response.json();
+                if (result.code === 200) {
+                    const stats = result.data;
+                    const grid = document.getElementById('statsGrid');
+                    grid.innerHTML = `
+                        <div class="stat-card">
+                            <h3>${stats.total || 0}</h3>
+                            <p>总订单数</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>¥${(stats.total_amount || 0).toFixed(0)}</h3>
+                            <p>总金额</p>
+                        </div>
+                        ${orderStatuses.map(status => `
+                            <div class="stat-card">
+                                <h3>${stats[status] || 0}</h3>
+                                <p>${status}</p>
+                            </div>
+                        `).join('')}
+                    `;
+                }
+            } catch (error) {
+                console.error('加载统计失败:', error);
+            }
+        }
+
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>

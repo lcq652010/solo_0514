@@ -1,0 +1,528 @@
+<template>
+  <div class="device-management">
+    <el-card class="header-card">
+      <div class="header-content">
+        <h1 class="system-title">
+          <i class="el-icon-s-tools"></i>
+          燃气自助缴费打印终端运维管理系统
+        </h1>
+      </div>
+    </el-card>
+
+    <el-card class="content-card">
+      <div class="search-bar">
+        <el-form :inline="true" :model="searchForm" class="search-form">
+          <el-form-item label="设备编号">
+            <el-input
+              v-model="searchForm.deviceCode"
+              placeholder="请输入设备编号"
+              clearable
+              style="width: 200px"
+            ></el-input>
+          </el-form-item>
+          <el-form-item label="网点名称">
+            <el-input
+              v-model="searchForm.branchName"
+              placeholder="请输入网点名称"
+              clearable
+              style="width: 200px"
+            ></el-input>
+          </el-form-item>
+          <el-form-item label="运行状态">
+            <el-select
+              v-model="searchForm.status"
+              placeholder="请选择状态"
+              clearable
+              style="width: 150px"
+            >
+              <el-option label="在线" value="online"></el-option>
+              <el-option label="离线" value="offline"></el-option>
+              <el-option label="故障" value="fault"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" icon="el-icon-search" @click="handleSearch">
+              搜索
+            </el-button>
+            <el-button icon="el-icon-refresh" @click="handleReset">
+              重置
+            </el-button>
+          </el-form-item>
+          <el-form-item style="margin-left: auto">
+            <el-button type="danger" icon="el-icon-warning" @click="openFaultDialog">
+              故障上报
+            </el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <el-table
+        :data="tableData"
+        border
+        stripe
+        style="width: 100%"
+        class="device-table"
+        :row-class-name="getTableRowClassName"
+      >
+        <el-table-column
+          prop="deviceCode"
+          label="设备编号"
+          width="150"
+          align="center"
+        ></el-table-column>
+        <el-table-column
+          prop="branchName"
+          label="服务网点"
+          min-width="180"
+          align="center"
+        ></el-table-column>
+        <el-table-column
+          prop="location"
+          label="安装位置"
+          min-width="200"
+          align="center"
+        ></el-table-column>
+        <el-table-column
+          prop="cardReader"
+          label="读卡模块"
+          width="120"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <el-tag
+              :type="scope.row.cardReader === 'normal' ? 'success' : 'danger'"
+              size="mini"
+            >
+              {{ scope.row.cardReader === 'normal' ? '正常' : '异常' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="printer"
+          label="票据打印"
+          width="120"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <el-tag
+              :type="scope.row.printer === 'normal' ? 'success' : 'danger'"
+              size="mini"
+            >
+              {{ scope.row.printer === 'normal' ? '正常' : '异常' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="network"
+          label="网络模块"
+          width="120"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <el-tag
+              :type="scope.row.network === 'normal' ? 'success' : 'danger'"
+              size="mini"
+            >
+              {{ scope.row.network === 'normal' ? '正常' : '异常' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="status"
+          label="运行状态"
+          width="120"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <el-tag
+              :type="getStatusType(scope.row.status)"
+              :effect="getStatusEffect(scope.row.status)"
+              size="small"
+            >
+              {{ getStatusText(scope.row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="lastOnlineTime"
+          label="最后在线时间"
+          width="180"
+          align="center"
+        ></el-table-column>
+        <el-table-column
+          label="操作"
+          width="150"
+          align="center"
+          fixed="right"
+        >
+          <template slot-scope="scope">
+            <el-button
+              type="text"
+              size="small"
+              icon="el-icon-warning"
+              @click="openFaultDialog(scope.row)"
+            >
+              上报故障
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="pagination-wrapper">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="pagination.currentPage"
+          :page-sizes="[5, 10, 20, 50]"
+          :page-size="pagination.pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="pagination.total"
+          background
+        ></el-pagination>
+      </div>
+    </el-card>
+
+    <el-dialog
+      title="故障上报"
+      :visible.sync="faultDialogVisible"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form :model="faultForm" :rules="faultRules" ref="faultForm" label-width="100px">
+        <el-form-item label="工单编号" prop="orderNo">
+          <el-input v-model="faultForm.orderNo" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="选择设备" prop="deviceId">
+          <el-select
+            v-model="faultForm.deviceId"
+            placeholder="请选择设备"
+            filterable
+            style="width: 100%"
+          >
+            <el-option
+              v-for="device in allDevices"
+              :key="device.id"
+              :label="`${device.deviceCode} - ${device.branchName}`"
+              :value="device.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="故障描述" prop="faultDescription">
+          <el-input
+            type="textarea"
+            v-model="faultForm.faultDescription"
+            placeholder="请详细描述故障情况"
+            :rows="4"
+            maxlength="500"
+            show-word-limit
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="上报时间" prop="reportTime">
+          <el-input v-model="faultForm.reportTime" disabled></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="faultDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitFaultReport">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'DeviceManagement',
+  data() {
+    return {
+      searchForm: {
+        deviceCode: '',
+        branchName: '',
+        status: ''
+      },
+      allDevices: [],
+      tableData: [],
+      pagination: {
+        currentPage: 1,
+        pageSize: 10,
+        total: 0
+      },
+      faultDialogVisible: false,
+      faultForm: {
+        orderNo: '',
+        deviceId: '',
+        faultDescription: '',
+        reportTime: ''
+      },
+      faultRules: {
+        deviceId: [
+          { required: true, message: '请选择设备', trigger: 'change' }
+        ],
+        faultDescription: [
+          { required: true, message: '请输入故障描述', trigger: 'blur' },
+          { min: 5, message: '故障描述至少5个字符', trigger: 'blur' }
+        ]
+      }
+    }
+  },
+  created() {
+    this.initMockData()
+    this.loadTableData()
+  },
+  methods: {
+    initMockData() {
+      const branches = [
+        '朝阳区燃气服务中心',
+        '海淀区燃气服务站',
+        '丰台区燃气营业厅',
+        '东城区服务网点',
+        '西城区燃气服务中心',
+        '通州区服务站',
+        '大兴区营业厅',
+        '顺义区服务中心'
+      ]
+      const locations = [
+        '正门入口左侧',
+        '服务大厅右侧',
+        '缴费窗口旁',
+        '客户休息区',
+        '一楼大堂',
+        '二楼服务区',
+        '自助服务区',
+        '门口接待处'
+      ]
+      const statuses = ['online', 'offline', 'fault']
+      const moduleStatuses = ['normal', 'abnormal']
+
+      const devices = []
+      for (let i = 1; i <= 35; i++) {
+        const branchIndex = Math.floor(Math.random() * branches.length)
+        const locationIndex = Math.floor(Math.random() * locations.length)
+        const statusIndex = Math.floor(Math.random() * statuses.length)
+        
+        devices.push({
+          id: i,
+          deviceCode: `GAS-${String(i).padStart(4, '0')}`,
+          branchName: branches[branchIndex],
+          location: locations[locationIndex],
+          cardReader: moduleStatuses[Math.floor(Math.random() * moduleStatuses.length)],
+          printer: moduleStatuses[Math.floor(Math.random() * moduleStatuses.length)],
+          network: moduleStatuses[Math.floor(Math.random() * moduleStatuses.length)],
+          status: statuses[statusIndex],
+          lastOnlineTime: this.generateRandomTime()
+        })
+      }
+      this.allDevices = devices
+    },
+    generateRandomTime() {
+      const now = new Date()
+      const hours = Math.floor(Math.random() * 24)
+      const days = Math.floor(Math.random() * 7)
+      now.setDate(now.getDate() - days)
+      now.setHours(now.getHours() - hours)
+      return now.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      })
+    },
+    loadTableData() {
+      let filteredData = [...this.allDevices]
+      
+      if (this.searchForm.deviceCode) {
+        filteredData = filteredData.filter(item =>
+          item.deviceCode.toLowerCase().includes(this.searchForm.deviceCode.toLowerCase())
+        )
+      }
+      
+      if (this.searchForm.branchName) {
+        filteredData = filteredData.filter(item =>
+          item.branchName.includes(this.searchForm.branchName)
+        )
+      }
+      
+      if (this.searchForm.status) {
+        filteredData = filteredData.filter(item =>
+          item.status === this.searchForm.status
+        )
+      }
+      
+      this.pagination.total = filteredData.length
+      
+      const start = (this.pagination.currentPage - 1) * this.pagination.pageSize
+      const end = start + this.pagination.pageSize
+      this.tableData = filteredData.slice(start, end)
+    },
+    handleSearch() {
+      this.pagination.currentPage = 1
+      this.loadTableData()
+    },
+    handleReset() {
+      this.searchForm = {
+        deviceCode: '',
+        branchName: '',
+        status: ''
+      }
+      this.pagination.currentPage = 1
+      this.loadTableData()
+    },
+    handleSizeChange(val) {
+      this.pagination.pageSize = val
+      this.loadTableData()
+    },
+    handleCurrentChange(val) {
+      this.pagination.currentPage = val
+      this.loadTableData()
+    },
+    getStatusType(status) {
+      const statusMap = {
+        online: 'success',
+        offline: 'info',
+        fault: 'danger'
+      }
+      return statusMap[status] || 'info'
+    },
+    getStatusEffect(status) {
+      return status === 'fault' ? 'dark' : 'light'
+    },
+    getStatusText(status) {
+      const statusMap = {
+        online: '在线',
+        offline: '离线',
+        fault: '故障'
+      }
+      return statusMap[status] || '未知'
+    },
+    getTableRowClassName({ row }) {
+      if (row.status === 'fault') {
+        return 'row-fault'
+      } else if (row.status === 'offline') {
+        return 'row-offline'
+      }
+      return ''
+    },
+    generateOrderNo() {
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const day = String(now.getDate()).padStart(2, '0')
+      const random = String(Math.floor(Math.random() * 10000)).padStart(4, '0')
+      return `GD${year}${month}${day}${random}`
+    },
+    openFaultDialog(row = null) {
+      this.faultForm = {
+        orderNo: this.generateOrderNo(),
+        deviceId: row ? row.id : '',
+        faultDescription: '',
+        reportTime: new Date().toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        })
+      }
+      this.$nextTick(() => {
+        if (this.$refs.faultForm) {
+          this.$refs.faultForm.clearValidate()
+        }
+      })
+      this.faultDialogVisible = true
+    },
+    submitFaultReport() {
+      this.$refs.faultForm.validate((valid) => {
+        if (valid) {
+          this.$message({
+            type: 'success',
+            message: `工单 ${this.faultForm.orderNo} 提交成功！`
+          })
+          this.faultDialogVisible = false
+        }
+      })
+    }
+  }
+}
+</script>
+
+<style scoped>
+.device-management {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-card {
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+
+.header-card ::v-deep .el-card__body {
+  padding: 25px;
+}
+
+.header-content {
+  text-align: center;
+}
+
+.system-title {
+  color: #fff;
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+.system-title i {
+  margin-right: 10px;
+}
+
+.content-card {
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.content-card ::v-deep .el-card__body {
+  padding: 20px;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #fafafa;
+  border-radius: 4px;
+}
+
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.pagination-wrapper {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.device-table {
+  margin-top: 10px;
+}
+
+.device-table ::v-deep .el-table__row.row-fault {
+  background-color: #fef0f0 !important;
+}
+
+.device-table ::v-deep .el-table__row.row-fault:hover > td {
+  background-color: #fde2e2 !important;
+}
+
+.device-table ::v-deep .el-table__row.row-offline {
+  background-color: #f4f4f5 !important;
+}
+
+.device-table ::v-deep .el-table__row.row-offline:hover > td {
+  background-color: #e4e4e7 !important;
+}
+</style>

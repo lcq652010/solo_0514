@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}管理后台 - 宣纸团扇定制{% endblock %}
+
+{% block content %}
+<h2 style="color: #5D4037; margin-bottom: 30px;">🔧 订单管理后台</h2>
+
+<div style="background: #E3F2FD; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196F3;">
+    <p style="color: #1565C0; margin: 0; font-size: 14px;">
+        <strong>📌 工序流转规则：</strong>必须按顺序推进，不可跳步。例如当前在「选纸」，下一步只能是「裱扇」。支持回退到之前的工序。
+    </p>
+</div>
+
+{% if orders %}
+<table>
+    <thead>
+        <tr>
+            <th>订单号</th>
+            <th>客户</th>
+            <th>宣纸规格</th>
+            <th>团扇规格</th>
+            <th>题材</th>
+            <th>提交时间</th>
+            <th>当前进度</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td><strong style="color: #8B4513;">{{ order.order_number }}</strong></td>
+            <td>{{ order.customer_name }}</td>
+            <td>{{ order.paper_type }} / {{ order.paper_model }}</td>
+            <td>{{ order.fan_size }} / {{ order.fan_bone_size }}</td>
+            <td><span style="background: #F5F5DC; padding: 3px 8px; border-radius: 10px; font-size: 12px;">{{ order.theme }}</span></td>
+            <td>{{ order.created_at.strftime('%m-%d %H:%M') }}</td>
+            <td>
+                <span style="background: #FFF8E1; padding: 5px 12px; border-radius: 15px; color: #8B4513; font-weight: bold;">
+                    {{ steps[order.current_step] }}
+                </span>
+            </td>
+            <td>
+                <form method="POST" action="{{ url_for('update_progress', order_number=order.order_number) }}" style="display: flex; gap: 8px; align-items: center;">
+                    <select name="current_step" style="width: auto; padding: 6px 10px;">
+                        {% for step in steps %}
+                        <option value="{{ loop.index0 }}" {% if loop.index0 == order.current_step %}selected{% endif %}>
+                            {{ loop.index }}. {{ step }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn" style="padding: 6px 15px; font-size: 13px;">更新</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div style="text-align: center; padding: 50px; color: #999;">
+    <p style="font-size: 1.2em;">暂无订单数据</p>
+</div>
+{% endif %}
+
+<div style="margin-top: 40px; padding: 20px; background: #F5F5DC; border-radius: 10px;">
+    <h4 style="color: #5D4037; margin-bottom: 15px;">📋 工序说明</h4>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        {% for step in steps %}
+        <span style="background: white; padding: 8px 16px; border-radius: 20px; color: #666;">
+            {{ loop.index }}. {{ step }}
+        </span>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{
+  "name": "court-device-management",
+  "version": "1.0.0",
+  "description": "法院自助阅卷打印终端运维管理系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^2.7.14",
+    "element-ui": "^2.15.14"
+  },
+  "devDependencies": {
+    "vite": "^4.5.2",
+    "vite-plugin-vue2": "^2.0.3"
+  }
+}

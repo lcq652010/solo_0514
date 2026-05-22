@@ -1,0 +1,109 @@
+.layout-container {
+  min-height: 100vh;
+}
+
+.layout-header {
+  background-color: #409EFF;
+  padding: 0;
+  height: 60px;
+  line-height: 60px;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 100%;
+
+    .system-title {
+      color: #fff;
+      font-size: 20px;
+      margin: 0;
+      font-weight: 500;
+    }
+  }
+}
+
+.layout-main {
+  padding: 20px;
+}
+
+.page-container {
+  background: #fff;
+  border-radius: 4px;
+  padding: 20px;
+  min-height: calc(100vh - 100px);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ebeef5;
+
+  .page-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #303133;
+    margin: 0;
+  }
+}
+
+.search-form {
+  margin-bottom: 20px;
+  padding: 18px;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+}
+
+.table-toolbar {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-tag {
+  &.active {
+    background-color: #e6f7ff;
+    border-color: #91d5ff;
+    color: #1890ff;
+  }
+
+  &.inactive {
+    background-color: #fff7e6;
+    border-color: #ffd591;
+    color: #fa8c16;
+  }
+}
+
+.detail-card {
+  .el-descriptions {
+    margin-bottom: 20px;
+  }
+}
+
+.form-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.member-info-panel {
+  background-color: #f5f7fa;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+
+  .balance-text {
+    font-size: 24px;
+    font-weight: bold;
+    color: #e6a23c;
+  }
+}
+
+.pagination-container {
+  margin-top: 20px;
+  text-align: right;
+}

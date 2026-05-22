@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图书馆自助借还书终端运维管理系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.13/lib/theme-chalk/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+        'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+      background-color: #f5f7fa;
+    }
+    #app {
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      color: #303133;
+      font-size: 28px;
+    }
+    .search-bar {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      background: #fff;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .table-container {
+      background: #fff;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
+      padding: 20px;
+      background: #fff;
+      border-radius: 4px;
+    }
+    .status-normal {
+      color: #67c23a;
+      font-weight: bold;
+    }
+    .status-fault {
+      color: #f56c6c;
+      font-weight: bold;
+    }
+    .status-offline {
+      color: #909399;
+      font-weight: bold;
+    }
+    .status-maintenance {
+      color: #e6a23c;
+      font-weight: bold;
+    }
+    .el-table .row-fault {
+      background-color: #fef0f0 !important;
+    }
+    .el-table .row-offline {
+      background-color: #f5f7fa !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <header class="header">
+        <h1>图书馆自助借还书终端运维管理系统</h1>
+      </header>
+
+      <div class="search-bar">
+        <el-input
+          v-model="searchParams.deviceCode"
+          placeholder="设备编号"
+          style="width: 180px; margin-right: 10px;"
+          clearable
+        ></el-input>
+        <el-input
+          v-model="searchParams.branchName"
+          placeholder="分馆名称"
+          style="width: 180px; margin-right: 10px;"
+          clearable
+        ></el-input>
+        <el-select
+          v-model="searchParams.status"
+          placeholder="运行状态"
+          style="width: 140px; margin-right: 10px;"
+          clearable
+        >
+          <el-option label="正常" value="正常"></el-option>
+          <el-option label="故障" value="故障"></el-option>
+          <el-option label="离线" value="离线"></el-option>
+          <el-option label="维护中" value="维护中"></el-option>
+        </el-select>
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button @click="handleReset">重置</el-button>
+        <el-button type="success" @click="openReportDialog" style="margin-left: auto;">故障上报</el-button>
+      </div>
+
+      <div class="table-container">
+        <el-table :data="tableData" border stripe style="width: 100%" :row-class-name="tableRowClassName">
+          <el-table-column prop="deviceCode" label="设备编号" width="120"></el-table-column>
+          <el-table-column prop="branchName" label="所在分馆" width="130"></el-table-column>
+          <el-table-column prop="floorLocation" label="楼层位置" width="120"></el-table-column>
+          <el-table-column prop="status" label="运行状态" width="100">
+            <template slot-scope="scope">
+              <span :class="getStatusClass(scope.row.status)">{{ scope.row.status }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="bookReader" label="图书识别模块" width="130">
+            <template slot-scope="scope">
+              <span :class="getStatusClass(scope.row.bookReader)">{{ scope.row.bookReader }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="cardReader" label="借书卡读卡器" width="130">
+            <template slot-scope="scope">
+              <span :class="getStatusClass(scope.row.cardReader)">{{ scope.row.cardReader }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="printer" label="打印机模块" width="120">
+            <template slot-scope="scope">
+              <span :class="getStatusClass(scope.row.printer)">{{ scope.row.printer }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120">
+            <template slot-scope="scope">
+              <el-button size="mini" type="danger" @click="handleReport(scope.row)">故障上报</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <div class="pagination">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="pagination.currentPage"
+          :page-sizes="[10, 20, 50, 100]"
+          :page-size="pagination.pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="pagination.total"
+        ></el-pagination>
+      </div>
+    </div>
+
+    <el-dialog
+      title="故障上报" :visible.sync="dialogVisible" width="500px">
+      <el-form :model="reportForm" label-width="100px">
+        <el-form-item label="工单号">
+          <el-input v-model="reportForm.orderNo" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="设备">
+          <el-select v-model="reportForm.deviceId" placeholder="请选择设备" style="width: 100%">
+            <el-option
+              v-for="item in allDevices"
+              :key="item.id"
+              :label="item.deviceCode + ' - ' + item.branchName"
+              :value="item.id">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="故障描述">
+          <el-input type="textarea" v-model="reportForm.description" rows="4"></el-input>
+        </el-form-item>
+        <el-form-item label="上报人">
+          <el-input v-model="reportForm.reporter"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitReport">提 交</el-button>
+      </span>
+    </el-dialog>
+  </div>
+
+  <script src="https://unpkg.com/vue@2.7.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.13/lib/index.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data() {
+        return {
+          searchParams: {
+            deviceCode: '',
+            branchName: '',
+            status: ''
+          },
+          allDevices: [],
+          tableData: [],
+          pagination: {
+            currentPage: 1,
+            pageSize: 10,
+            total: 0
+          },
+          dialogVisible: false,
+          reportForm: {
+            orderNo: '',
+            deviceId: '',
+            description: '',
+            reporter: ''
+          }
+        }
+      },
+      created() {
+        this.initData()
+        this.loadData()
+      },
+      methods: {
+        initData() {
+          const branches = ['总馆', '东区分馆', '西区分馆', '南区分馆', '北区分馆']
+          const floors = ['一楼大厅', '二楼阅览室', '三楼借阅区', '四楼自习室']
+          const statuses = ['正常', '故障', '离线', '维护中']
+          
+          for (let i = 1; i <= 56; i++) {
+            this.allDevices.push({
+              id: i,
+              deviceCode: 'DEV' + String(i).padStart(4, '0'),
+              branchName: branches[Math.floor(Math.random() * branches.length)],
+              floorLocation: floors[Math.floor(Math.random() * floors.length)],
+              status: statuses[Math.floor(Math.random() * statuses.length)],
+              bookReader: statuses[Math.floor(Math.random() * statuses.length)],
+              cardReader: statuses[Math.floor(Math.random() * statuses.length)],
+              printer: statuses[Math.floor(Math.random() * statuses.length)]
+            })
+          }
+        },
+        tableRowClassName({ row }) {
+          if (row.status === '故障') {
+            return 'row-fault'
+          } else if (row.status === '离线') {
+            return 'row-offline'
+          }
+          return ''
+        },
+        loadData() {
+          let filteredData = [...this.allDevices]
+          
+          if (this.searchParams.deviceCode) {
+            filteredData = filteredData.filter(item => 
+              item.deviceCode.toLowerCase().includes(this.searchParams.deviceCode.toLowerCase())
+            )
+          }
+          
+          if (this.searchParams.branchName) {
+            filteredData = filteredData.filter(item => 
+              item.branchName.includes(this.searchParams.branchName)
+            )
+          }
+          
+          if (this.searchParams.status) {
+            filteredData = filteredData.filter(item => 
+              item.status === this.searchParams.status
+            )
+          }
+          
+          this.pagination.total = filteredData.length
+          
+          const start = (this.pagination.currentPage - 1) * this.pagination.pageSize
+          const end = start + this.pagination.pageSize
+          this.tableData = filteredData.slice(start, end)
+        },
+        handleSearch() {
+          this.pagination.currentPage = 1
+          this.loadData()
+        },
+        handleReset() {
+          this.searchParams = {
+            deviceCode: '',
+            branchName: '',
+            status: ''
+          }
+          this.pagination.currentPage = 1
+          this.loadData()
+        },
+        handleSizeChange(val) {
+          this.pagination.pageSize = val
+          this.loadData()
+        },
+        handleCurrentChange(val) {
+          this.pagination.currentPage = val
+          this.loadData()
+        },
+        getStatusClass(status) {
+          const statusMap = {
+            '正常': 'status-normal',
+            '故障': 'status-fault',
+            '离线': 'status-offline',
+            '维护中': 'status-maintenance'
+          }
+          return statusMap[status] || ''
+        },
+        generateOrderNo() {
+          const date = new Date()
+          const dateStr = date.getFullYear().toString() + 
+            String(date.getMonth() + 1).padStart(2, '0') +
+            String(date.getDate()).padStart(2, '0')
+          const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
+          return 'WO' + dateStr + random
+        },
+        openReportDialog() {
+          this.reportForm = {
+            orderNo: this.generateOrderNo(),
+            deviceId: '',
+            description: '',
+            reporter: ''
+          }
+          this.dialogVisible = true
+        },
+        handleReport(row) {
+          this.reportForm = {
+            orderNo: this.generateOrderNo(),
+            deviceId: row.id,
+            description: '',
+            reporter: ''
+          }
+          this.dialogVisible = true
+        },
+        submitReport() {
+          if (!this.reportForm.deviceId) {
+            this.$message.warning('请选择设备')
+            return
+          }
+          if (!this.reportForm.description) {
+            this.$message.warning('请填写故障描述')
+            return
+          }
+          if (!this.reportForm.reporter) {
+            this.$message.warning('请填写上报人')
+            return
+          }
+          
+          this.$message.success('故障上报成功！工单号：' + this.reportForm.orderNo)
+          this.dialogVisible = false
+        }
+      }
+    })
+  </script>
+</body>
+</html>

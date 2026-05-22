@@ -1,0 +1,19 @@
+{
+  "name": "club-activity-manager",
+  "version": "1.0.0",
+  "description": "社团活动管理系统",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "vue": "^2.6.14",
+    "vue-router": "^3.5.3",
+    "element-ui": "^2.15.13",
+    "axios": "^0.27.2"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^5.0.8",
+    "vue-template-compiler": "^2.6.14"
+  }
+}

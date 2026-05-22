@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>酒店预订管理系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.13/lib/theme-chalk/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body, #app {
+      height: 100%;
+      font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+    }
+    .page-container {
+      padding: 20px;
+      background-color: #f5f7fa;
+      min-height: calc(100vh - 60px);
+    }
+    .page-header {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #e4e7ed;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .page-title {
+      font-size: 22px;
+      font-weight: 500;
+      color: #303133;
+    }
+    .mb-20 {
+      margin-bottom: 20px;
+    }
+    .mt-20 {
+      margin-top: 20px;
+    }
+    
+    .el-aside {
+      overflow: hidden;
+    }
+    .logo {
+      border-bottom: 1px solid #1f2d3d;
+    }
+    .logo h2 {
+      color: #fff;
+      text-align: center;
+      padding: 20px 0;
+      font-size: 18px;
+    }
+    .el-menu {
+      border-right: none;
+    }
+    
+    .room-card {
+      overflow: hidden;
+    }
+    .room-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .room-header {
+      margin-bottom: 15px;
+    }
+    .room-header h3 {
+      font-size: 18px;
+      font-weight: 500;
+      color: #303133;
+      margin-bottom: 10px;
+    }
+    .price {
+      display: flex;
+      align-items: baseline;
+    }
+    .current-price {
+      font-size: 24px;
+      font-weight: bold;
+      color: #f56c6c;
+      margin-right: 5px;
+    }
+    .discount {
+      background-color: #fef0f0;
+      color: #f56c6c;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+    .room-details {
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: #f5f7fa;
+      border-radius: 4px;
+    }
+    .detail-label {
+      display: block;
+      font-size: 12px;
+      color: #909399;
+      margin-bottom: 4px;
+    }
+    .detail-value {
+      display: block;
+      font-size: 14px;
+      color: #303133;
+      font-weight: 500;
+    }
+    .room-facilities {
+      margin-bottom: 15px;
+      min-height: 32px;
+    }
+    .room-description {
+      font-size: 14px;
+      color: #606266;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+    .room-footer {
+      padding-top: 15px;
+      border-top: 1px solid #ebeef5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .available {
+      font-size: 14px;
+      color: #67c23a;
+    }
+    .available.sold-out {
+      color: #f56c6c;
+      font-weight: bold;
+    }
+    
+    .total-price {
+      text-align: right;
+      padding: 20px;
+      font-size: 18px;
+    }
+    .total-price .price {
+      font-size: 28px;
+      font-weight: bold;
+      color: #f56c6c;
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .action-buttons {
+      text-align: center;
+    }
+    
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    .floor-section {
+      margin-bottom: 30px;
+    }
+    .floor-title h3 {
+      font-size: 18px;
+      font-weight: 500;
+      color: #303133;
+      margin-bottom: 10px;
+    }
+    .room-card-status {
+      border: 2px solid #e4e7ed;
+      border-radius: 8px;
+      padding: 20px 15px;
+      margin-bottom: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background-color: #fff;
+    }
+    .room-card-status:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .room-card-status.status-available {
+      border-color: #67c23a;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e6ffed 100%);
+    }
+    .room-card-status.status-occupied {
+      border-color: #f56c6c;
+      background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+    }
+    .room-card-status.status-cleaning {
+      border-color: #e6a23c;
+      background: linear-gradient(135deg, #fffbf5 0%, #fff7e6 100%);
+    }
+    .room-card-status.status-maintenance {
+      border-color: #909399;
+      background: linear-gradient(135deg, #f5f7fa 0%, #f0f2f5 100%);
+    }
+    .room-number {
+      font-size: 24px;
+      font-weight: bold;
+      color: #303133;
+      margin-bottom: 8px;
+    }
+    .room-type {
+      font-size: 14px;
+      color: #606266;
+      margin-bottom: 5px;
+    }
+    .room-price-small {
+      font-size: 16px;
+      color: #f56c6c;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .status-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <el-container style="height: 100%">
+      <el-aside width="200px" style="background-color: #304156;">
+        <div class="logo">
+          <h2>酒店预订系统</h2>
+        </div>
+        <el-menu
+          :default-active="activeMenu"
+          class="el-menu-vertical-demo"
+          background-color="#304156"
+          text-color="#bfcbd9"
+          active-text-color="#409eff"
+          router
+        >
+          <el-menu-item index="room-types">
+            <i class="el-icon-house"></i>
+            <span slot="title">房型展示</span>
+          </el-menu-item>
+          <el-menu-item index="booking">
+            <i class="el-icon-edit-outline"></i>
+            <span slot="title">预订登记</span>
+          </el-menu-item>
+          <el-menu-item index="check-in">
+            <i class="el-icon-s-check"></i>
+            <span slot="title">入住登记</span>
+          </el-menu-item>
+          <el-menu-item index="orders">
+            <i class="el-icon-document"></i>
+            <span slot="title">订单列表</span>
+          </el-menu-item>
+          <el-menu-item index="room-status">
+            <i class="el-icon-menu"></i>
+            <span slot="title">房态管理</span>
+          </el-menu-item>
+        </el-menu>
+      </el-aside>
+      <el-container>
+        <el-header style="background-color: #fff; border-bottom: 1px solid #e4e7ed; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
+          <div style="font-size: 18px; font-weight: 500;">{{ pageTitle }}</div>
+          <div style="display: flex; align-items: center;">
+            <el-dropdown>
+              <span class="el-dropdown-link" style="cursor: pointer;">
+                <i class="el-icon-user" style="margin-right: 5px;"></i>管理员
+                <i class="el-icon-arrow-down el-icon--right"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item>个人信息</el-dropdown-item>
+                <el-dropdown-item>修改密码</el-dropdown-item>
+                <el-dropdown-item divided>退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </div>
+        </el-header>
+        <el-main style="background-color: #f5f7fa; padding: 20px; margin: 0;">
+          
+          <div v-if="activeMenu === 'room-types'" class="room-types page-container">
+            <div class="page-header">
+              <h1 class="page-title">房型展示</h1>
+              <el-button type="primary" @click="goToBooking">立即预订</el-button>
+            </div>
+            
+            <el-row :gutter="20">
+              <el-col :xs="24" :sm="12" :md="8" :lg="8" v-for="room in roomTypes" :key="room.id">
+                <el-card class="room-card mb-20" shadow="hover">
+                  <div class="room-image"></div>
+                  <div>
+                    <div class="room-header">
+                      <h3>{{ room.name }}</h3>
+                      <div class="price">
+                        <span class="current-price">¥{{ room.price }}</span>
+                        <span>/晚</span>
+                        <span class="discount" v-if="room.originalPrice > room.price">
+                          {{ Math.round((1 - room.price / room.originalPrice) * 100) }}% OFF
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div class="room-details">
+                      <el-row :gutter="10">
+                        <el-col :span="8">
+                          <span class="detail-label">面积</span>
+                          <span class="detail-value">{{ room.area }}㎡</span>
+                        </el-col>
+                        <el-col :span="8">
+                          <span class="detail-label">床型</span>
+                          <span class="detail-value">{{ room.bedType }}</span>
+                        </el-col>
+                        <el-col :span="8">
+                          <span class="detail-label">可住</span>
+                          <span class="detail-value">{{ room.capacity }}人</span>
+                        </el-col>
+                      </el-row>
+                    </div>
+                    
+                    <div class="room-facilities">
+                      <el-tag size="small" v-for="facility in room.facilities.slice(0, 5)" :key="facility">
+                        {{ facility }}
+                      </el-tag>
+                    </div>
+                    
+                    <p class="room-description">{{ room.description }}</p>
+                    
+                    <div class="room-footer">
+                      <div>
+                        <span class="available" :class="{ 'sold-out': room.availableRooms <= 0 }">
+                          {{ room.availableRooms > 0 ? '剩余 ' + room.availableRooms + ' 间' : '已满房' }}
+                        </span>
+                      </div>
+                      <el-button 
+                        type="primary" 
+                        size="small" 
+                        @click="bookRoom(room)" 
+                        :disabled="room.availableRooms <= 0"
+                      >
+                        {{ room.availableRooms > 0 ? '预订' : '已满' }}
+                      </el-button>
+                    </div>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+          </div>
+          
+          <div v-else-if="activeMenu === 'booking'" class="booking page-container">
+            <div class="page-header">
+              <h1 class="page-title">预订登记</h1>
+            </div>
+            
+            <el-card>
+              <el-form :model="bookingForm" :rules="rules" ref="bookingForm" label-width="100px">
+                <el-divider content-position="left">客人信息</el-divider>
+                
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <el-form-item label="姓名" prop="guestName">
+                      <el-input v-model="bookingForm.guestName" placeholder="请输入客人姓名"></el-input>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="手机号" prop="phone">
+                      <el-input v-model="bookingForm.phone" placeholder="请输入手机号"></el-input>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                
+                <el-form-item label="身份证号" prop="idCard">
+                  <el-input v-model="bookingForm.idCard" placeholder="请输入身份证号"></el-input>
+                </el-form-item>
+                
+                <el-divider content-position="left">房间信息</el-divider>
+                
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <el-form-item label="房型" prop="roomTypeId">
+                      <el-select v-model="bookingForm.roomTypeId" placeholder="请选择房型" style="width: 100%;" @change="onRoomTypeChange">
+                        <el-option
+                          v-for="room in roomTypes"
+                          :key="room.id"
+                          :label="room.name"
+                          :value="room.id"
+                        >
+                          <span>{{ room.name }}</span>
+                          <span style="float: right; color: #8492a6; font-size: 13px;">¥{{ room.price }}/晚</span>
+                        </el-option>
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="房间号" prop="roomNumber">
+                      <el-select v-model="bookingForm.roomNumber" placeholder="请选择房间" style="width: 100%;">
+                        <el-option
+                          v-for="room in availableRooms"
+                          :key="room.id"
+                          :label="room.number"
+                          :value="room.number"
+                        ></el-option>
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <el-form-item label="入住日期" prop="checkInDate">
+                      <el-date-picker
+                        v-model="bookingForm.checkInDate"
+                        type="date"
+                        placeholder="选择入住日期"
+                        style="width: 100%;"
+                        @change="calculateTotal"
+                      ></el-date-picker>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="退房日期" prop="checkOutDate">
+                      <el-date-picker
+                        v-model="bookingForm.checkOutDate"
+                        type="date"
+                        placeholder="选择退房日期"
+                        style="width: 100%;"
+                        @change="calculateTotal"
+                      ></el-date-picker>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                
+                <el-form-item label="入住人数" prop="guests">
+                  <el-input-number v-model="bookingForm.guests" :min="1" :max="6"></el-input-number>
+                  <span style="margin-left: 10px;">人</span>
+                </el-form-item>
+                
+                <el-divider content-position="left">费用信息</el-divider>
+                
+                <el-descriptions :column="2" border>
+                  <el-descriptions-item label="房费单价">
+                    <span v-if="selectedRoomType">¥{{ selectedRoomType.price }}</span>
+                    <span v-else>-</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="入住天数">
+                    <span v-if="days > 0">{{ days }} 天</span>
+                    <span v-else>-</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="房费小计">
+                    <span v-if="days > 0 && selectedRoomType">¥{{ roomSubtotal }}</span>
+                    <span v-else>-</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="其他费用">¥0</el-descriptions-item>
+                </el-descriptions>
+                
+                <div class="total-price">
+                  <span>总计：</span>
+                  <span class="price">¥{{ totalPrice }}</span>
+                </div>
+                
+                <el-form-item>
+                  <el-button type="primary" @click="submitForm" size="large" :loading="loading">提交预订</el-button>
+                  <el-button @click="resetForm" size="large">重置</el-button>
+                </el-form-item>
+              </el-form>
+            </el-card>
+          </div>
+          
+          <div v-else-if="activeMenu === 'check-in'" class="check-in page-container">
+            <div class="page-header">
+              <h1 class="page-title">入住登记</h1>
+            </div>
+            
+            <el-card class="mb-20">
+              <el-form :inline="true" :model="searchForm" class="demo-form-inline">
+                <el-form-item label="订单号">
+                  <el-input v-model="searchForm.orderId" placeholder="请输入订单号" clearable></el-input>
+                </el-form-item>
+                <el-form-item label="手机号">
+                  <el-input v-model="searchForm.phone" placeholder="请输入手机号" clearable></el-input>
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="searchOrder">查询</el-button>
+                  <el-button @click="resetSearch">重置</el-button>
+                </el-form-item>
+              </el-form>
+            </el-card>
+            
+            <el-card v-if="orderInfo" class="mb-20">
+              <div slot="header" class="card-header">
+                <span>订单信息</span>
+                <el-tag :type="orderStatusMap[orderInfo.status].type">
+                  {{ orderStatusMap[orderInfo.status].label }}
+                </el-tag>
+              </div>
+              
+              <el-descriptions :column="2" border>
+                <el-descriptions-item label="订单号">{{ orderInfo.id }}</el-descriptions-item>
+                <el-descriptions-item label="下单时间">{{ orderInfo.createTime }}</el-descriptions-item>
+                <el-descriptions-item label="客人姓名">{{ orderInfo.guestName }}</el-descriptions-item>
+                <el-descriptions-item label="手机号">{{ orderInfo.phone }}</el-descriptions-item>
+                <el-descriptions-item label="身份证号">{{ orderInfo.idCard }}</el-descriptions-item>
+                <el-descriptions-item label="房型">{{ orderInfo.roomType }}</el-descriptions-item>
+                <el-descriptions-item label="房间号">{{ orderInfo.roomNumber }}</el-descriptions-item>
+                <el-descriptions-item label="入住天数">{{ orderInfo.days }} 天</el-descriptions-item>
+                <el-descriptions-item label="入住日期">{{ orderInfo.checkInDate }}</el-descriptions-item>
+                <el-descriptions-item label="退房日期">{{ orderInfo.checkOutDate }}</el-descriptions-item>
+                <el-descriptions-item label="订单金额" :span="2">
+                  <span style="font-size: 24px; color: #f56c6c; font-weight: bold;">¥{{ orderInfo.totalPrice }}</span>
+                </el-descriptions-item>
+              </el-descriptions>
+              
+              <div class="action-buttons mt-20" v-if="orderInfo.status === 'confirmed'">
+                <el-button type="primary" size="large" @click="checkIn" :loading="loading">
+                  <i class="el-icon-s-check"></i> 确认入住
+                </el-button>
+              </div>
+              <div class="action-buttons mt-20" v-else-if="orderInfo.status === 'checked_in'">
+                <el-button type="success" size="large" @click="checkOut" :loading="loading">
+                  <i class="el-icon-finished"></i> 办理退房
+                </el-button>
+              </div>
+            </el-card>
+            
+            <el-card v-else>
+              <el-empty description="请输入订单号或手机号查询订单"></el-empty>
+            </el-card>
+            
+            <el-dialog title="办理入住" :visible.sync="checkInDialogVisible" width="500px">
+              <el-form :model="checkInForm" label-width="100px">
+                <el-form-item label="实际入住日期">
+                  <el-date-picker
+                    v-model="checkInForm.actualCheckInDate"
+                    type="date"
+                    placeholder="选择日期"
+                    style="width: 100%;"
+                  ></el-date-picker>
+                </el-form-item>
+                <el-form-item label="押金">
+                  <el-input-number v-model="checkInForm.deposit" :min="0" :step="100"></el-input-number>
+                  <span style="margin-left: 10px;">元</span>
+                </el-form-item>
+                <el-form-item label="备注">
+                  <el-input type="textarea" v-model="checkInForm.remark" rows="3"></el-input>
+                </el-form-item>
+              </el-form>
+              <span slot="footer" class="dialog-footer">
+                <el-button @click="checkInDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="confirmCheckIn">确 定</el-button>
+              </span>
+            </el-dialog>
+            
+            <el-dialog title="办理退房" :visible.sync="checkOutDialogVisible" width="500px">
+              <el-form :model="checkOutForm" label-width="100px">
+                <el-form-item label="实际退房日期">
+                  <el-date-picker
+                    v-model="checkOutForm.actualCheckOutDate"
+                    type="date"
+                    placeholder="选择日期"
+                    style="width: 100%;"
+                  ></el-date-picker>
+                </el-form-item>
+                <el-form-item label="房间检查">
+                  <el-radio-group v-model="checkOutForm.roomStatus">
+                    <el-radio :label="true">正常</el-radio>
+                    <el-radio :label="false">有损坏</el-radio>
+                  </el-radio-group>
+                </el-form-item>
+                <el-form-item label="赔偿费用" v-if="!checkOutForm.roomStatus">
+                  <el-input-number v-model="checkOutForm.compensationFee" :min="0" :step="50"></el-input-number>
+                  <span style="margin-left: 10px;">元</span>
+                </el-form-item>
+                <el-form-item label="退还押金">
+                  <span style="font-size: 18px; color: #67c23a; font-weight: bold;">¥{{ checkOutForm.depositRefund }}</span>
+                </el-form-item>
+                <el-form-item label="备注">
+                  <el-input type="textarea" v-model="checkOutForm.remark" rows="3"></el-input>
+                </el-form-item>
+              </el-form>
+              <span slot="footer" class="dialog-footer">
+                <el-button @click="checkOutDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="confirmCheckOut">确 定</el-button>
+              </span>
+            </el-dialog>
+          </div>
+          
+          <div v-else-if="activeMenu === 'orders'" class="orders page-container">
+            <div class="page-header">
+              <h1 class="page-title">订单列表</h1>
+              <el-button type="primary" @click="goToBooking">新建预订</el-button>
+            </div>
+            
+            <el-card class="mb-20">
+              <el-form :inline="true" :model="searchFormOrder" class="demo-form-inline">
+                <el-form-item label="订单号">
+                  <el-input v-model="searchFormOrder.orderId" placeholder="请输入订单号" clearable></el-input>
+                </el-form-item>
+                <el-form-item label="客人姓名">
+                  <el-input v-model="searchFormOrder.guestName" placeholder="请输入姓名" clearable></el-input>
+                </el-form-item>
+                <el-form-item label="房型">
+                  <el-select v-model="searchFormOrder.roomType" placeholder="请选择房型" clearable>
+                    <el-option label="标准单人间" value="标准单人间"></el-option>
+                    <el-option label="标准双人间" value="标准双人间"></el-option>
+                    <el-option label="豪华大床房" value="豪华大床房"></el-option>
+                    <el-option label="家庭套房" value="家庭套房"></el-option>
+                    <el-option label="总统套房" value="总统套房"></el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="订单状态">
+                  <el-select v-model="searchFormOrder.status" placeholder="请选择状态" clearable>
+                    <el-option label="待确认" value="pending"></el-option>
+                    <el-option label="已确认" value="confirmed"></el-option>
+                    <el-option label="已入住" value="checked_in"></el-option>
+                    <el-option label="已完成" value="completed"></el-option>
+                    <el-option label="已取消" value="cancelled"></el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="入住日期">
+                  <el-date-picker
+                    v-model="searchFormOrder.checkInDate"
+                    type="date"
+                    placeholder="选择入住日期"
+                    style="width: 140px;"
+                    clearable
+                  ></el-date-picker>
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="searchOrders">查询</el-button>
+                  <el-button @click="resetSearchOrders">重置</el-button>
+                </el-form-item>
+              </el-form>
+            </el-card>
+            
+            <el-card>
+              <el-table :data="paginatedOrders" style="width: 100%" border>
+                <el-table-column prop="id" label="订单号" width="160"></el-table-column>
+                <el-table-column prop="guestName" label="客人姓名" width="100"></el-table-column>
+                <el-table-column prop="phone" label="手机号" width="130"></el-table-column>
+                <el-table-column prop="roomType" label="房型" width="120"></el-table-column>
+                <el-table-column prop="roomNumber" label="房间号" width="80"></el-table-column>
+                <el-table-column label="入住/退房" width="220">
+                  <template slot-scope="scope">
+                    <div>{{ scope.row.checkInDate }} 至</div>
+                    <div>{{ scope.row.checkOutDate }}</div>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="totalPrice" label="金额" width="100">
+                  <template slot-scope="scope">
+                    <span style="color: #f56c6c; font-weight: 500;">¥{{ scope.row.totalPrice }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="status" label="状态" width="100">
+                  <template slot-scope="scope">
+                    <el-tag :type="orderStatusMap[scope.row.status].type" size="small">
+                      {{ orderStatusMap[scope.row.status].label }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="200">
+                  <template slot-scope="scope">
+                    <el-button size="small" type="primary" @click="viewDetail(scope.row)">详情</el-button>
+                    <el-button size="small" type="success" @click="editOrder(scope.row)" v-if="['pending', 'confirmed'].includes(scope.row.status)">编辑</el-button>
+                    <el-button size="small" type="danger" @click="cancelOrder(scope.row)" v-if="['pending', 'confirmed'].includes(scope.row.status)">取消</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+              
+              <div class="pagination mt-20">
+                <el-pagination
+                  background
+                  :page-size="pageSize"
+                  :current-page="currentPage"
+                  :total="totalOrders"
+                  layout="total, prev, pager, next, jumper"
+                  @current-change="handlePageChange"
+                ></el-pagination>
+              </div>
+            </el-card>
+            
+            <el-dialog title="订单详情" :visible.sync="detailDialogVisible" width="700px">
+              <el-descriptions v-if="currentOrder" :column="2" border>
+                <el-descriptions-item label="订单号">{{ currentOrder.id }}</el-descriptions-item>
+                <el-descriptions-item label="下单时间">{{ currentOrder.createTime }}</el-descriptions-item>
+                <el-descriptions-item label="客人姓名">{{ currentOrder.guestName }}</el-descriptions-item>
+                <el-descriptions-item label="手机号">{{ currentOrder.phone }}</el-descriptions-item>
+                <el-descriptions-item label="身份证号">{{ currentOrder.idCard }}</el-descriptions-item>
+                <el-descriptions-item label="房型">{{ currentOrder.roomType }}</el-descriptions-item>
+                <el-descriptions-item label="房间号">{{ currentOrder.roomNumber }}</el-descriptions-item>
+                <el-descriptions-item label="入住天数">{{ currentOrder.days }} 天</el-descriptions-item>
+                <el-descriptions-item label="入住日期">{{ currentOrder.checkInDate }}</el-descriptions-item>
+                <el-descriptions-item label="退房日期">{{ currentOrder.checkOutDate }}</el-descriptions-item>
+                <el-descriptions-item label="订单金额" :span="2">
+                  <span style="font-size: 24px; color: #f56c6c; font-weight: bold;">¥{{ currentOrder.totalPrice }}</span>
+                </el-descriptions-item>
+              </el-descriptions>
+            </el-dialog>
+          </div>
+          
+          <div v-else-if="activeMenu === 'room-status'" class="room-status page-container">
+            <div class="page-header">
+              <h1 class="page-title">房态管理</h1>
+              <div>
+                <el-tag type="success">空闲: {{ availableCount }} 间</el-tag>
+                <el-tag type="danger" style="margin-left: 10px;">已入住: {{ occupiedCount }} 间</el-tag>
+                <el-tag type="warning" style="margin-left: 10px;">清洁中: {{ cleaningCount }} 间</el-tag>
+                <el-tag type="info" style="margin-left: 10px;">维护中: {{ maintenanceCount }} 间</el-tag>
+              </div>
+            </div>
+            
+            <el-card class="mb-20">
+              <el-form :inline="true" :model="filterForm" class="demo-form-inline">
+                <el-form-item label="楼层">
+                  <el-select v-model="filterForm.floor" placeholder="请选择楼层" clearable>
+                    <el-option label="1楼" :value="1"></el-option>
+                    <el-option label="2楼" :value="2"></el-option>
+                    <el-option label="3楼" :value="3"></el-option>
+                    <el-option label="4楼" :value="4"></el-option>
+                    <el-option label="5楼" :value="5"></el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="房态">
+                  <el-select v-model="filterForm.status" placeholder="请选择房态" clearable>
+                    <el-option label="空闲" value="available"></el-option>
+                    <el-option label="已入住" value="occupied"></el-option>
+                    <el-option label="清洁中" value="cleaning"></el-option>
+                    <el-option label="维护中" value="maintenance"></el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="房型">
+                  <el-select v-model="filterForm.type" placeholder="请选择房型" clearable>
+                    <el-option label="标准单人间" value="标准单人间"></el-option>
+                    <el-option label="标准双人间" value="标准双人间"></el-option>
+                    <el-option label="豪华大床房" value="豪华大床房"></el-option>
+                    <el-option label="家庭套房" value="家庭套房"></el-option>
+                    <el-option label="总统套房" value="总统套房"></el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="filterRooms">筛选</el-button>
+                  <el-button @click="resetFilter">重置</el-button>
+                </el-form-item>
+              </el-form>
+            </el-card>
+            
+            <el-card>
+              <div v-for="(floorRooms, floor) in groupedRooms" :key="floor" class="floor-section">
+                <div class="floor-title">
+                  <h3>{{ floor }}楼</h3>
+                  <el-divider></el-divider>
+                </div>
+                <el-row :gutter="16">
+                  <el-col :xs="12" :sm="8" :md="6" :lg="4" v-for="room in floorRooms" :key="room.id">
+                    <div class="room-card-status" :class="'status-' + room.status" @click="showRoomDetail(room)">
+                      <div class="room-number">{{ room.number }}</div>
+                      <div class="room-type">{{ room.type }}</div>
+                      <div class="room-price-small">¥{{ room.price }}/晚</div>
+                      <div class="room-status-badge">
+                        <el-tag :type="statusMap[room.status].type" size="small">
+                          {{ statusMap[room.status].label }}
+                        </el-tag>
+                      </div>
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
+            </el-card>
+            
+            <el-dialog title="房间详情" :visible.sync="detailDialogVisibleRoom" width="500px">
+              <el-descriptions v-if="currentRoom" :column="1" border>
+                <el-descriptions-item label="房间号">{{ currentRoom.number }}</el-descriptions-item>
+                <el-descriptions-item label="房型">{{ currentRoom.type }}</el-descriptions-item>
+                <el-descriptions-item label="楼层">{{ currentRoom.floor }}楼</el-descriptions-item>
+                <el-descriptions-item label="价格">¥{{ currentRoom.price }}/晚</el-descriptions-item>
+                <el-descriptions-item label="当前状态">
+                  <el-tag :type="statusMap[currentRoom.status].type">
+                    {{ statusMap[currentRoom.status].label }}
+                  </el-tag>
+                </el-descriptions-item>
+              </el-descriptions>
+              
+              <div class="status-actions mt-20">
+                <el-button type="success" @click="changeStatus('available')" v-if="currentRoom && ['cleaning', 'maintenance'].includes(currentRoom.status)">
+                  <i class="el-icon-check"></i> 设为空闲
+                </el-button>
+                <el-button type="warning" @click="changeStatus('cleaning')" v-if="currentRoom && ['available', 'occupied'].includes(currentRoom.status)">
+                  <i class="el-icon-brush"></i> 清洁中
+                </el-button>
+                <el-button type="info" @click="changeStatus('maintenance')" v-if="currentRoom && currentRoom.status === 'available'">
+                  <i class="el-icon-tools"></i> 设为维护
+                </el-button>
+                <el-button type="danger" @click="changeStatus('occupied')" v-if="currentRoom && currentRoom.status === 'available'">
+                  <i class="el-icon-user"></i> 入住
+                </el-button>
+              </div>
+            </el-dialog>
+          </div>
+          
+        </el-main>
+      </el-container>
+    </el-container>
+  </div>
+  
+  <script src="https://unpkg.com/vue@2.7.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.13/lib/index.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        activeMenu: 'room-types',
+        roomTypes: [
+          {
+            id: 1,
+            name: '标准单人间',
+            price: 199,
+            originalPrice: 299,
+            area: 25,
+            bedType: '单人床',
+            capacity: 1,
+            floor: '3-5层',
+            facilities: ['WiFi', '空调', '电视', '独立卫浴', '24小时热水'],
+            description: '温馨舒适的单人间，适合商务出行或独自旅行',
+            availableRooms: 8
+          },
+          {
+            id: 2,
+            name: '标准双人间',
+            price: 299,
+            originalPrice: 399,
+            area: 30,
+            bedType: '双人床',
+            capacity: 2,
+            floor: '2-6层',
+            facilities: ['WiFi', '空调', '电视', '独立卫浴', '24小时热水', '迷你吧'],
+            description: '宽敞明亮的双人间，适合情侣或朋友出行',
+            availableRooms: 12
+          },
+          {
+            id: 3,
+            name: '豪华大床房',
+            price: 499,
+            originalPrice: 699,
+            area: 40,
+            bedType: '特大床',
+            capacity: 2,
+            floor: '7-10层',
+            facilities: ['WiFi', '空调', '智能电视', '独立卫浴', '24小时热水', '迷你吧', '保险箱', '浴缸'],
+            description: '豪华配置的大床房，享受尊贵入住体验',
+            availableRooms: 5
+          },
+          {
+            id: 4,
+            name: '家庭套房',
+            price: 699,
+            originalPrice: 899,
+            area: 60,
+            bedType: '双床',
+            capacity: 4,
+            floor: '8-12层',
+            facilities: ['WiFi', '空调', '智能电视', '独立卫浴', '24小时热水', '迷你吧', '保险箱', '浴缸', '客厅'],
+            description: '宽敞的家庭套房，适合全家出行入住',
+            availableRooms: 3
+          },
+          {
+            id: 5,
+            name: '总统套房',
+            price: 1999,
+            originalPrice: 2599,
+            area: 120,
+            bedType: '特大床',
+            capacity: 2,
+            floor: '顶层',
+            facilities: ['WiFi', '中央空调', '智能电视', '独立卫浴', '24小时热水', '迷你吧', '保险箱', '按摩浴缸', '独立客厅', '书房', '管家服务'],
+            description: '顶级尊享总统套房，尽享奢华体验',
+            availableRooms: 1
+          }
+        ],
+        rooms: [
+          { id: 101, number: '101', type: '标准单人间', floor: 1, status: 'available', price: 199 },
+          { id: 102, number: '102', type: '标准单人间', floor: 1, status: 'occupied', price: 199 },
+          { id: 103, number: '103', type: '标准单人间', floor: 1, status: 'cleaning', price: 199 },
+          { id: 104, number: '104', type: '标准单人间', floor: 1, status: 'maintenance', price: 199 },
+          { id: 201, number: '201', type: '标准双人间', floor: 2, status: 'available', price: 299 },
+          { id: 202, number: '202', type: '标准双人间', floor: 2, status: 'occupied', price: 299 },
+          { id: 203, number: '203', type: '标准双人间', floor: 2, status: 'available', price: 299 },
+          { id: 204, number: '204', type: '标准双人间', floor: 2, status: 'cleaning', price: 299 },
+          { id: 301, number: '301', type: '豪华大床房', floor: 3, status: 'available', price: 499 },
+          { id: 302, number: '302', type: '豪华大床房', floor: 3, status: 'occupied', price: 499 },
+          { id: 303, number: '303', type: '豪华大床房', floor: 3, status: 'available', price: 499 },
+          { id: 401, number: '401', type: '家庭套房', floor: 4, status: 'available', price: 699 },
+          { id: 402, number: '402', type: '家庭套房', floor: 4, status: 'occupied', price: 699 },
+          { id: 501, number: '501', type: '总统套房', floor: 5, status: 'available', price: 1999 }
+        ],
+        orders: [
+          {
+            id: 'ORD202401001',
+            guestName: '张三',
+            phone: '13800138001',
+            idCard: '110101199001011234',
+            roomType: '标准双人间',
+            roomNumber: '202',
+            checkInDate: '2024-01-15',
+            checkOutDate: '2024-01-18',
+            days: 3,
+            totalPrice: 897,
+            status: 'checked_in',
+            createTime: '2024-01-14 10:30:00'
+          },
+          {
+            id: 'ORD202401002',
+            guestName: '李四',
+            phone: '13800138002',
+            idCard: '110101199002025678',
+            roomType: '豪华大床房',
+            roomNumber: '302',
+            checkInDate: '2024-01-16',
+            checkOutDate: '2024-01-20',
+            days: 4,
+            totalPrice: 1996,
+            status: 'confirmed',
+            createTime: '2024-01-15 14:20:00'
+          },
+          {
+            id: 'ORD202401003',
+            guestName: '王五',
+            phone: '13800138003',
+            idCard: '110101199003039012',
+            roomType: '家庭套房',
+            roomNumber: '402',
+            checkInDate: '2024-01-10',
+            checkOutDate: '2024-01-14',
+            days: 4,
+            totalPrice: 2796,
+            status: 'completed',
+            createTime: '2024-01-09 09:15:00'
+          },
+          {
+            id: 'ORD202401004',
+            guestName: '赵六',
+            phone: '13800138004',
+            idCard: '110101199004043456',
+            roomType: '标准单人间',
+            roomNumber: '102',
+            checkInDate: '2024-01-17',
+            checkOutDate: '2024-01-19',
+            days: 2,
+            totalPrice: 398,
+            status: 'pending',
+            createTime: '2024-01-16 16:45:00'
+          },
+          {
+            id: 'ORD202401005',
+            guestName: '孙七',
+            phone: '13800138005',
+            idCard: '110101199005057890',
+            roomType: '总统套房',
+            roomNumber: '501',
+            checkInDate: '2024-01-20',
+            checkOutDate: '2024-01-22',
+            days: 2,
+            totalPrice: 3998,
+            status: 'cancelled',
+            createTime: '2024-01-12 11:00:00'
+          }
+        ],
+        statusMap: {
+          available: { label: '空闲', type: 'success' },
+          occupied: { label: '已入住', type: 'danger' },
+          cleaning: { label: '清洁中', type: 'warning' },
+          maintenance: { label: '维护中', type: 'info' }
+        },
+        orderStatusMap: {
+          pending: { label: '待确认', type: 'warning' },
+          confirmed: { label: '已确认', type: 'primary' },
+          checked_in: { label: '已入住', type: 'success' },
+          completed: { label: '已完成', type: 'info' },
+          cancelled: { label: '已取消', type: 'danger' }
+        },
+        bookingForm: {
+          guestName: '',
+          phone: '',
+          idCard: '',
+          roomTypeId: '',
+          roomNumber: '',
+          checkInDate: '',
+          checkOutDate: '',
+          guests: 1
+        },
+        rules: {
+          guestName: [
+            { required: true, message: '请输入客人姓名', trigger: 'blur' },
+            { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+          ],
+          phone: [
+            { required: true, message: '请输入手机号', trigger: 'blur' },
+            { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+          ],
+          idCard: [
+            { required: true, message: '请输入身份证号', trigger: 'blur' },
+            { validator: (rule, value, callback) => {
+                if (!value) {
+                  callback(new Error('请输入身份证号'))
+                } else if (!/^\d{17}[\dXx]$/.test(value)) {
+                  callback(new Error('请输入正确的身份证号'))
+                } else {
+                  const weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
+                  const checkCodes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2']
+                  let sum = 0
+                  for (let i = 0; i < 17; i++) {
+                    sum += parseInt(value[i]) * weights[i]
+                  }
+                  const checkCode = checkCodes[sum % 11]
+                  if (checkCode !== value[17].toUpperCase()) {
+                    callback(new Error('请输入正确的身份证号'))
+                  } else {
+                    callback()
+                  }
+                }
+              }, trigger: 'blur' }
+          ],
+          roomTypeId: [
+            { required: true, message: '请选择房型', trigger: 'change' }
+          ],
+          roomNumber: [
+            { required: true, message: '请选择房间', trigger: 'change' }
+          ],
+          checkInDate: [
+            { required: true, message: '请选择入住日期', trigger: 'change' }
+          ],
+          checkOutDate: [
+            { required: true, message: '请选择退房日期', trigger: 'change' }
+          ]
+        },
+        loading: false,
+        searchForm: {
+          orderId: '',
+          phone: ''
+        },
+        orderInfo: null,
+        checkInDialogVisible: false,
+        checkOutDialogVisible: false,
+        checkInForm: {
+          actualCheckInDate: '',
+          deposit: 200,
+          remark: ''
+        },
+        checkOutForm: {
+          actualCheckOutDate: '',
+          roomStatus: true,
+          compensationFee: 0,
+          depositRefund: 200,
+          remark: ''
+        },
+        searchFormOrder: {
+          orderId: '',
+          guestName: '',
+          roomType: '',
+          status: '',
+          checkInDate: ''
+        },
+        pageSize: 5,
+        currentPage: 1,
+        detailDialogVisible: false,
+        currentOrder: null,
+        filterForm: {
+          floor: '',
+          status: '',
+          type: ''
+        },
+        detailDialogVisibleRoom: false,
+        currentRoom: null,
+        originalRooms: []
+      },
+      computed: {
+        pageTitle() {
+          const titleMap = {
+            'room-types': '房型展示',
+            'booking': '预订登记',
+            'check-in': '入住登记',
+            'orders': '订单列表',
+            'room-status': '房态管理'
+          }
+          return titleMap[this.activeMenu] || '酒店预订系统'
+        },
+        selectedRoomType() {
+          return this.roomTypes.find(room => room.id === this.bookingForm.roomTypeId)
+        },
+        availableRooms() {
+          if (!this.selectedRoomType) return []
+          return this.rooms.filter(room => 
+            room.type === this.selectedRoomType.name && room.status === 'available'
+          )
+        },
+        days() {
+          if (!this.bookingForm.checkInDate || !this.bookingForm.checkOutDate) return 0
+          const checkIn = new Date(this.bookingForm.checkInDate)
+          const checkOut = new Date(this.bookingForm.checkOutDate)
+          const diff = checkOut.getTime() - checkIn.getTime()
+          return Math.max(0, Math.ceil(diff / (1000 * 3600 * 24)))
+        },
+        roomSubtotal() {
+          if (!this.selectedRoomType) return 0
+          return this.selectedRoomType.price * this.days
+        },
+        totalPrice() {
+          return this.roomSubtotal
+        },
+        filteredOrders() {
+          let result = [...this.orders]
+          
+          if (this.searchFormOrder.orderId) {
+            result = result.filter(order => order.id.includes(this.searchFormOrder.orderId))
+          }
+          
+          if (this.searchFormOrder.guestName) {
+            result = result.filter(order => order.guestName.includes(this.searchFormOrder.guestName))
+          }
+          
+          if (this.searchFormOrder.roomType) {
+            result = result.filter(order => order.roomType === this.searchFormOrder.roomType)
+          }
+          
+          if (this.searchFormOrder.status) {
+            result = result.filter(order => order.status === this.searchFormOrder.status)
+          }
+          
+          if (this.searchFormOrder.checkInDate) {
+            const dateStr = this.formatDate(this.searchFormOrder.checkInDate)
+            result = result.filter(order => order.checkInDate === dateStr)
+          }
+          
+          return result
+        },
+        totalOrders() {
+          return this.filteredOrders.length
+        },
+        paginatedOrders() {
+          const start = (this.currentPage - 1) * this.pageSize
+          const end = start + this.pageSize
+          return this.filteredOrders.slice(start, end)
+        },
+        filteredRooms() {
+          let result = [...this.rooms]
+          
+          if (this.filterForm.floor) {
+            result = result.filter(room => room.floor === this.filterForm.floor)
+          }
+          
+          if (this.filterForm.status) {
+            result = result.filter(room => room.status === this.filterForm.status)
+          }
+          
+          if (this.filterForm.type) {
+            result = result.filter(room => room.type === this.filterForm.type)
+          }
+          
+          return result
+        },
+        groupedRooms() {
+          const groups = {}
+          this.filteredRooms.forEach(room => {
+            if (!groups[room.floor]) {
+              groups[room.floor] = []
+            }
+            groups[room.floor].push(room)
+          })
+          
+          Object.keys(groups).forEach(floor => {
+            groups[floor].sort((a, b) => a.number.localeCompare(b.number))
+          })
+          
+          return groups
+        },
+        availableCount() {
+          return this.rooms.filter(room => room.status === 'available').length
+        },
+        occupiedCount() {
+          return this.rooms.filter(room => room.status === 'occupied').length
+        },
+        cleaningCount() {
+          return this.rooms.filter(room => room.status === 'cleaning').length
+        },
+        maintenanceCount() {
+          return this.rooms.filter(room => room.status === 'maintenance').length
+        }
+      },
+      watch: {
+        'checkOutForm.roomStatus'(newVal) {
+          if (newVal) {
+            this.checkOutForm.compensationFee = 0
+          }
+          this.checkOutForm.depositRefund = this.checkInForm.deposit - this.checkOutForm.compensationFee
+        },
+        'checkOutForm.compensationFee'(newVal) {
+          this.checkOutForm.depositRefund = this.checkInForm.deposit - newVal
+        }
+      },
+      created() {
+        this.originalRooms = JSON.parse(JSON.stringify(this.rooms))
+      },
+      methods: {
+        goToBooking() {
+          this.activeMenu = 'booking'
+        },
+        bookRoom(room) {
+          this.activeMenu = 'booking'
+          this.bookingForm.roomTypeId = room.id
+        },
+        onRoomTypeChange() {
+          this.bookingForm.roomNumber = ''
+        },
+        calculateTotal() {
+          const inventoryCheck = this.checkRoomInventory()
+          if (!inventoryCheck.available) {
+            this.$message.warning(inventoryCheck.message)
+          }
+        },
+        checkRoomInventory() {
+          if (!this.selectedRoomType || !this.bookingForm.checkInDate || !this.bookingForm.checkOutDate) {
+            return { available: true, message: '' }
+          }
+          const availableCount = this.rooms.filter(room => 
+            room.type === this.selectedRoomType.name && room.status === 'available'
+          ).length
+          if (availableCount <= 0) {
+            return { 
+              available: false, 
+              message: `所选日期范围内"${this.selectedRoomType.name}"暂无空余房间，请选择其他房型或日期` 
+            }
+          }
+          return { available: true, message: '', availableCount }
+        },
+        submitForm() {
+          this.$refs.bookingForm.validate((valid) => {
+            if (valid) {
+              if (this.days <= 0) {
+                this.$message.error('退房日期必须晚于入住日期')
+                return
+              }
+              const inventoryCheck = this.checkRoomInventory()
+              if (!inventoryCheck.available) {
+                this.$message.error(inventoryCheck.message)
+                return
+              }
+              this.loading = true
+              setTimeout(() => {
+                this.loading = false
+                
+                const room = this.rooms.find(r => r.number === this.bookingForm.roomNumber)
+                if (room) {
+                  room.status = 'occupied'
+                }
+                
+                const roomType = this.roomTypes.find(r => r.id === this.bookingForm.roomTypeId)
+                if (roomType) {
+                  roomType.availableRooms = Math.max(0, roomType.availableRooms - 1)
+                }
+                
+                const newOrder = {
+                  id: 'ORD' + Date.now(),
+                  guestName: this.bookingForm.guestName,
+                  phone: this.bookingForm.phone,
+                  idCard: this.bookingForm.idCard,
+                  roomType: roomType ? roomType.name : '',
+                  roomNumber: this.bookingForm.roomNumber,
+                  checkInDate: this.formatDate(this.bookingForm.checkInDate),
+                  checkOutDate: this.formatDate(this.bookingForm.checkOutDate),
+                  days: this.days,
+                  totalPrice: this.totalPrice,
+                  status: 'confirmed',
+                  createTime: new Date().toLocaleString()
+                }
+                this.orders.unshift(newOrder)
+                
+                this.$message.success('预订成功！')
+                this.activeMenu = 'orders'
+              }, 1000)
+            } else {
+              return false
+            }
+          })
+        },
+        resetForm() {
+          this.$refs.bookingForm.resetFields()
+        },
+        searchOrder() {
+          if (!this.searchForm.orderId && !this.searchForm.phone) {
+            this.$message.warning('请输入订单号或手机号')
+            return
+          }
+          
+          const found = this.orders.find(order => 
+            order.id === this.searchForm.orderId || 
+            order.phone === this.searchForm.phone
+          )
+          
+          if (found) {
+            this.orderInfo = { ...found }
+          } else {
+            this.orderInfo = null
+            this.$message.error('未找到相关订单')
+          }
+        },
+        resetSearch() {
+          this.searchForm.orderId = ''
+          this.searchForm.phone = ''
+          this.orderInfo = null
+        },
+        checkIn() {
+          this.checkInForm.actualCheckInDate = this.orderInfo.checkInDate
+          this.checkInDialogVisible = true
+        },
+        confirmCheckIn() {
+          this.loading = true
+          setTimeout(() => {
+            this.loading = false
+            this.orderInfo.status = 'checked_in'
+            
+            const order = this.orders.find(o => o.id === this.orderInfo.id)
+            if (order) {
+              order.status = 'checked_in'
+            }
+            
+            const room = this.rooms.find(r => r.number === this.orderInfo.roomNumber)
+            if (room) {
+              room.status = 'occupied'
+            }
+            
+            this.checkInDialogVisible = false
+            this.$message.success('入住登记成功！')
+          }, 1000)
+        },
+        checkOut() {
+          this.checkOutForm.actualCheckOutDate = this.orderInfo.checkOutDate
+          this.checkOutForm.depositRefund = this.checkInForm.deposit
+          this.checkOutDialogVisible = true
+        },
+        confirmCheckOut() {
+          this.loading = true
+          setTimeout(() => {
+            this.loading = false
+            this.orderInfo.status = 'completed'
+            
+            const order = this.orders.find(o => o.id === this.orderInfo.id)
+            if (order) {
+              order.status = 'completed'
+            }
+            
+            const room = this.rooms.find(r => r.number === this.orderInfo.roomNumber)
+            if (room) {
+              room.status = 'cleaning'
+            }
+            
+            const roomType = this.roomTypes.find(r => r.name === this.orderInfo.roomType)
+            if (roomType) {
+              roomType.availableRooms = roomType.availableRooms + 1
+            }
+            
+            this.checkOutDialogVisible = false
+            this.$message.success('退房成功！欢迎下次光临！')
+          }, 1000)
+        },
+        formatDate(date) {
+          if (!date) return ''
+          const d = new Date(date)
+          const year = d.getFullYear()
+          const month = String(d.getMonth() + 1).padStart(2, '0')
+          const day = String(d.getDate()).padStart(2, '0')
+          return `${year}-${month}-${day}`
+        },
+        searchOrders() {
+          this.currentPage = 1
+        },
+        resetSearchOrders() {
+          this.searchFormOrder.orderId = ''
+          this.searchFormOrder.guestName = ''
+          this.searchFormOrder.roomType = ''
+          this.searchFormOrder.status = ''
+          this.searchFormOrder.checkInDate = ''
+          this.currentPage = 1
+        },
+        handlePageChange(page) {
+          this.currentPage = page
+        },
+        viewDetail(order) {
+          this.currentOrder = order
+          this.detailDialogVisible = true
+        },
+        editOrder(order) {
+          this.$message.info('编辑功能开发中')
+        },
+        cancelOrder(order) {
+          this.$confirm('确认取消该订单吗?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            order.status = 'cancelled'
+            this.$message.success('订单已取消')
+          }).catch(() => {
+            
+          })
+        },
+        filterRooms() {
+          
+        },
+        resetFilter() {
+          this.filterForm.floor = ''
+          this.filterForm.status = ''
+          this.filterForm.type = ''
+        },
+        showRoomDetail(room) {
+          this.currentRoom = { ...room }
+          this.detailDialogVisibleRoom = true
+        },
+        changeStatus(status) {
+          const room = this.rooms.find(r => r.id === this.currentRoom.id)
+          if (room) {
+            room.status = status
+            this.currentRoom.status = status
+            this.$message.success(`房间状态已更新为：${this.statusMap[status].label}`)
+          }
+        }
+      }
+    })
+  </script>
+</body>
+</html>

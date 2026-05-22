@@ -1,0 +1,13 @@
+{
+  "name": "social-security-terminal-management",
+  "version": "1.0.0",
+  "description": "社保大厅自助参保打印终端运维管理系统",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server --port=8080",
+    "serve": "python -m http.server 8080"
+  },
+  "keywords": ["vue2", "management", "social-security"],
+  "author": "",
+  "license": "ISC"
+}

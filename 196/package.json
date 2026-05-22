@@ -1,0 +1,21 @@
+{
+  "name": "meeting-management",
+  "version": "1.0.0",
+  "description": "会议管理系统",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "2.7.16",
+    "vue-router": "3.6.5",
+    "element-ui": "2.15.13"
+  },
+  "devDependencies": {
+    "vite": "4.5.2",
+    "vite-plugin-vue2": "2.0.3",
+    "sass": "1.69.5",
+    "sass-loader": "13.3.2"
+  }
+}

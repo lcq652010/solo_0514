@@ -1,0 +1,17 @@
+{
+  "name": "shadow-puppet-custom",
+  "version": "1.0.0",
+  "description": "皮影戏偶定制系统",
+  "main": "index.html",
+  "scripts": {
+    "dev": "serve -s .",
+    "start": "serve -s ."
+  },
+  "keywords": ["vue2", "element-ui", "皮影戏"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}

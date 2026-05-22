@@ -1,0 +1,123 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', sans-serif;
+    background-color: #f5f7fa;
+}
+
+#app {
+    min-height: 100vh;
+}
+
+.page-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 20px;
+}
+
+.page-header h2 {
+    color: #303133;
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.card-shadow {
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.room-card {
+    margin-bottom: 20px;
+    transition: all 0.3s;
+}
+
+.room-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.15);
+}
+
+.room-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.table-container {
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.status-tag {
+    font-size: 12px;
+}
+
+.nav-menu {
+    background: #fff;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.el-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.el-header .logo {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.el-aside {
+    background: #fff;
+}
+
+.el-main {
+    background: #f5f7fa;
+    padding: 20px;
+}
+
+.nav-menu-item {
+    font-size: 14px;
+}
+
+.search-bar {
+    margin-bottom: 20px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.amount-display {
+    font-size: 28px;
+    color: #f56c6c;
+    font-weight: 600;
+}
+
+.amount-label {
+    font-size: 14px;
+    color: #909399;
+    margin-bottom: 5px;
+}
+
+.summary-card {
+    text-align: center;
+    padding: 20px;
+}

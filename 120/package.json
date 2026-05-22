@@ -1,0 +1,22 @@
+{
+  "name": "fund-terminal-management",
+  "version": "1.0.0",
+  "description": "公积金中心自助查询打印终端运维管理系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "serve": "vue-cli-service serve"
+  },
+  "dependencies": {
+    "vue": "^2.6.14",
+    "vue-router": "^3.5.3",
+    "element-ui": "^2.15.12"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^4.5.19",
+    "vue-template-compiler": "^2.6.14"
+  },
+  "author": "",
+  "license": "MIT"
+}

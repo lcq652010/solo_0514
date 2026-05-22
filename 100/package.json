@@ -1,0 +1,19 @@
+{
+  "name": "car-maintenance-app",
+  "version": "1.0.0",
+  "description": "4S店保养预约系统",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^2.7.14",
+    "vue-router": "^3.6.5",
+    "element-ui": "^2.15.13"
+  },
+  "devDependencies": {
+    "vite": "^4.5.2",
+    "vite-plugin-vue2": "^2.0.3"
+  }
+}

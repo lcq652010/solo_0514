@@ -1,0 +1,21 @@
+{
+  "name": "tax-device-management",
+  "version": "1.0.0",
+  "description": "税务大厅自助发票代开终端运维管理系统",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "vue": "^2.6.14",
+    "element-ui": "^2.15.13"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^4.5.19",
+    "vue-template-compiler": "^2.6.14",
+    "sass": "^1.55.0",
+    "sass-loader": "^10.3.1"
+  }
+}

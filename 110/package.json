@@ -1,0 +1,13 @@
+{
+  "name": "horn-comb-custom",
+  "version": "1.0.0",
+  "description": "传统牛角梳定制系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "live-server --port=8080"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

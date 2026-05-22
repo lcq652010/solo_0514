@@ -1,0 +1,28 @@
+{
+  "name": "gym-management",
+  "version": "1.0.0",
+  "description": "健身房私教管理系统",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "vue": "^2.6.14",
+    "vue-router": "^3.5.3",
+    "element-ui": "^2.15.13",
+    "axios": "^0.27.2",
+    "moment": "^2.29.4"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^4.5.19",
+    "sass": "^1.54.0",
+    "sass-loader": "^10.3.1",
+    "vue-template-compiler": "^2.6.14"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

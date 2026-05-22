@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>传统银饰长命锁定制系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+    }
+    #app {
+      min-height: 100vh;
+    }
+    .header {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white;
+      padding: 20px 40px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+    }
+    .nav-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 8px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .nav-btn:hover, .nav-btn.active {
+      background: rgba(255,255,255,0.3);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 30px;
+    }
+    .section-title {
+      font-size: 20px;
+      color: #1e3c72;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e8eaed;
+      font-weight: 600;
+    }
+    .form-section {
+      margin-bottom: 30px;
+    }
+    .form-section h3 {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 15px;
+      padding-left: 12px;
+      border-left: 4px solid #1e3c72;
+    }
+    .option-card {
+      border: 2px solid #e8eaed;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .option-card:hover {
+      border-color: #1e3c72;
+      transform: translateY(-2px);
+    }
+    .option-card.selected {
+      border-color: #1e3c72;
+      background: #f0f5ff;
+    }
+    .option-card img {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 10px;
+      background: #f5f7fa;
+      border-radius: 8px;
+    }
+    .submit-area {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #e8eaed;
+    }
+    .process-step {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 20px;
+      background: #f5f7fa;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .process-step.completed {
+      background: #e6f7ff;
+      border-left: 4px solid #52c41a;
+    }
+    .process-step.current {
+      background: #fff7e6;
+      border-left: 4px solid #fa8c16;
+    }
+    .step-number {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #d9d9d9;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    .process-step.completed .step-number {
+      background: #52c41a;
+    }
+    .process-step.current .step-number {
+      background: #fa8c16;
+    }
+    .order-card {
+      border: 1px solid #e8eaed;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+      transition: all 0.3s;
+    }
+    .order-card:hover {
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .order-info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .info-item {
+      font-size: 14px;
+    }
+    .info-item label {
+      color: #666;
+      margin-right: 5px;
+    }
+    .info-item span {
+      color: #333;
+      font-weight: 500;
+    }
+    .process-timeline {
+      display: flex;
+      align-items: center;
+      margin-top: 15px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .timeline-item {
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 15px;
+      background: #f0f0f0;
+    }
+    .timeline-item.done {
+      background: #e6f7ff;
+      color: #52c41a;
+    }
+    .timeline-item.doing {
+      background: #fff7e6;
+      color: #fa8c16;
+    }
+    .price-tag {
+      font-size: 24px;
+      color: #ff4d4f;
+      font-weight: bold;
+    }
+    .engraving-preview {
+      background: #f5f7fa;
+      border: 1px dashed #d9d9d9;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #1e3c72;
+      font-family: '楷体', serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="header">
+      <h1>🏮 传统银饰长命锁定制系统</h1>
+      <div class="nav-tabs">
+        <button class="nav-btn" :class="{ active: currentPage === 'order' }" @click="currentPage = 'order'">
+          客户下单
+        </button>
+        <button class="nav-btn" :class="{ active: currentPage === 'admin' }" @click="currentPage = 'admin'">
+          管理员订单管理
+        </button>
+      </div>
+    </div>
+
+    <div class="container">
+      <div v-if="currentPage === 'order'" class="card">
+        <h2 class="section-title">📝 长命锁定制订单</h2>
+        
+        <el-form :model="orderForm" :rules="rules" ref="orderForm" label-width="120px">
+          
+          <div class="form-section">
+            <h3>1. 银含量选择</h3>
+            <el-form-item prop="silverContent">
+              <el-radio-group v-model="orderForm.silverContent">
+                <el-radio label="999">足银999</el-radio>
+                <el-radio label="925">925银</el-radio>
+                <el-radio label="900">900银</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </div>
+
+          <div class="form-section">
+            <h3>2. 长命锁款式选择</h3>
+            <el-form-item prop="style">
+              <el-row :gutter="20">
+                <el-col :span="6" v-for="style in styles" :key="style.id">
+                  <div class="option-card" 
+                       :class="{ selected: orderForm.style === style.id }"
+                       @click="orderForm.style = style.id">
+                    <div style="font-size: 40px; margin-bottom: 10px;">{{ style.icon }}</div>
+                    <div>{{ style.name }}</div>
+                    <div style="color: #ff4d4f; margin-top: 5px;">¥{{ style.price }}</div>
+                  </div>
+                </el-col>
+              </el-row>
+            </el-form-item>
+          </div>
+
+          <div class="form-section">
+            <h3>3. 尺寸设置</h3>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="长度(mm)" prop="length">
+                  <el-input-number v-model="orderForm.length" :min="20" :max="100" :step="1"></el-input-number>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="宽度(mm)" prop="width">
+                  <el-input-number v-model="orderForm.width" :min="15" :max="80" :step="1"></el-input-number>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </div>
+
+          <div class="form-section">
+            <h3>4. 刻字内容</h3>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="正面刻字" prop="engravingFront">
+                  <el-input v-model="orderForm.engravingFront" placeholder="请输入正面刻字内容（最多8字）" maxlength="8" show-word-limit></el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="背面刻字" prop="engravingBack">
+                  <el-input v-model="orderForm.engravingBack" placeholder="请输入背面刻字内容（最多8字）" maxlength="8" show-word-limit></el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <div class="engraving-preview">
+              <span v-if="orderForm.engravingFront">{{ orderForm.engravingFront }}</span>
+              <span v-else style="color: #999;">正面刻字预览</span>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>5. 链条款式选择</h3>
+            <el-form-item prop="chain">
+              <el-radio-group v-model="orderForm.chain">
+                <el-radio v-for="chain in chains" :key="chain.id" :label="chain.id">
+                  {{ chain.name }} (+¥{{ chain.price }})
+                </el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </div>
+
+          <div class="form-section">
+            <h3>6. 客户信息</h3>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="客户姓名" prop="customerName">
+                  <el-input v-model="orderForm.customerName" placeholder="请输入姓名"></el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="联系电话" prop="customerPhone">
+                  <el-input v-model="orderForm.customerPhone" placeholder="请输入手机号"></el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-form-item label="备注">
+              <el-input type="textarea" v-model="orderForm.remark" :rows="3" placeholder="其他特殊要求"></el-input>
+            </el-form-item>
+          </div>
+
+          <div class="submit-area">
+            <div style="margin-bottom: 20px;">
+              <span style="font-size: 16px; color: #666;">预估总价：</span>
+              <span class="price-tag">¥{{ totalPrice }}</span>
+            </div>
+            <el-button type="primary" size="large" @click="submitOrder" :loading="submitting">
+              提交订单
+            </el-button>
+            <el-button size="large" @click="resetForm">重置表单</el-button>
+          </div>
+        </el-form>
+      </div>
+
+      <div v-if="currentPage === 'admin'" class="card">
+        <h2 class="section-title">📋 订单管理</h2>
+        
+        <el-row :gutter="20" style="margin-bottom: 20px;">
+          <el-col :span="6">
+            <el-input v-model="searchKeyword" placeholder="搜索订单号/客户名" prefix-icon="el-icon-search"></el-input>
+          </el-col>
+          <el-col :span="6">
+            <el-select v-model="filterStatus" placeholder="筛选状态" style="width: 100%;">
+              <el-option label="全部" value=""></el-option>
+              <el-option label="待生产" value="pending"></el-option>
+              <el-option label="生产中" value="producing"></el-option>
+              <el-option label="已完工" value="completed"></el-option>
+            </el-select>
+          </el-col>
+          <el-col :span="6">
+            <el-select v-model="currentOperator" placeholder="选择操作员" style="width: 100%;">
+              <el-option label="管理员" value="管理员"></el-option>
+              <el-option label="张师傅" value="张师傅"></el-option>
+              <el-option label="李师傅" value="李师傅"></el-option>
+              <el-option label="王师傅" value="王师傅"></el-option>
+              <el-option label="陈师傅" value="陈师傅"></el-option>
+              <el-option label="质检员" value="质检员"></el-option>
+            </el-select>
+          </el-col>
+          <el-col :span="6" style="text-align: right;">
+            <el-button type="primary" @click="refreshOrders">刷新订单</el-button>
+          </el-col>
+        </el-row>
+
+        <div v-if="filteredOrders.length === 0" style="text-align: center; padding: 50px; color: #999;">
+          暂无订单数据
+        </div>
+
+        <div v-for="order in filteredOrders" :key="order.id" class="order-card">
+          <div class="order-header">
+            <div>
+              <span style="font-weight: bold; font-size: 16px;">订单号：{{ order.id }}</span>
+              <el-tag size="small" style="margin-left: 15px;" :type="getStatusType(order.status)">
+                {{ getStatusText(order.status) }}
+              </el-tag>
+            </div>
+            <div style="color: #999; font-size: 14px;">
+              {{ order.createTime }}
+            </div>
+          </div>
+          
+          <div class="order-info">
+            <div class="info-item"><label>客户：</label><span>{{ order.customerName }}</span></div>
+            <div class="info-item"><label>电话：</label><span>{{ order.customerPhone }}</span></div>
+            <div class="info-item"><label>银含量：</label><span>{{ order.silverContent }}银</span></div>
+            <div class="info-item"><label>款式：</label><span>{{ getStyleName(order.style) }}</span></div>
+            <div class="info-item"><label>尺寸：</label><span>{{ order.length }}×{{ order.width }}mm</span></div>
+            <div class="info-item"><label>链条：</label><span>{{ getChainName(order.chain) }}</span></div>
+            <div class="info-item"><label>正面刻字：</label><span>{{ order.engravingFront || '无' }}</span></div>
+            <div class="info-item"><label>背面刻字：</label><span>{{ order.engravingBack || '无' }}</span></div>
+            <div class="info-item"><label style="color: #ff4d4f;">总价：</label><span style="color: #ff4d4f; font-weight: bold;">¥{{ order.totalPrice }}</span></div>
+          </div>
+
+          <div style="margin-top: 15px;">
+            <div style="font-size: 14px; color: #666; margin-bottom: 10px;">生产进度：</div>
+            <div class="process-timeline">
+              <span v-for="(step, index) in processSteps" :key="step" 
+                    class="timeline-item"
+                    :class="{ done: index < order.currentStep, doing: index === order.currentStep }">
+                {{ index < order.currentStep ? '✓' : index === order.currentStep ? '●' : '○' }} {{ step }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="order.processHistory && order.processHistory.length > 0" style="margin-top: 15px;">
+            <div style="font-size: 14px; color: #666; margin-bottom: 10px;">操作历史：</div>
+            <el-table :data="order.processHistory" size="small" border style="width: 100%;">
+              <el-table-column prop="stepName" label="工序" width="100"></el-table-column>
+              <el-table-column prop="operator" label="操作人" width="100"></el-table-column>
+              <el-table-column prop="operateTime" label="操作时间"></el-table-column>
+            </el-table>
+          </div>
+
+          <div style="margin-top: 20px; text-align: right;">
+            <el-button size="small" @click="showProcessDialog(order)">更新工序</el-button>
+            <el-button size="small" type="danger" @click="deleteOrder(order.id)">删除订单</el-button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <el-dialog title="更新生产工序" :visible.sync="processDialogVisible" width="550px" @close="closeProcessDialog">
+      <div v-if="selectedOrder">
+        <div style="margin-bottom: 20px; padding: 15px; background: #f5f7fa; border-radius: 8px;">
+          <span style="font-weight: bold;">订单号：{{ selectedOrder.id }}</span>
+          <el-tag size="small" style="margin-left: 15px;" :type="getStatusType(selectedOrder.status)">
+            {{ getStatusText(selectedOrder.status) }}
+          </el-tag>
+          <span v-if="selectedOrder.status === 'completed'" style="color: #52c41a; margin-left: 10px;">
+            🎉 所有工序已完成
+          </span>
+        </div>
+        
+        <el-steps :active="selectedOrder.currentStep" finish-status="success" direction="vertical">
+          <el-step v-for="(step, index) in processSteps" :key="step" :title="step">
+            <div slot="description" style="padding: 10px 0;">
+              <el-button v-if="index === selectedOrder.currentStep && selectedOrder.status !== 'completed'" 
+                         type="primary" size="small" 
+                         @click="updateProcessStep(index)">
+                完成「{{ step }}」
+              </el-button>
+              <span v-if="index < selectedOrder.currentStep" style="color: #52c41a;">
+                ✓ 已完成
+              </span>
+              <span v-if="index > selectedOrder.currentStep && selectedOrder.status !== 'completed'" style="color: #999;">
+                ⏳ 待完成（请按顺序操作）
+              </span>
+            </div>
+          </el-step>
+        </el-steps>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="closeProcessDialog">关闭</el-button>
+      </span>
+    </el-dialog>
+  </div>
+
+  <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "traffic-device-management",
+  "version": "1.0.0",
+  "description": "车管所自助违章处理终端运维管理系统",
+  "main": "index.js",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "vue": "^2.6.14",
+    "element-ui": "^2.15.13",
+    "axios": "^0.27.2"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^4.5.19",
+    "vue-template-compiler": "^2.6.14"
+  },
+  "author": "",
+  "license": "MIT"
+}

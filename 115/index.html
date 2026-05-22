@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图书馆座位预约系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <script src="https://unpkg.com/vue@2.7.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/vue-router@3.6.5/dist/vue-router.js"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body, #app {
+      height: 100%;
+      font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    }
+    .el-header {
+      display: flex;
+      align-items: center;
+      background: #409EFF;
+      color: white;
+      padding: 0 20px;
+    }
+    .el-menu-vertical {
+      height: 100%;
+    }
+    .page-container {
+      padding: 20px;
+    }
+    .filter-form {
+      padding: 15px;
+      background: #f5f7fa;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .legend {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 30px;
+      padding: 15px;
+      background: #f5f7fa;
+      border-radius: 4px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .legend-item .seat {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+    }
+    .seat-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 12px;
+      max-width: 600px;
+      margin: 10px 0 30px;
+    }
+    .seat {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+      color: white;
+    }
+    .seat.available {
+      background: #67c23a;
+    }
+    .seat.available:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(103, 194, 58, 0.4);
+    }
+    .seat.occupied {
+      background: #909399;
+      cursor: not-allowed;
+    }
+    .seat.selected {
+      background: #409EFF;
+      border-color: #303133;
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
+    }
+    .seat.conflict {
+      background: #f56c6c;
+      cursor: not-allowed;
+    }
+    .zone-title {
+      margin-bottom: 15px;
+      color: #606266;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .pagination {
+      margin-top: 20px;
+      text-align: right;
+    }
+    .text-warning {
+      color: #e6a23c;
+      font-weight: bold;
+    }
+    .text-success {
+      color: #67c23a;
+      font-weight: bold;
+    }
+    .text-danger {
+      color: #f56c6c;
+      font-weight: bold;
+    }
+    .empty-state {
+      padding: 40px 0;
+    }
+    .success-card {
+      margin-top: 30px;
+    }
+    .stat-row {
+      margin-bottom: 30px;
+    }
+    .stat-col {
+      text-align: center;
+    }
+    .time-slot {
+      display: inline-block;
+      padding: 2px 8px;
+      margin: 2px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .time-slot.available {
+      background: #67c23a;
+      color: white;
+    }
+    .time-slot.occupied {
+      background: #f56c6c;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <el-container style="height: 100%">
+      <el-header style="height: 60px;">
+        <h2 style="margin: 0; font-size: 20px;">📚 图书馆座位预约系统</h2>
+        <div style="flex: 1;"></div>
+        <span style="margin-right: 20px;">欢迎，张三</span>
+      </el-header>
+      <el-container>
+        <el-aside width="200px" style="background: #f5f5f5;">
+          <el-menu
+            :default-active="$route.path"
+            class="el-menu-vertical"
+            router
+            style="border-right: none;"
+          >
+            <el-menu-item index="/">
+              <i class="el-icon-location"></i>
+              <span>座位分布图</span>
+            </el-menu-item>
+            <el-menu-item index="/reservation">
+              <i class="el-icon-edit"></i>
+              <span>在线预约</span>
+            </el-menu-item>
+            <el-menu-item index="/my-reservations">
+              <i class="el-icon-document"></i>
+              <span>我的预约</span>
+            </el-menu-item>
+            <el-menu-item index="/check-in">
+              <i class="el-icon-success"></i>
+              <span>签到确认</span>
+            </el-menu-item>
+            <el-menu-item index="/violations">
+              <i class="el-icon-warning"></i>
+              <span>违规记录</span>
+            </el-menu-item>
+          </el-menu>
+        </el-aside>
+        <el-main style="background: #fff; padding: 20px; overflow: auto;">
+          <router-view></router-view>
+        </el-main>
+      </el-container>
+    </el-container>
+  </div>
+
+  <script>
+    // ==================== 预约数据存储模块 ====================
+    const ReservationStore = {
+      STORAGE_KEY: 'library_reservations',
+      VIOLATION_KEY: 'library_violations',
+      
+      getAll() {
+        const data = localStorage.getItem(this.STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+      },
+      
+      save(reservations) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(reservations));
+      },
+      
+      add(reservation) {
+        const reservations = this.getAll();
+        reservation.id = 'RES' + Date.now();
+        reservation.status = '待签到';
+        reservation.createTime = new Date().toISOString();
+        reservations.push(reservation);
+        this.save(reservations);
+        return reservation;
+      },
+      
+      updateStatus(id, status) {
+        const reservations = this.getAll();
+        const index = reservations.findIndex(r => r.id === id);
+        if (index > -1) {
+          reservations[index].status = status;
+          this.save(reservations);
+        }
+      },
+      
+      cancel(id) {
+        this.updateStatus(id, '已取消');
+      },
+      
+      checkIn(id) {
+        this.updateStatus(id, '已完成');
+      },
+      
+      markExpired(id) {
+        this.updateStatus(id, '已失效');
+        this.addViolation(id);
+      },
+      
+      addViolation(reservationId) {
+        const reservation = this.getAll().find(r => r.id === reservationId);
+        if (!reservation) return;
+        
+        const violations = this.getViolations();
+        const existingViolation = violations.find(v => 
+          v.seat === reservation.seat && 
+          v.date === reservation.date && 
+          v.time === (reservation.startTime + ' - ' + reservation.endTime)
+        );
+        
+        if (existingViolation) return;
+        
+        violations.push({
+          id: 'VIO' + Date.now(),
+          seatId: reservation.seatId,
+          seat: reservation.seat,
+          date: reservation.date,
+          time: reservation.startTime + ' - ' + reservation.endTime,
+          reason: '未签到且未取消预约',
+          recordTime: new Date().toLocaleString('zh-CN'),
+          status: '已记录'
+        });
+        localStorage.setItem(this.VIOLATION_KEY, JSON.stringify(violations));
+      },
+      
+      getViolations() {
+        const data = localStorage.getItem(this.VIOLATION_KEY);
+        return data ? JSON.parse(data) : [];
+      },
+      
+      getByUser() {
+        return this.getAll();
+      },
+      
+      checkConflict(seatId, date, startTime, endTime, excludeId = null) {
+        const reservations = this.getAll().filter(r => 
+          r.seatId === seatId && 
+          r.date === date && 
+          r.status !== '已取消' && 
+          r.status !== '已失效' &&
+          r.id !== excludeId
+        );
+        
+        return reservations.some(r => {
+          return !(endTime <= r.startTime || startTime >= r.endTime);
+        });
+      },
+      
+      getSeatReservations(seatId, date) {
+        return this.getAll().filter(r => 
+          r.seatId === seatId && 
+          r.date === date && 
+          r.status !== '已取消' && 
+          r.status !== '已失效'
+        );
+      },
+      
+      checkAndMarkExpired() {
+        const now = new Date();
+        const today = this.formatDate(now);
+        const currentTime = this.formatTime(now);
+        
+        const reservations = this.getAll();
+        let expiredCount = 0;
+        
+        reservations.forEach(r => {
+          if (r.status === '待签到' && r.date === today) {
+            const [startHour, startMin] = r.startTime.split(':').map(Number);
+            const startMinutes = startHour * 60 + startMin;
+            const [currentHour, currentMin] = currentTime.split(':').map(Number);
+            const currentMinutes = currentHour * 60 + currentMin;
+            
+            if (currentMinutes > startMinutes + 60) {
+              r.status = '已失效';
+              expiredCount++;
+              this.addViolation(r.id);
+            }
+          }
+        });
+        
+        if (expiredCount > 0) {
+          this.save(reservations);
+        }
+        
+        return expiredCount;
+      },
+      
+      formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+      },
+      
+      formatTime(date) {
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return hours + ':' + minutes;
+      },
+      
+      initDemoData() {
+        if (this.getAll().length === 0) {
+          const today = this.formatDate(new Date());
+          const tomorrow = this.formatDate(new Date(Date.now() + 86400000));
+          
+          const demoReservations = [
+            {
+              id: 'RES' + (Date.now() - 100000),
+              seatId: 'A-5',
+              seat: '一楼 A05',
+              floor: '1',
+              zone: 'A',
+              date: today,
+              startTime: '09:00',
+              endTime: '12:00',
+              time: '09:00 - 12:00',
+              purpose: '自习',
+              phone: '13800138000',
+              remark: '',
+              status: '待签到',
+              createTime: new Date(Date.now() - 3600000).toISOString()
+            },
+            {
+              id: 'RES' + (Date.now() - 200000),
+              seatId: 'B-8',
+              seat: '二楼 B08',
+              floor: '2',
+              zone: 'B',
+              date: this.formatDate(new Date(Date.now() - 86400000)),
+              startTime: '14:00',
+              endTime: '17:00',
+              time: '14:00 - 17:00',
+              purpose: '阅读',
+              phone: '13800138000',
+              remark: '',
+              status: '已完成',
+              createTime: new Date(Date.now() - 86400000 - 3600000).toISOString()
+            },
+            {
+              id: 'RES' + (Date.now() - 300000),
+              seatId: 'B-12',
+              seat: '二楼 B12',
+              floor: '2',
+              zone: 'B',
+              date: tomorrow,
+              startTime: '15:00',
+              endTime: '18:00',
+              time: '15:00 - 18:00',
+              purpose: '自习',
+              phone: '13800138000',
+              remark: '',
+              status: '待签到',
+              createTime: new Date(Date.now() - 3600000).toISOString()
+            }
+          ];
+          this.save(demoReservations);
+        }
+      }
+    };
+
+    // 初始化演示数据
+    ReservationStore.initDemoData();
+
+    // 定时检查过期预约（每分钟）
+    setInterval(() => {
+      ReservationStore.checkAndMarkExpired();
+    }, 60000);
+
+    // ==================== 座位分布图组件 ====================
+    const SeatMap = {
+      template: `
+        <div class="page-container">
+          <el-card>
+            <div slot="header" class="clearfix">
+              <span>📊 座位分布图</span>
+              <div style="float: right;">
+                <el-select v-model="selectedFloor" placeholder="选择楼层" style="width: 150px; margin-right: 10px;" @change="updateSeatStatus">
+                  <el-option label="一楼自习区" value="1"></el-option>
+                  <el-option label="二楼自习区" value="2"></el-option>
+                  <el-option label="三楼自习区" value="3"></el-option>
+                </el-select>
+                <el-date-picker
+                  v-model="selectedDate"
+                  type="date"
+                  placeholder="选择日期"
+                  style="width: 150px;"
+                  @change="updateSeatStatus"
+                ></el-date-picker>
+              </div>
+            </div>
+            
+            <div class="legend">
+              <span class="legend-item"><span class="seat available"></span> 可预约</span>
+              <span class="legend-item"><span class="seat occupied"></span> 已预约</span>
+              <span class="legend-item"><span class="seat selected"></span> 已选中</span>
+            </div>
+
+            <div class="zone">
+              <h4 class="zone-title">A区 - 靠窗区域</h4>
+              <div class="seat-grid">
+                <div
+                  v-for="seat in seatsA"
+                  :key="seat.id"
+                  :class="['seat', seat.status, { selected: selectedSeat?.id === seat.id }]"
+                  @click="selectSeat(seat)"
+                  :title="getSeatTitle(seat)"
+                >
+                  {{ seat.number }}
+                </div>
+              </div>
+            </div>
+
+            <div class="zone">
+              <h4 class="zone-title">B区 - 中央区域</h4>
+              <div class="seat-grid">
+                <div
+                  v-for="seat in seatsB"
+                  :key="seat.id"
+                  :class="['seat', seat.status, { selected: selectedSeat?.id === seat.id }]"
+                  @click="selectSeat(seat)"
+                  :title="getSeatTitle(seat)"
+                >
+                  {{ seat.number }}
+                </div>
+              </div>
+            </div>
+
+            <div class="zone">
+              <h4 class="zone-title">C区 - 安静区域</h4>
+              <div class="seat-grid">
+                <div
+                  v-for="seat in seatsC"
+                  :key="seat.id"
+                  :class="['seat', seat.status, { selected: selectedSeat?.id === seat.id }]"
+                  @click="selectSeat(seat)"
+                  :title="getSeatTitle(seat)"
+                >
+                  {{ seat.number }}
+                </div>
+              </div>
+            </div>
+
+            <div v-if="selectedSeat" class="selected-info">
+              <el-alert
+                :title="'已选择座位: ' + selectedSeat.number + ' (' + selectedSeat.zone + ')'"
+                type="info"
+                :closable="false"
+                show-icon
+              >
+                <div slot="description">
+                  <p v-if="selectedSeat.reservations && selectedSeat.reservations.length > 0">
+                    <span style="color: #f56c6c;">该座位已有预约时段：</span>
+                    <span v-for="(r, i) in selectedSeat.reservations" :key="i" class="time-slot occupied">
+                      {{ r.startTime }} - {{ r.endTime }}
+                    </span>
+                  </p>
+                  <p v-else style="color: #67c23a;">该座位当前全天可预约</p>
+                </div>
+                <el-button type="primary" size="small" @click="goToReservation" style="margin-top: 10px;">立即预约</el-button>
+              </el-alert>
+            </div>
+          </el-card>
+        </div>
+      `,
+      data() {
+        return {
+          selectedFloor: '1',
+          selectedDate: new Date(),
+          selectedSeat: null,
+          seatsA: [],
+          seatsB: [],
+          seatsC: []
+        };
+      },
+      mounted() {
+        this.generateSeats();
+      },
+      methods: {
+        generateSeats() {
+          this.seatsA = this.createSeats('A', 12);
+          this.seatsB = this.createSeats('B', 16);
+          this.seatsC = this.createSeats('C', 12);
+          this.updateSeatStatus();
+        },
+        createSeats(prefix, count) {
+          const seats = [];
+          for (let i = 1; i <= count; i++) {
+            seats.push({
+              id: prefix + '-' + i,
+              number: prefix + String(i).padStart(2, '0'),
+              zone: prefix + '区',
+              status: 'available',
+              reservations: []
+            });
+          }
+          return seats;
+        },
+        updateSeatStatus() {
+          const dateStr = this.formatDate(this.selectedDate);
+          
+          const allSeats = [...this.seatsA, ...this.seatsB, ...this.seatsC];
+          
+          allSeats.forEach(seat => {
+            const reservations = ReservationStore.getSeatReservations(seat.id, dateStr);
+            seat.reservations = reservations;
+            seat.status = reservations.length > 0 ? 'occupied' : 'available';
+          });
+          
+          if (this.selectedSeat) {
+            const found = allSeats.find(s => s.id === this.selectedSeat.id);
+            if (found) {
+              this.selectedSeat = found;
+            }
+          }
+        },
+        selectSeat(seat) {
+          if (seat.status === 'occupied') {
+            this.$message.warning('该座位在所选日期已有预约，请选择其他座位');
+            return;
+          }
+          this.selectedSeat = seat;
+        },
+        goToReservation() {
+          this.$router.push({
+            path: '/reservation',
+            query: { seatId: this.selectedSeat.id }
+          });
+        },
+        getSeatTitle(seat) {
+          if (seat.reservations && seat.reservations.length > 0) {
+            return '已预约时段：' + seat.reservations.map(r => r.startTime + '-' + r.endTime).join(', ');
+          }
+          return '可预约';
+        },
+        formatDate(date) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return year + '-' + month + '-' + day;
+        }
+      }
+    };
+
+    // ==================== 预约表单组件 ====================
+    const Reservation = {
+      template: `
+        <div class="page-container">
+          <el-card>
+            <div slot="header">
+              <span>📝 在线预约座位</span>
+            </div>
+
+            <el-form
+              :model="reservationForm"
+              :rules="rules"
+              ref="reservationForm"
+              label-width="120px"
+            >
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="选择楼层" prop="floor">
+                    <el-select v-model="reservationForm.floor" placeholder="请选择楼层" style="width: 100%;" @change="onFloorChange">
+                      <el-option label="一楼自习区" value="1"></el-option>
+                      <el-option label="二楼自习区" value="2"></el-option>
+                      <el-option label="三楼自习区" value="3"></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="选择区域" prop="zone">
+                    <el-select v-model="reservationForm.zone" placeholder="请选择区域" style="width: 100%;" @change="onZoneChange">
+                      <el-option label="A区 - 靠窗区域" value="A"></el-option>
+                      <el-option label="B区 - 中央区域" value="B"></el-option>
+                      <el-option label="C区 - 安静区域" value="C"></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="座位号" prop="seatNumber">
+                    <el-select v-model="reservationForm.seatNumber" placeholder="请选择座位号" style="width: 100%;" @change="checkConflict">
+                      <el-option 
+                        v-for="seat in availableSeats" 
+                        :key="seat.id" 
+                        :label="seat.number" 
+                        :value="seat.id"
+                        :disabled="seat.disabled"
+                      >
+                        <span>{{ seat.number }}</span>
+                        <span v-if="seat.todayReservations && seat.todayReservations.length > 0" style="color: #f56c6c; margin-left: 10px; font-size: 12px;">
+                          (已预约: {{ seat.todayReservations.map(r => r.startTime + '-' + r.endTime).join(', ') }}
+                        </span>
+                      </el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="预约日期" prop="date">
+                    <el-date-picker
+                      v-model="reservationForm.date"
+                      type="date"
+                      placeholder="选择日期"
+                      style="width: 100%;"
+                      :picker-options="pickerOptions"
+                      @change="checkConflict"
+                    ></el-date-picker>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="开始时间" prop="startTime">
+                    <el-time-picker
+                      v-model="reservationForm.startTime"
+                      format="HH:mm"
+                      value-format="HH:mm"
+                      placeholder="选择开始时间"
+                      style="width: 100%;"
+                      :picker-options="{ start: '08:00', step: '00:30', end: '20:00' }"
+                      @change="checkConflict"
+                    ></el-time-picker>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="结束时间" prop="endTime">
+                    <el-time-picker
+                      v-model="reservationForm.endTime"
+                      format="HH:mm"
+                      value-format="HH:mm"
+                      placeholder="选择结束时间"
+                      style="width: 100%;"
+                      :picker-options="{ start: '08:00', step: '00:30', end: '22:00' }"
+                      @change="checkConflict"
+                    ></el-time-picker>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-form-item v-if="conflictWarning" style="margin-bottom: 20px;">
+                <el-alert
+                  :title="conflictWarning"
+                  type="error"
+                  :closable="false"
+                  show-icon
+                ></el-alert>
+              </el-form-item>
+
+              <el-form-item label="预约用途" prop="purpose">
+                <el-radio-group v-model="reservationForm.purpose">
+                  <el-radio label="自习">自习</el-radio>
+                  <el-radio label="阅读">阅读</el-radio>
+                  <el-radio label="小组讨论">小组讨论</el-radio>
+                  <el-radio label="其他">其他</el-radio>
+                </el-radio-group>
+              </el-form-item>
+
+              <el-form-item label="联系电话" prop="phone">
+                <el-input v-model="reservationForm.phone" placeholder="请输入联系电话" maxlength="11"></el-input>
+              </el-form-item>
+
+              <el-form-item label="备注" prop="remark">
+                <el-input
+                  type="textarea"
+                  v-model="reservationForm.remark"
+                  placeholder="请输入备注信息（选填）"
+                  :rows="3"
+                ></el-input>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button type="primary" @click="submitForm" :loading="submitting">提交预约</el-button>
+                <el-button @click="resetForm">重置</el-button>
+              </el-form-item>
+            </el-form>
+          </el-card>
+        </div>
+      `,
+      data() {
+        const validatePhone = (rule, value, callback) => {
+          if (!value) {
+            callback(new Error('请输入联系电话'));
+          } else if (!/^1[3-9]\d{9}$/.test(value)) {
+            callback(new Error('请输入正确的手机号格式'));
+          } else {
+            callback();
+          }
+        };
+
+        const validateTime = (rule, value, callback) => {
+          if (this.reservationForm.startTime && this.reservationForm.endTime) {
+            if (this.reservationForm.startTime >= this.reservationForm.endTime) {
+              callback(new Error('结束时间必须晚于开始时间'));
+            } else {
+                callback();
+            }
+          } else {
+            callback();
+          }
+        };
+
+        return {
+          reservationForm: {
+            floor: '',
+            zone: '',
+            seatNumber: '',
+            date: '',
+            startTime: '',
+            endTime: '',
+            purpose: '自习',
+            phone: '',
+            remark: ''
+          },
+          rules: {
+            floor: [{ required: true, message: '请选择楼层', trigger: 'change' }],
+            zone: [{ required: true, message: '请选择区域', trigger: 'change' }],
+            seatNumber: [{ required: true, message: '请选择座位号', trigger: 'change' }],
+            date: [{ required: true, message: '请选择预约日期', trigger: 'change' }],
+            startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
+            endTime: [
+              { required: true, message: '请选择结束时间', trigger: 'change' },
+              { validator: validateTime, trigger: 'change' }
+            ],
+            purpose: [{ required: true, message: '请选择预约用途', trigger: 'change' }],
+            phone: [{ validator: validatePhone, trigger: 'blur' }]
+          },
+          pickerOptions: {
+            disabledDate(time) {
+              return time.getTime() < Date.now() - 8.64e7;
+            }
+          },
+          availableSeats: [],
+          conflictWarning: '',
+          submitting: false
+        };
+      },
+      mounted() {
+        if (this.$route.query.seatId) {
+          const [zone, num] = this.$route.query.seatId.split('-');
+          this.reservationForm.zone = zone;
+          this.generateSeats(zone);
+          this.$nextTick(() => {
+            this.reservationForm.seatNumber = this.$route.query.seatId;
+          });
+        }
+        this.reservationForm.date = new Date();
+      },
+      watch: {
+        'reservationForm.zone': function(newVal) {
+          this.generateSeats(newVal);
+        }
+      },
+      methods: {
+        onFloorChange() {
+          this.reservationForm.zone = '';
+          this.reservationForm.seatNumber = '';
+          this.availableSeats = [];
+          this.checkConflict();
+        },
+        onZoneChange() {
+          this.reservationForm.seatNumber = '';
+          this.checkConflict();
+        },
+        generateSeats(zone) {
+          this.availableSeats = [];
+          const count = zone === 'B' ? 16 : 12;
+          const dateStr = this.reservationForm.date ? this.formatDate(this.reservationForm.date) : this.formatDate(new Date());
+          
+          for (let i = 1; i <= count; i++) {
+            const seatId = zone + '-' + i;
+            const reservations = ReservationStore.getSeatReservations(seatId, dateStr);
+            this.availableSeats.push({
+              id: seatId,
+              number: zone + String(i).padStart(2, '0'),
+              todayReservations: reservations,
+              disabled: false
+            });
+          }
+          this.checkConflict();
+        },
+        checkConflict() {
+          this.conflictWarning = '';
+          
+          if (!this.reservationForm.seatNumber || !this.reservationForm.date || 
+              !this.reservationForm.startTime || !this.reservationForm.endTime) {
+            return;
+          }
+          
+          const dateStr = this.formatDate(this.reservationForm.date);
+          const hasConflict = ReservationStore.checkConflict(
+            this.reservationForm.seatNumber,
+            dateStr,
+            this.reservationForm.startTime,
+            this.reservationForm.endTime
+          );
+          
+          if (hasConflict) {
+            this.conflictWarning = '该时段已被预约，请选择其他时间或座位';
+          }
+        },
+        submitForm() {
+          this.$refs.reservationForm.validate((valid) => {
+            if (valid) {
+              if (this.conflictWarning) {
+                this.$message.error('预约时段冲突，请重新选择');
+                return;
+              }
+              
+              this.submitting = true;
+              
+              setTimeout(() => {
+                const dateStr = this.formatDate(this.reservationForm.date);
+                const floorMap = { '1': '一楼', '2': '二楼', '3': '三楼' };
+                
+                ReservationStore.add({
+                  seatId: this.reservationForm.seatNumber,
+                  seat: floorMap[this.reservationForm.floor] + ' ' + this.reservationForm.seatNumber.replace('-', ''),
+                  floor: this.reservationForm.floor,
+                  zone: this.reservationForm.zone,
+                  date: dateStr,
+                  startTime: this.reservationForm.startTime,
+                  endTime: this.reservationForm.endTime,
+                  time: this.reservationForm.startTime + ' - ' + this.reservationForm.endTime,
+                  purpose: this.reservationForm.purpose,
+                  phone: this.reservationForm.phone,
+                  remark: this.reservationForm.remark
+                });
+                
+                this.$message({
+                  type: 'success',
+                  message: '预约成功！请准时前往图书馆签到'
+                });
+                this.$router.push('/my-reservations');
+                this.submitting = false;
+              }, 500);
+            } else {
+              this.$message.error('请完善必填信息');
+              return false;
+            }
+          });
+        },
+        resetForm() {
+          this.$refs.reservationForm.resetFields();
+          this.conflictWarning = '';
+          this.availableSeats = [];
+        },
+        formatDate(date) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return year + '-' + month + '-' + day;
+        }
+      }
+    };
+
+    // ==================== 我的预约组件 ====================
+    const MyReservations = {
+      template: `
+        <div class="page-container">
+          <el-card>
+            <div slot="header" class="clearfix">
+              <span>📋 我的预约记录</span>
+              <el-button style="float: right; padding: 3px 0;" type="text" @click="fetchData">
+                <i class="el-icon-refresh"></i> 刷新
+              </el-button>
+            </div>
+
+            <el-form :inline="true" :model="filterForm" class="filter-form">
+              <el-form-item label="选择楼层">
+                <el-select v-model="filterForm.floor" placeholder="全部楼层" clearable @change="onFilterChange">
+                  <el-option label="一楼自习区" value="1"></el-option>
+                  <el-option label="二楼自习区" value="2"></el-option>
+                  <el-option label="三楼自习区" value="3"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="预约日期">
+                <el-date-picker
+                  v-model="filterForm.date"
+                  type="date"
+                  placeholder="选择日期"
+                  clearable
+                  @change="onFilterChange"
+                ></el-date-picker>
+              </el-form-item>
+              <el-form-item label="预约状态">
+                <el-select v-model="filterForm.status" placeholder="全部状态" clearable @change="onFilterChange">
+                  <el-option label="待签到" value="待签到"></el-option>
+                  <el-option label="已完成" value="已完成"></el-option>
+                  <el-option label="已取消" value="已取消"></el-option>
+                  <el-option label="已失效" value="已失效"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" @click="resetFilter">重置筛选</el-button>
+              </el-form-item>
+            </el-form>
+
+            <el-table
+              :data="paginatedReservations"
+              border
+              style="width: 100%;"
+              v-loading="loading"
+            >
+              <el-table-column prop="id" label="预约编号" width="150" align="center"></el-table-column>
+              <el-table-column prop="seat" label="座位信息" width="140" align="center"></el-table-column>
+              <el-table-column prop="date" label="预约日期" width="120" align="center"></el-table-column>
+              <el-table-column prop="time" label="预约时段" width="150" align="center"></el-table-column>
+              <el-table-column prop="purpose" label="用途" align="center"></el-table-column>
+              <el-table-column label="状态" width="100" align="center">
+                <template slot-scope="scope">
+                  <el-tag :type="getStatusType(scope.row.status)">{{ scope.row.status }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="200" align="center">
+                <template slot-scope="scope">
+                  <el-button
+                    v-if="scope.row.status === '待签到'"
+                    type="primary"
+                    size="small"
+                    @click="goCheckIn(scope.row)"
+                  >
+                    前往签到
+                  </el-button>
+                  <el-button
+                    v-if="scope.row.status === '待签到'"
+                    type="danger"
+                    size="small"
+                    @click="cancelReservation(scope.row)"
+                  >
+                    取消预约
+                  </el-button>
+                  <el-button
+                    v-if="scope.row.status === '已完成' || scope.row.status === '已失效' || scope.row.status === '已取消'"
+                    type="info"
+                    size="small"
+                    @click="viewDetail(scope.row)"
+                  >
+                    查看详情
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <div class="pagination">
+              <el-pagination
+                background
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="total"
+                :page-size="pageSize"
+                :page-sizes="[5, 10, 20, 50]"
+                @current-change="handleCurrentChange"
+                @size-change="handleSizeChange"
+              ></el-pagination>
+            </div>
+          </el-card>
+        </div>
+      `,
+      data() {
+        return {
+          loading: false,
+          reservations: [],
+          total: 0,
+          pageSize: 10,
+          currentPage: 1,
+          filterForm: {
+            floor: '',
+            date: '',
+            status: ''
+          },
+          autoRefreshTimer: null,
+          lastPendingCount: 0
+        };
+      },
+      computed: {
+        filteredReservations() {
+          let result = [...this.reservations];
+          
+          if (this.filterForm.floor) {
+            result = result.filter(item => item.floor === this.filterForm.floor);
+          }
+          
+          if (this.filterForm.date) {
+            const dateStr = this.formatDate(this.filterForm.date);
+            result = result.filter(item => item.date === dateStr);
+          }
+          
+          if (this.filterForm.status) {
+            result = result.filter(item => item.status === this.filterForm.status);
+          }
+          
+          return result;
+        },
+        paginatedReservations() {
+          const start = (this.currentPage - 1) * this.pageSize;
+          const end = start + this.pageSize;
+          return this.filteredReservations.slice(start, end);
+        }
+      },
+      watch: {
+        filteredReservations(val) {
+          this.total = val.length;
+        }
+      },
+      mounted() {
+        this.fetchData();
+        this.startAutoRefresh();
+      },
+      beforeDestroy() {
+        if (this.autoRefreshTimer) {
+          clearInterval(this.autoRefreshTimer);
+        }
+      },
+      methods: {
+        startAutoRefresh() {
+          this.lastPendingCount = this.reservations.filter(r => r.status === '待签到').length;
+          
+          this.autoRefreshTimer = setInterval(() => {
+            ReservationStore.checkAndMarkExpired();
+            const newReservations = ReservationStore.getByUser();
+            const newPendingCount = newReservations.filter(r => r.status === '待签到').length;
+            
+            if (newPendingCount < this.lastPendingCount) {
+              this.$message.info('有预约已超过签到时间，已自动失效');
+              this.fetchData();
+            } else {
+              this.reservations = newReservations.sort((a, b) => 
+                new Date(b.createTime) - new Date(a.createTime)
+              );
+            }
+            
+            this.lastPendingCount = newPendingCount;
+          }, 30000);
+        },
+        getStatusType(status) {
+          const map = {
+            '待签到': 'warning',
+            '已完成': 'success',
+            '已取消': 'info',
+            '已失效': 'danger',
+            '已违约': 'danger'
+          };
+          return map[status] || 'info';
+        },
+        onFilterChange() {
+          this.currentPage = 1;
+        },
+        resetFilter() {
+          this.filterForm = {
+            floor: '',
+            date: '',
+            status: ''
+          };
+          this.currentPage = 1;
+        },
+        handleCurrentChange(val) {
+          this.currentPage = val;
+        },
+        handleSizeChange(val) {
+          this.pageSize = val;
+          this.currentPage = 1;
+        },
+        fetchData() {
+          this.loading = true;
+          setTimeout(() => {
+            ReservationStore.checkAndMarkExpired();
+            this.reservations = ReservationStore.getByUser().sort((a, b) => 
+              new Date(b.createTime) - new Date(a.createTime)
+            );
+            this.total = this.reservations.length;
+            this.loading = false;
+          }, 300);
+        },
+        goCheckIn(row) {
+          this.$router.push({
+            path: '/check-in',
+            query: { id: row.id }
+          });
+        },
+        cancelReservation(row) {
+          this.$confirm('确认取消该预约吗？', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            ReservationStore.cancel(row.id);
+            this.$message({ type: 'success', message: '预约已取消' });
+            this.fetchData();
+          }).catch(() => {});
+        },
+        viewDetail(row) {
+          this.$alert(
+            '预约编号：' + row.id + '\n座位信息：' + row.seat + '\n预约日期：' + row.date + 
+            '\n预约时段：' + row.time + '\n用途：' + row.purpose + '\n状态：' + row.status,
+            '预约详情'
+          );
+        },
+        formatDate(date) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return year + '-' + month + '-' + day;
+        }
+      }
+    };
+
+    // ==================== 签到确认组件 ====================
+    const CheckIn = {
+      template: `
+        <div class="page-container">
+          <el-card>
+            <div slot="header">
+              <span>✅ 签到确认</span>
+            </div>
+
+            <el-alert
+              title="签到说明"
+              type="info"
+              :closable="false"
+              show-icon
+              style="margin-bottom: 30px;"
+            >
+              <p>请在预约开始时间前30分钟内进行签到</p>
+              <p>签到时请确保您在图书馆内，系统会自动验证您的位置</p>
+              <p>未按时签到超过1小时将记为违约一次，并自动释放座位</p>
+            </el-alert>
+
+            <div v-if="pendingReservations.length > 0" class="check-in-content">
+              <h3 style="margin-bottom: 20px; color: #606266;">待签到的预约</h3>
+              
+              <el-table :data="pendingReservations" border style="width: 100%;">
+                <el-table-column prop="id" label="预约编号" width="150" align="center"></el-table-column>
+                <el-table-column prop="seat" label="座位信息" width="140" align="center"></el-table-column>
+                <el-table-column prop="date" label="预约日期" width="120" align="center"></el-table-column>
+                <el-table-column prop="time" label="预约时段" width="160" align="center"></el-table-column>
+                <el-table-column label="签到状态" align="center">
+                  <template slot-scope="scope">
+                    <span :class="getTimeClass(scope.row)">{{ getCountdownText(scope.row) }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="签到操作" width="150" align="center">
+                  <template slot-scope="scope">
+                    <el-button
+                      type="primary"
+                      size="small"
+                      :disabled="!canCheckIn(scope.row)"
+                      @click="handleCheckIn(scope.row)"
+                    >
+                      {{ getButtonText(scope.row) }}
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+
+            <div v-else class="empty-state">
+              <el-empty description="暂无待签到的预约记录">
+                <el-button type="primary" @click="$router.push('/reservation')">去预约座位</el-button>
+              </el-empty>
+            </div>
+
+            <div v-if="showSuccess" class="success-card">
+              <el-result
+                icon="success"
+                title="签到成功"
+                sub-title="您已成功签到，请按预约时段使用座位"
+              >
+                <template slot="extra">
+                  <el-button type="primary" @click="showSuccess = false">确定</el-button>
+                </template>
+              </el-result>
+            </div>
+          </el-card>
+        </div>
+      `,
+      data() {
+        return {
+          pendingReservations: [],
+          showSuccess: false,
+          currentTime: new Date()
+        };
+      },
+      mounted() {
+        this.fetchPendingReservations();
+        this.timer = setInterval(() => {
+          this.currentTime = new Date();
+          this.checkExpired();
+        }, 1000);
+      },
+      beforeDestroy() {
+        if (this.timer) {
+          clearInterval(this.timer);
+        }
+      },
+      methods: {
+        formatDate(date) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return year + '-' + month + '-' + day;
+        },
+        fetchPendingReservations() {
+          ReservationStore.checkAndMarkExpired();
+          const all = ReservationStore.getByUser();
+          this.pendingReservations = all.filter(r => r.status === '待签到');
+        },
+        checkExpired() {
+          const beforeCount = this.pendingReservations.length;
+          this.fetchPendingReservations();
+          if (this.pendingReservations.length < beforeCount) {
+            this.$message.info('有预约已超过签到时间，已自动失效');
+          }
+        },
+        canCheckIn(row) {
+          const now = this.currentTime;
+          const todayStr = this.formatDate(now);
+          if (row.date !== todayStr) return false;
+          
+          const [hours, minutes] = row.startTime.split(':').map(Number);
+          const startTime = new Date(now);
+          startTime.setHours(hours, minutes, 0, 0);
+          
+          const diffMinutes = (startTime - now) / 1000 / 60;
+          return diffMinutes <= 30 && diffMinutes >= -60;
+        },
+        getButtonText(row) {
+          const now = this.currentTime;
+          const todayStr = this.formatDate(now);
+          if (row.date !== todayStr) return '未到签到日期';
+          
+          const [hours, minutes] = row.startTime.split(':').map(Number);
+          const startTime = new Date(now);
+          startTime.setHours(hours, minutes, 0, 0);
+          
+          const diffMinutes = (startTime - now) / 1000 / 60;
+          
+          if (diffMinutes > 30) return '未到签到时间';
+          if (diffMinutes < -60) return '已过期';
+          return '立即签到';
+        },
+        getCountdownText(row) {
+          const now = this.currentTime;
+          const todayStr = this.formatDate(now);
+          
+          if (row.date !== todayStr) {
+            return row.date + ' 签到';
+          }
+          
+          const [hours, minutes] = row.startTime.split(':').map(Number);
+          const startTime = new Date(now);
+          startTime.setHours(hours, minutes, 0, 0);
+          
+          const diffMs = startTime - now;
+          const diffMins = Math.floor(diffMs / 1000 / 60);
+          
+          if (diffMins > 30) {
+            const h = Math.floor(diffMins / 60);
+            const m = diffMins % 60;
+            return h > 0 ? (h + '小时' + m + '分钟后开始签到') : (m + '分钟后开始签到');
+          } else if (diffMins > 0) {
+            return '签到即将开始（剩余' + diffMins + '分钟）';
+          } else if (diffMins > -60) {
+            return '签到进行中（剩余' + Math.floor(60 + diffMins) + '分钟）';
+          } else {
+            return '已超过签到时间';
+          }
+        },
+        getTimeClass(row) {
+          const now = this.currentTime;
+          const todayStr = this.formatDate(now);
+          if (row.date !== todayStr) return '';
+          
+          const [hours, minutes] = row.startTime.split(':').map(Number);
+          const startTime = new Date(now);
+          startTime.setHours(hours, minutes, 0, 0);
+          
+          const diffMins = (startTime - now) / 1000 / 60;
+          
+          if (diffMins <= 30 && diffMins > 0) {
+            return 'text-warning';
+          } else if (diffMins <= 0 && diffMins > -60) {
+            return 'text-success';
+          } else if (diffMins <= -60) {
+            return 'text-danger';
+          }
+          return '';
+        },
+        handleCheckIn(row) {
+          this.$confirm('确认签到吗？签到后请准时使用该座位。', '签到确认', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            ReservationStore.checkIn(row.id);
+            const index = this.pendingReservations.findIndex(item => item.id === row.id);
+            if (index > -1) {
+              this.pendingReservations.splice(index, 1);
+            }
+            this.showSuccess = true;
+            this.$message.success('签到成功！');
+          }).catch(() => {});
+        }
+      }
+    };
+
+    // ==================== 违规记录组件 ====================
+    const Violations = {
+      template: `
+        <div class="page-container">
+          <el-card>
+            <div slot="header">
+              <span>⚠️ 违规记录</span>
+            </div>
+
+            <el-alert
+              title="违规政策说明"
+              type="warning"
+              :closable="false"
+              show-icon
+              style="margin-bottom: 30px;"
+            >
+              <ul style="margin: 10px 0 0 20px; list-style: disc;">
+                <li>累计3次违约，将暂停预约权限7天</li>
+                <li>累计5次违约，将暂停预约权限30天</li>
+                <li>累计10次违约，将永久取消预约权限</li>
+                <li>若无法履约，请提前30分钟取消预约</li>
+              </ul>
+            </el-alert>
+
+            <el-row :gutter="20" style="margin-bottom: 30px;" class="stat-row">
+              <el-col :span="6" class="stat-col">
+                <el-statistic title="累计违约次数" :value="totalViolations">
+                  <template slot="suffix">次</template>
+                </el-statistic>
+              </el-col>
+              <el-col :span="6" class="stat-col">
+                <el-statistic title="本月违约次数" :value="monthViolations">
+                  <template slot="suffix">次</template>
+                </el-statistic>
+              </el-col>
+              <el-col :span="6" class="stat-col">
+                <el-statistic title="当前状态">
+                  <template slot="formatter">
+                    <el-tag :type="currentStatus.type" size="medium">{{ currentStatus.text }}</el-tag>
+                  </template>
+                </el-statistic>
+              </el-col>
+              <el-col :span="6" class="stat-col">
+                <el-statistic title="恢复时间" :value="recoveryDays">
+                  <template slot="suffix" v-if="recoveryDays !== '∞'">天后</template>
+                  <template slot="suffix" v-else></template>
+                </el-statistic>
+              </el-col>
+            </el-row>
+
+            <h3 style="margin-bottom: 20px; color: #606266;">违约记录详情</h3>
+            <el-table
+              :data="violations"
+              border
+              style="width: 100%;"
+              v-loading="loading"
+            >
+              <el-table-column prop="id" label="违约编号" width="150" align="center"></el-table-column>
+              <el-table-column prop="seat" label="座位信息" width="140" align="center"></el-table-column>
+              <el-table-column prop="date" label="预约日期" width="120" align="center"></el-table-column>
+              <el-table-column prop="time" label="预约时段" width="150" align="center"></el-table-column>
+              <el-table-column prop="reason" label="违约原因" align="center"></el-table-column>
+              <el-table-column prop="recordTime" label="记录时间" width="180" align="center"></el-table-column>
+              <el-table-column label="处理状态" width="100" align="center">
+                <template slot-scope="scope">
+                  <el-tag type="info" size="small">{{ scope.row.status }}</el-tag>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <div class="pagination">
+              <el-pagination
+                background
+                layout="total, prev, pager, next"
+                :total="total"
+                :page-size="pageSize"
+              ></el-pagination>
+            </div>
+          </el-card>
+        </div>
+      `,
+      data() {
+        return {
+          loading: false,
+          violations: [],
+          totalViolations: 0,
+          monthViolations: 0,
+          total: 0,
+          pageSize: 10
+        };
+      },
+      computed: {
+        currentStatus() {
+          if (this.totalViolations >= 10) {
+            return { type: 'danger', text: '永久封禁' };
+          } else if (this.totalViolations >= 5) {
+            return { type: 'danger', text: '暂停30天' };
+          } else if (this.totalViolations >= 3) {
+            return { type: 'warning', text: '暂停7天' };
+          } else {
+            return { type: 'success', text: '正常' };
+          }
+        },
+        recoveryDays() {
+          if (this.totalViolations >= 10) return '∞';
+          if (this.totalViolations >= 5) return 30;
+          if (this.totalViolations >= 3) return 7;
+          return 0;
+        }
+      },
+      mounted() {
+        this.fetchData();
+      },
+      methods: {
+        fetchData() {
+          this.loading = true;
+          setTimeout(() => {
+            this.violations = ReservationStore.getViolations().sort((a, b) => 
+              new Date(b.recordTime) - new Date(a.recordTime)
+            );
+            this.total = this.violations.length;
+            this.totalViolations = this.violations.length;
+            
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            this.monthViolations = this.violations.filter(v => {
+              const d = new Date(v.recordTime);
+              return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            }).length;
+            
+            this.loading = false;
+          }, 300);
+        }
+      }
+    };
+
+    // ==================== 路由配置 ====================
+    const routes = [
+      { path: '/', component: SeatMap },
+      { path: '/reservation', component: Reservation },
+      { path: '/my-reservations', component: MyReservations },
+      { path: '/check-in', component: CheckIn },
+      { path: '/violations', component: Violations }
+    ];
+
+    const router = new VueRouter({ routes });
+
+    // ==================== 应用入口 ====================
+    new Vue({
+      el: '#app',
+      router
+    });
+  </script>
+</body>
+</html>

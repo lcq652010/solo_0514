@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>麦秆画定制系统</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.14/lib/theme-chalk/index.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <el-container>
+      <el-header>
+        <div class="header-content">
+          <h1>麦秆画定制系统</h1>
+          <div class="header-right">
+            <el-select v-model="currentOperator" placeholder="选择操作人员" size="small" style="width: 120px; margin-right: 15px;">
+              <el-option v-for="op in operatorList" :key="op" :label="op" :value="op"></el-option>
+            </el-select>
+            <el-menu :default-active="activeMenu" mode="horizontal" @select="handleMenuSelect">
+              <el-menu-item index="order">客户下单</el-menu-item>
+              <el-menu-item index="admin">订单管理</el-menu-item>
+            </el-menu>
+          </div>
+        </div>
+      </el-header>
+      <el-main>
+        <order-page v-if="activeMenu === 'order'" @submit-order="handleSubmitOrder" ref="orderPage"></order-page>
+        <admin-page v-if="activeMenu === 'admin'" :orders="orders" :current-operator="currentOperator" @update-status="handleUpdateStatus" ref="adminPage"></admin-page>
+      </el-main>
+    </el-container>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.14/lib/index.js"></script>
+  <script src="components/OrderPage.js"></script>
+  <script src="components/AdminPage.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

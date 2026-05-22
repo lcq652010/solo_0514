@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>传统铜制香炉定制系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.13/lib/theme-chalk/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    #app {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      color: #fff;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .header .nav-tabs {
+      margin-top: 20px;
+    }
+    .form-card, .order-card {
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    .form-card .el-card__header {
+      background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+      border-radius: 12px 12px 0 0 !important;
+    }
+    .form-card .el-card__header span {
+      font-size: 20px;
+      font-weight: bold;
+      color: #8b4513;
+    }
+    .order-card .el-card__header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px 12px 0 0 !important;
+    }
+    .order-card .el-card__header span {
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+    }
+    .order-item {
+      margin-bottom: 20px;
+      border: 1px solid #e4e7ed;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .order-item-header {
+      background: #f5f7fa;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .order-item-body {
+      padding: 15px;
+    }
+    .order-item-info {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .order-item-info p {
+      margin: 5px 0;
+      color: #606266;
+    }
+    .order-item-info p strong {
+      color: #303133;
+    }
+    .status-steps {
+      margin-top: 15px;
+    }
+    .el-step__title {
+      font-size: 12px;
+    }
+    .order-item.new-order {
+      animation: highlightPulse 2s ease-in-out 3;
+      border: 2px solid #67c23a;
+    }
+    @keyframes highlightPulse {
+      0%, 100% {
+        box-shadow: 0 0 5px rgba(103, 194, 58, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 20px rgba(103, 194, 58, 0.6);
+      }
+    }
+    .status-history {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px dashed #e4e7ed;
+    }
+    .status-history p {
+      margin: 5px 0;
+      font-size: 12px;
+      color: #909399;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="header">
+      <h1>🏺 传统铜制香炉定制系统</h1>
+      <el-tabs v-model="activeTab" class="nav-tabs">
+        <el-tab-pane label="客户下单" name="order"></el-tab-pane>
+        <el-tab-pane label="管理员" name="admin"></el-tab-pane>
+      </el-tabs>
+    </div>
+
+    <!-- 客户下单页面 -->
+    <div v-show="activeTab === 'order'">
+      <el-card class="form-card">
+        <div slot="header">
+          <span>📝 香炉定制订单</span>
+        </div>
+        <el-form :model="orderForm" :rules="rules" ref="orderForm" label-width="120px">
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="铜材类型" prop="copperType">
+                <el-select v-model="orderForm.copperType" placeholder="请选择铜材类型" style="width: 100%">
+                  <el-option label="黄铜" value="黄铜"></el-option>
+                  <el-option label="紫铜" value="紫铜"></el-option>
+                  <el-option label="青铜" value="青铜"></el-option>
+                  <el-option label="白铜" value="白铜"></el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="炉型款式" prop="furnaceType">
+                <el-select v-model="orderForm.furnaceType" placeholder="请选择炉型款式" style="width: 100%">
+                  <el-option label="鼎式炉" value="鼎式炉"></el-option>
+                  <el-option label="鬲式炉" value="鬲式炉"></el-option>
+                  <el-option label="簋式炉" value="簋式炉"></el-option>
+                  <el-option label="樽式炉" value="樽式炉"></el-option>
+                  <el-option label="鱼耳炉" value="鱼耳炉"></el-option>
+                  <el-option label="象耳炉" value="象耳炉"></el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="炉身直径(cm)" prop="diameter">
+                <el-input-number v-model="orderForm.diameter" :min="8" :max="40" :step="0.5" style="width: 100%"></el-input-number>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="高度(cm)" prop="height">
+                <el-input-number v-model="orderForm.height" :min="10" :max="60" :step="0.5" style="width: 100%"></el-input-number>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-form-item label="纹饰雕刻" prop="carving">
+            <el-checkbox-group v-model="orderForm.carving">
+              <el-checkbox label="祥云纹">祥云纹</el-checkbox>
+              <el-checkbox label="龙凤纹">龙凤纹</el-checkbox>
+              <el-checkbox label="回纹">回纹</el-checkbox>
+              <el-checkbox label="缠枝莲">缠枝莲</el-checkbox>
+              <el-checkbox label="饕餮纹">饕餮纹</el-checkbox>
+              <el-checkbox label="山水纹">山水纹</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+
+          <el-form-item label="订单备注" prop="remark">
+            <el-input
+              type="textarea"
+              :rows="4"
+              placeholder="请输入其他定制要求..."
+              v-model="orderForm.remark">
+            </el-input>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button type="primary" @click="submitOrder" size="large" style="width: 100%">提交订单</el-button>
+          </el-form-item>
+        </el-form>
+      </el-card>
+    </div>
+
+    <!-- 管理员页面 -->
+    <div v-show="activeTab === 'admin'">
+      <el-card class="order-card">
+        <div slot="header">
+          <span>📋 订单管理</span>
+        </div>
+        <div v-if="orders.length === 0">
+          <el-empty description="暂无订单"></el-empty>
+        </div>
+        <div v-else>
+          <div v-for="(order, index) in orders" :key="index" class="order-item" :class="{ 'new-order': order.isNew }">
+            <div class="order-item-header">
+              <div>
+                <strong>订单编号：{{ order.orderNo }}</strong>
+                <span style="margin-left: 20px; color: #909399;">下单时间：{{ order.createTime }}</span>
+              </div>
+              <el-tag :type="getStatusType(order.status)" size="medium">{{ order.status }}</el-tag>
+            </div>
+            <div class="order-item-body">
+              <div class="order-item-info">
+                <p><strong>铜材类型：</strong>{{ order.copperType }}</p>
+                <p><strong>炉型款式：</strong>{{ order.furnaceType }}</p>
+                <p><strong>炉身直径：</strong>{{ order.diameter }} cm</p>
+                <p><strong>高度：</strong>{{ order.height }} cm</p>
+                <p><strong>纹饰雕刻：</strong>{{ order.carving.join('、') || '无' }}</p>
+                <p><strong>订单备注：</strong>{{ order.remark || '无' }}</p>
+              </div>
+              <div class="status-steps">
+                <p style="margin-bottom: 10px;"><strong>工序进度：</strong></p>
+                <el-steps :active="getStepIndex(order.status)" finish-status="success" align-center>
+                  <el-step title="熔铜"></el-step>
+                  <el-step title="铸模"></el-step>
+                  <el-step title="打磨"></el-step>
+                  <el-step title="精雕"></el-step>
+                  <el-step title="做旧"></el-step>
+                  <el-step title="抛光"></el-step>
+                  <el-step title="完工"></el-step>
+                </el-steps>
+              </div>
+              <div style="margin-top: 15px;">
+                <strong>修改状态：</strong>
+                <el-select v-model="order.status" placeholder="选择工序" size="small" style="width: 150px; margin-left: 10px;" @change="handleStatusChange(order, $event)">
+                  <el-option v-for="(step, idx) in getAvailableSteps(order.status)" :key="idx" :label="step" :value="step"></el-option>
+                </el-select>
+              </div>
+              <div class="status-history" v-if="order.statusHistory && order.statusHistory.length > 0">
+                <p><strong>操作记录：</strong></p>
+                <p v-for="(record, idx) in order.statusHistory" :key="idx">
+                  {{ record.time }} - {{ record.operator }} 将状态从「{{ record.from }}」改为「{{ record.to }}」
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </el-card>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.13/lib/index.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        activeTab: 'order',
+        currentOperator: '管理员',
+        orderForm: {
+          copperType: '',
+          furnaceType: '',
+          diameter: 15,
+          height: 20,
+          carving: [],
+          remark: ''
+        },
+        rules: {
+          copperType: [
+            { required: true, message: '请选择铜材类型', trigger: 'change' }
+          ],
+          furnaceType: [
+            { required: true, message: '请选择炉型款式', trigger: 'change' }
+          ],
+          diameter: [
+            { required: true, message: '请输入炉身直径', trigger: 'blur' },
+            { type: 'number', min: 8, max: 40, message: '直径范围应为 8-40 cm', trigger: 'blur' }
+          ],
+          height: [
+            { required: true, message: '请输入高度', trigger: 'blur' },
+            { type: 'number', min: 10, max: 60, message: '高度范围应为 10-60 cm', trigger: 'blur' }
+          ],
+          carving: [
+            { type: 'array', required: true, message: '请至少选择一种纹饰雕刻', trigger: 'change' }
+          ]
+        },
+        orders: [],
+        steps: ['熔铜', '铸模', '打磨', '精雕', '做旧', '抛光', '完工']
+      },
+      methods: {
+        submitOrder() {
+          this.$refs.orderForm.validate((valid) => {
+            if (valid) {
+              const orderNo = 'ORD' + Date.now();
+              const createTime = new Date().toLocaleString();
+              const newOrder = {
+                orderNo,
+                createTime,
+                ...this.orderForm,
+                status: '熔铜',
+                isNew: true,
+                statusHistory: []
+              };
+              this.$message.success('正在提交订单...');
+              setTimeout(() => {
+                this.orders.unshift(newOrder);
+                this.$message.success('订单提交成功！');
+                this.$refs.orderForm.resetFields();
+                this.orderForm.diameter = 15;
+                this.orderForm.height = 20;
+                this.orderForm.carving = [];
+                setTimeout(() => {
+                  newOrder.isNew = false;
+                }, 6000);
+              }, 500);
+            }
+          });
+        },
+        getStepIndex(status) {
+          return this.steps.indexOf(status);
+        },
+        getStatusType(status) {
+          if (status === '完工') {
+            return 'success';
+          } else if (status === '熔铜' || status === '铸模') {
+            return 'primary';
+          } else if (status === '做旧' || status === '抛光') {
+            return 'warning';
+          } else {
+            return 'info';
+          }
+        },
+        getAvailableSteps(currentStatus) {
+          const currentIndex = this.getStepIndex(currentStatus);
+          const availableSteps = [];
+          for (let i = 0; i < this.steps.length; i++) {
+            if (i <= currentIndex + 1) {
+              availableSteps.push(this.steps[i]);
+            }
+          }
+          return availableSteps;
+        },
+        handleStatusChange(order, newStatus) {
+          const oldStatus = order.status;
+          const currentIndex = this.getStepIndex(oldStatus);
+          const newIndex = this.getStepIndex(newStatus);
+          if (newIndex > currentIndex + 1) {
+            this.$message.error('不可跳步！请按顺序切换工序。');
+            this.$nextTick(() => {
+              order.status = oldStatus;
+            });
+          } else if (oldStatus !== newStatus) {
+            const record = {
+              time: new Date().toLocaleString(),
+              operator: this.currentOperator,
+              from: oldStatus,
+              to: newStatus
+            };
+            if (!order.statusHistory) {
+              order.statusHistory = [];
+            }
+            order.statusHistory.unshift(record);
+            this.$message.success(`订单状态已更新为：${newStatus}`);
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

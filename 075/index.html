@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商超自助结账收银终端运维管理系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.13/lib/index.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.13/lib/theme-chalk/index.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        .app-container {
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #409EFF 0%, #66b1ff 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid #ebeef5;
+            font-size: 18px;
+            font-weight: 600;
+            color: #303133;
+            background-color: #fafafa;
+        }
+        .card-body {
+            padding: 24px;
+        }
+        .status-normal {
+            color: #67C23A;
+            font-weight: 600;
+        }
+        .status-fault {
+            color: #F56C6C;
+            font-weight: 600;
+        }
+        .status-offline {
+            color: #909399;
+            font-weight: 600;
+        }
+        .search-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        .search-form .el-form-item {
+            margin-bottom: 0;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        .el-table {
+            border-radius: 4px;
+        }
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+        .stat-card .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .stat-card .stat-label {
+            color: #909399;
+            font-size: 14px;
+        }
+        .stat-card.total .stat-number {
+            color: #409EFF;
+        }
+        .stat-card.normal .stat-number {
+            color: #67C23A;
+        }
+        .stat-card.fault .stat-number {
+            color: #F56C6C;
+        }
+        .stat-card.offline .stat-number {
+            color: #909399;
+        }
+        .row-fault {
+            background-color: #fef0f0 !important;
+        }
+        .row-offline {
+            background-color: #f5f7fa !important;
+        }
+        .row-fault .el-table__cell,
+        .row-offline .el-table__cell {
+            background-color: inherit !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="app-container">
+        <div class="header">
+            <h1>🛒 商超自助结账收银终端运维管理系统</h1>
+            <p>设备管理 · 故障上报 · 工单处理</p>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card total">
+                <div class="stat-number">{{ totalDevices }}</div>
+                <div class="stat-label">设备总数</div>
+            </div>
+            <div class="stat-card normal">
+                <div class="stat-number">{{ normalCount }}</div>
+                <div class="stat-label">正常运行</div>
+            </div>
+            <div class="stat-card fault">
+                <div class="stat-number">{{ faultCount }}</div>
+                <div class="stat-label">故障设备</div>
+            </div>
+            <div class="stat-card offline">
+                <div class="stat-number">{{ offlineCount }}</div>
+                <div class="stat-label">离线设备</div>
+            </div>
+        </div>
+
+        <el-tabs v-model="activeTab" type="border-card">
+            <el-tab-pane label="设备列表" name="list">
+                <div class="card">
+                    <div class="card-header">🔍 设备查询</div>
+                    <div class="card-body">
+                        <el-form :inline="true" :model="searchForm" class="search-form">
+                            <el-form-item label="设备编号">
+                                <el-input v-model="searchForm.deviceId" placeholder="请输入设备编号" clearable></el-input>
+                            </el-form-item>
+                            <el-form-item label="设备状态">
+                                <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
+                                    <el-option label="全部" value=""></el-option>
+                                    <el-option label="正常" value="normal"></el-option>
+                                    <el-option label="故障" value="fault"></el-option>
+                                    <el-option label="离线" value="offline"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="所属门店">
+                                <el-select v-model="searchForm.storeName" placeholder="请选择门店" clearable>
+                                    <el-option label="全部门店" value=""></el-option>
+                                    <el-option v-for="store in storeList" :key="store" :label="store" :value="store"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="primary" @click="handleSearch">查询</el-button>
+                                <el-button @click="handleReset">重置</el-button>
+                            </el-form-item>
+                        </el-form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span>📋 设备列表</span>
+                        <el-button style="float: right;" type="primary" size="small" @click="showReportDialog">上报故障</el-button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <el-table :data="filteredDevices" border stripe style="width: 100%" :row-class-name="getRowClassName">
+                                <el-table-column prop="deviceId" label="设备编号" width="120" align="center"></el-table-column>
+                                <el-table-column prop="storeName" label="所属门店" width="140" align="center"></el-table-column>
+                                <el-table-column prop="floor" label="所在楼层" width="100" align="center"></el-table-column>
+                                <el-table-column prop="location" label="安装位置" width="140" align="center"></el-table-column>
+                                <el-table-column prop="status" label="设备状态" width="100" align="center">
+                                    <template slot-scope="scope">
+                                        <span :class="'status-' + scope.row.status">
+                                            {{ statusMap[scope.row.status] }}
+                                        </span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="hardwareStatus" label="硬件模块状态" width="220" align="center">
+                                    <template slot-scope="scope">
+                                        <el-tag size="mini" :type="scope.row.hardwareStatus.scanner ? 'success' : 'danger'" style="margin-right: 5px;">扫码</el-tag>
+                                        <el-tag size="mini" :type="scope.row.hardwareStatus.printer ? 'success' : 'danger'" style="margin-right: 5px;">打印</el-tag>
+                                        <el-tag size="mini" :type="scope.row.hardwareStatus.cashier ? 'success' : 'danger'" style="margin-right: 5px;">收钞</el-tag>
+                                        <el-tag size="mini" :type="scope.row.hardwareStatus.network ? 'success' : 'danger'">网络</el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="installDate" label="安装日期" width="120" align="center"></el-table-column>
+                                <el-table-column prop="lastOnline" label="最后在线时间" width="180" align="center"></el-table-column>
+                                <el-table-column label="操作" width="170" align="center">
+                                    <template slot-scope="scope">
+                                        <el-button size="mini" type="primary" @click="viewDevice(scope.row)">详情</el-button>
+                                        <el-button size="mini" type="danger" @click="reportFault(scope.row)">故障上报</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </div>
+                        <el-pagination
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange"
+                            :current-page="pagination.currentPage"
+                            :page-sizes="[10, 20, 50, 100]"
+                            :page-size="pagination.pageSize"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="pagination.total"
+                            style="margin-top: 20px; justify-content: flex-end;"
+                        >
+                        </el-pagination>
+                    </div>
+                </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="故障上报" name="report">
+                <div class="card">
+                    <div class="card-header">📝 故障上报表单</div>
+                    <div class="card-body">
+                        <el-form :model="reportForm" :rules="reportRules" ref="reportForm" label-width="120px" class="form-container">
+                            <el-form-item label="工单编号" prop="workOrderId">
+                                <el-input v-model="reportForm.workOrderId" disabled></el-input>
+                                <span style="color: #909399; font-size: 12px; margin-left: 10px;">系统自动生成</span>
+                            </el-form-item>
+                            <el-form-item label="设备编号" prop="deviceId">
+                                <el-select v-model="reportForm.deviceId" placeholder="请选择设备" filterable>
+                                    <el-option v-for="device in devices" :key="device.deviceId" :label="device.deviceId + ' - ' + device.storeName" :value="device.deviceId"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="故障分类" prop="faultType">
+                                <el-select v-model="reportForm.faultType" placeholder="请选择故障分类">
+                                    <el-option label="无法扫码" value="scan_error"></el-option>
+                                    <el-option label="不出票" value="print_error"></el-option>
+                                    <el-option label="不收纸币" value="cash_error"></el-option>
+                                    <el-option label="网络断开" value="network_error"></el-option>
+                                    <el-option label="硬件故障" value="hardware"></el-option>
+                                    <el-option label="软件故障" value="software"></el-option>
+                                    <el-option label="支付故障" value="payment"></el-option>
+                                    <el-option label="其他故障" value="other"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="故障等级" prop="faultLevel">
+                                <el-radio-group v-model="reportForm.faultLevel">
+                                    <el-radio label="low">低</el-radio>
+                                    <el-radio label="medium">中</el-radio>
+                                    <el-radio label="high">高</el-radio>
+                                    <el-radio label="urgent">紧急</el-radio>
+                                </el-radio-group>
+                            </el-form-item>
+                            <el-form-item label="故障描述" prop="faultDescription">
+                                <el-input type="textarea" v-model="reportForm.faultDescription" :rows="4" placeholder="请详细描述故障现象"></el-input>
+                            </el-form-item>
+                            <el-form-item label="上报人" prop="reporter">
+                                <el-input v-model="reportForm.reporter" placeholder="请输入上报人姓名"></el-input>
+                            </el-form-item>
+                            <el-form-item label="联系电话" prop="contactPhone">
+                                <el-input v-model="reportForm.contactPhone" placeholder="请输入联系电话"></el-input>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="primary" @click="submitReport" size="large">提交上报</el-button>
+                                <el-button @click="resetReportForm" size="large">重置</el-button>
+                            </el-form-item>
+                        </el-form>
+                    </div>
+                </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="工单查询" name="workorders">
+                <div class="card">
+                    <div class="card-header">🔍 工单查询</div>
+                    <div class="card-body">
+                        <el-form :inline="true" :model="workOrderSearchForm" class="search-form">
+                            <el-form-item label="工单编号">
+                                <el-input v-model="workOrderSearchForm.workOrderId" placeholder="请输入工单编号" clearable></el-input>
+                            </el-form-item>
+                            <el-form-item label="处理状态">
+                                <el-select v-model="workOrderSearchForm.status" placeholder="请选择状态" clearable>
+                                    <el-option label="全部" value=""></el-option>
+                                    <el-option label="待处理" value="pending"></el-option>
+                                    <el-option label="处理中" value="processing"></el-option>
+                                    <el-option label="已完成" value="completed"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="故障类型">
+                                <el-select v-model="workOrderSearchForm.faultType" placeholder="请选择故障类型" clearable>
+                                    <el-option label="全部类型" value=""></el-option>
+                                    <el-option label="无法扫码" value="scan_error"></el-option>
+                                    <el-option label="不出票" value="print_error"></el-option>
+                                    <el-option label="不收纸币" value="cash_error"></el-option>
+                                    <el-option label="网络断开" value="network_error"></el-option>
+                                    <el-option label="硬件故障" value="hardware"></el-option>
+                                    <el-option label="软件故障" value="software"></el-option>
+                                    <el-option label="支付故障" value="payment"></el-option>
+                                    <el-option label="其他故障" value="other"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="primary" @click="searchWorkOrders">查询</el-button>
+                                <el-button @click="resetWorkOrderSearch">重置</el-button>
+                            </el-form-item>
+                        </el-form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">📋 工单列表</div>
+                    <div class="card-body">
+                        <el-table :data="filteredWorkOrders" border stripe style="width: 100%">
+                            <el-table-column prop="workOrderId" label="工单编号" width="180" align="center"></el-table-column>
+                            <el-table-column prop="deviceId" label="设备编号" width="120" align="center"></el-table-column>
+                            <el-table-column prop="faultType" label="故障类型" width="100" align="center">
+                                <template slot-scope="scope">
+                                    {{ faultTypeMap[scope.row.faultType] }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="faultLevel" label="故障等级" width="100" align="center">
+                                <template slot-scope="scope">
+                                    <el-tag :type="faultLevelTag[scope.row.faultLevel]">{{ faultLevelMap[scope.row.faultLevel] }}</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="status" label="处理状态" width="100" align="center">
+                                <template slot-scope="scope">
+                                    <el-tag :type="workOrderStatusTag[scope.row.status]">{{ workOrderStatusMap[scope.row.status] }}</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="reporter" label="上报人" width="100" align="center"></el-table-column>
+                            <el-table-column prop="reportTime" label="上报时间" width="180" align="center"></el-table-column>
+                            <el-table-column label="操作" width="120" align="center">
+                                <template slot-scope="scope">
+                                    <el-button size="mini" type="primary" @click="viewWorkOrder(scope.row)">详情</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <el-pagination
+                            @size-change="handleWorkOrderSizeChange"
+                            @current-change="handleWorkOrderCurrentChange"
+                            :current-page="workOrderPagination.currentPage"
+                            :page-sizes="[10, 20, 50, 100]"
+                            :page-size="workOrderPagination.pageSize"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="workOrderPagination.total"
+                            style="margin-top: 20px; justify-content: flex-end;"
+                        >
+                        </el-pagination>
+                    </div>
+                </div>
+            </el-tab-pane>
+        </el-tabs>
+
+        <el-dialog title="设备详情" :visible.sync="deviceDetailDialogVisible" width="650px">
+            <el-descriptions :column="2" border v-if="currentDevice">
+                <el-descriptions-item label="设备编号">{{ currentDevice.deviceId }}</el-descriptions-item>
+                <el-descriptions-item label="所属门店">{{ currentDevice.storeName }}</el-descriptions-item>
+                <el-descriptions-item label="所在楼层">{{ currentDevice.floor }}</el-descriptions-item>
+                <el-descriptions-item label="安装位置">{{ currentDevice.location }}</el-descriptions-item>
+                <el-descriptions-item label="设备状态">
+                    <span :class="'status-' + currentDevice.status">{{ statusMap[currentDevice.status] }}</span>
+                </el-descriptions-item>
+                <el-descriptions-item label="安装日期">{{ currentDevice.installDate }}</el-descriptions-item>
+                <el-descriptions-item label="最后在线时间" :span="2">{{ currentDevice.lastOnline }}</el-descriptions-item>
+                <el-descriptions-item label="硬件模块状态" :span="2">
+                    <el-tag size="small" :type="currentDevice.hardwareStatus.scanner ? 'success' : 'danger'" style="margin-right: 8px;">扫码模块</el-tag>
+                    <el-tag size="small" :type="currentDevice.hardwareStatus.printer ? 'success' : 'danger'" style="margin-right: 8px;">打印模块</el-tag>
+                    <el-tag size="small" :type="currentDevice.hardwareStatus.cashier ? 'success' : 'danger'" style="margin-right: 8px;">收钞模块</el-tag>
+                    <el-tag size="small" :type="currentDevice.hardwareStatus.network ? 'success' : 'danger'">网络模块</el-tag>
+                </el-descriptions-item>
+            </el-descriptions>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="deviceDetailDialogVisible = false">关闭</el-button>
+            </span>
+        </el-dialog>
+
+        <el-dialog title="故障上报" :visible.sync="reportDialogVisible" width="600px">
+            <el-form :model="quickReportForm" :rules="reportRules" ref="quickReportForm" label-width="100px">
+                <el-form-item label="工单编号">
+                    <el-input v-model="quickReportForm.workOrderId" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="设备编号" prop="deviceId">
+                    <el-input v-model="quickReportForm.deviceId" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="故障分类" prop="faultType">
+                    <el-select v-model="quickReportForm.faultType" placeholder="请选择故障分类" style="width: 100%;">
+                        <el-option label="无法扫码" value="scan_error"></el-option>
+                        <el-option label="不出票" value="print_error"></el-option>
+                        <el-option label="不收纸币" value="cash_error"></el-option>
+                        <el-option label="网络断开" value="network_error"></el-option>
+                        <el-option label="硬件故障" value="hardware"></el-option>
+                        <el-option label="软件故障" value="software"></el-option>
+                        <el-option label="支付故障" value="payment"></el-option>
+                        <el-option label="其他故障" value="other"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="故障等级" prop="faultLevel">
+                    <el-radio-group v-model="quickReportForm.faultLevel">
+                        <el-radio label="low">低</el-radio>
+                        <el-radio label="medium">中</el-radio>
+                        <el-radio label="high">高</el-radio>
+                        <el-radio label="urgent">紧急</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="故障描述" prop="faultDescription">
+                    <el-input type="textarea" v-model="quickReportForm.faultDescription" :rows="3"></el-input>
+                </el-form-item>
+                <el-form-item label="上报人" prop="reporter">
+                    <el-input v-model="quickReportForm.reporter"></el-input>
+                </el-form-item>
+                <el-form-item label="联系电话" prop="contactPhone">
+                    <el-input v-model="quickReportForm.contactPhone"></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="reportDialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitQuickReport">确认提交</el-button>
+            </span>
+        </el-dialog>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    activeTab: 'list',
+                    statusMap: {
+                        normal: '正常',
+                        fault: '故障',
+                        offline: '离线'
+                    },
+                    storeList: ['朝阳门店', '海淀店', '西城店', '东城店', '丰台店', '石景山店', '通州店', '昌平店'],
+                    faultTypeMap: {
+                        scan_error: '无法扫码',
+                        print_error: '不出票',
+                        cash_error: '不收纸币',
+                        network_error: '网络断开',
+                        hardware: '硬件故障',
+                        software: '软件故障',
+                        payment: '支付故障',
+                        other: '其他故障'
+                    },
+                    faultLevelMap: {
+                        low: '低',
+                        medium: '中',
+                        high: '高',
+                        urgent: '紧急'
+                    },
+                    faultLevelTag: {
+                        low: 'success',
+                        medium: 'warning',
+                        high: 'danger',
+                        urgent: 'danger'
+                    },
+                    workOrderStatusMap: {
+                        pending: '待处理',
+                        processing: '处理中',
+                        completed: '已完成'
+                    },
+                    workOrderStatusTag: {
+                        pending: 'warning',
+                        processing: 'primary',
+                        completed: 'success'
+                    },
+                    searchForm: {
+                        deviceId: '',
+                        status: '',
+                        storeName: ''
+                    },
+                    pagination: {
+                        currentPage: 1,
+                        pageSize: 10,
+                        total: 0
+                    },
+                    devices: [],
+                    reportForm: {
+                        workOrderId: '',
+                        deviceId: '',
+                        faultType: '',
+                        faultLevel: 'medium',
+                        faultDescription: '',
+                        reporter: '',
+                        contactPhone: ''
+                    },
+                    reportRules: {
+                        deviceId: [
+                            { required: true, message: '请选择设备', trigger: 'change' }
+                        ],
+                        faultType: [
+                            { required: true, message: '请选择故障类型', trigger: 'change' }
+                        ],
+                        faultLevel: [
+                            { required: true, message: '请选择故障等级', trigger: 'change' }
+                        ],
+                        faultDescription: [
+                            { required: true, message: '请输入故障描述', trigger: 'blur' }
+                        ],
+                        reporter: [
+                            { required: true, message: '请输入上报人', trigger: 'blur' }
+                        ],
+                        contactPhone: [
+                            { required: true, message: '请输入联系电话', trigger: 'blur' },
+                            { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+                        ]
+                    },
+                    workOrderSearchForm: {
+                        workOrderId: '',
+                        status: '',
+                        faultType: ''
+                    },
+                    workOrderPagination: {
+                        currentPage: 1,
+                        pageSize: 10,
+                        total: 0
+                    },
+                    workOrders: [],
+                    deviceDetailDialogVisible: false,
+                    reportDialogVisible: false,
+                    currentDevice: null,
+                    quickReportForm: {
+                        workOrderId: '',
+                        deviceId: '',
+                        faultType: '',
+                        faultLevel: 'medium',
+                        faultDescription: '',
+                        reporter: '',
+                        contactPhone: ''
+                    },
+                    workOrderCounter: 1
+                }
+            },
+            computed: {
+                totalDevices() {
+                    return this.devices.length;
+                },
+                normalCount() {
+                    return this.devices.filter(d => d.status === 'normal').length;
+                },
+                faultCount() {
+                    return this.devices.filter(d => d.status === 'fault').length;
+                },
+                offlineCount() {
+                    return this.devices.filter(d => d.status === 'offline').length;
+                },
+                filteredDeviceList() {
+                    const filters = this.searchForm;
+                    let result = this.devices;
+                    
+                    if (filters.deviceId) {
+                        result = result.filter(d => d.deviceId.includes(filters.deviceId));
+                    }
+                    if (filters.status) {
+                        result = result.filter(d => d.status === filters.status);
+                    }
+                    if (filters.storeName) {
+                        result = result.filter(d => d.storeName === filters.storeName);
+                    }
+                    
+                    this.pagination.total = result.length;
+                    return result;
+                },
+                filteredDevices() {
+                    const start = (this.pagination.currentPage - 1) * this.pagination.pageSize;
+                    const end = start + this.pagination.pageSize;
+                    return this.filteredDeviceList.slice(start, end);
+                },
+                filteredWorkOrderList() {
+                    const filters = this.workOrderSearchForm;
+                    let result = this.workOrders;
+                    
+                    if (filters.workOrderId) {
+                        result = result.filter(w => w.workOrderId.includes(filters.workOrderId));
+                    }
+                    if (filters.status) {
+                        result = result.filter(w => w.status === filters.status);
+                    }
+                    if (filters.faultType) {
+                        result = result.filter(w => w.faultType === filters.faultType);
+                    }
+                    
+                    this.workOrderPagination.total = result.length;
+                    return result;
+                },
+                filteredWorkOrders() {
+                    const start = (this.workOrderPagination.currentPage - 1) * this.workOrderPagination.pageSize;
+                    const end = start + this.workOrderPagination.pageSize;
+                    return this.filteredWorkOrderList.slice(start, end);
+                }
+            },
+            mounted() {
+                this.initMockData();
+                this.generateWorkOrderId();
+            },
+            methods: {
+                initMockData() {
+                    const stores = ['朝阳门店', '海淀店', '西城店', '东城店', '丰台店', '石景山店', '通州店', '昌平店'];
+                    const floors = ['1层', '1层', '2层', '1层', '2层', 'B1层', '1层', '2层'];
+                    const locations = ['入口左侧', '入口右侧', '出口左侧', '出口右侧', '服务台旁', '生鲜区旁', '食品区旁', '日用品区旁'];
+                    const statuses = ['normal', 'normal', 'normal', 'fault', 'offline', 'normal', 'normal', 'fault'];
+                    
+                    for (let i = 1; i <= 20; i++) {
+                        this.devices.push({
+                            deviceId: 'DEV' + String(i).padStart(4, '0'),
+                            storeName: stores[i % stores.length],
+                            floor: floors[i % floors.length],
+                            location: locations[i % locations.length],
+                            status: statuses[i % statuses.length],
+                            hardwareStatus: {
+                                scanner: i % 5 !== 0,
+                                printer: i % 4 !== 0,
+                                cashier: i % 6 !== 0,
+                                network: i % 3 !== 0
+                            },
+                            lastOnline: this.getRandomDateTime(),
+                            installDate: '2024-0' + ((i % 9) + 1) + '-' + String((i % 28) + 1).padStart(2, '0')
+                        });
+                    }
+                    
+                    this.pagination.total = this.devices.length;
+                    
+                    for (let i = 1; i <= 5; i++) {
+                        this.workOrders.push({
+                            workOrderId: 'WO' + new Date().getFullYear() + String(i).padStart(6, '0'),
+                            deviceId: 'DEV' + String(i).padStart(4, '0'),
+                            faultType: ['scan_error', 'print_error', 'cash_error', 'network_error', 'hardware'][i % 5],
+                            faultLevel: ['low', 'medium', 'high', 'urgent', 'medium'][i % 5],
+                            faultDescription: '设备出现故障，需要维修处理',
+                            reporter: '员工' + i,
+                            contactPhone: '138' + String(10000000 + i).slice(0, 8),
+                            status: ['pending', 'processing', 'completed', 'pending', 'processing'][i % 5],
+                            reportTime: this.getRandomDateTime()
+                        });
+                        this.workOrderCounter = i + 1;
+                    }
+                    this.workOrderPagination.total = this.workOrders.length;
+                },
+                getRandomDateTime() {
+                    const now = new Date();
+                    const days = Math.floor(Math.random() * 30);
+                    const hours = Math.floor(Math.random() * 24);
+                    now.setDate(now.getDate() - days);
+                    now.setHours(now.getHours() - hours);
+                    return now.toLocaleString('zh-CN');
+                },
+                generateWorkOrderId() {
+                    const date = new Date();
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const sequence = String(this.workOrderCounter).padStart(4, '0');
+                    this.reportForm.workOrderId = `WO${year}${month}${day}${sequence}`;
+                },
+                handleSearch() {
+                    this.pagination.currentPage = 1;
+                    this.$message.success('查询完成');
+                },
+                handleReset() {
+                    this.searchForm = {
+                        deviceId: '',
+                        status: '',
+                        storeName: ''
+                    };
+                    this.pagination.currentPage = 1;
+                },
+                handleSizeChange(val) {
+                    this.pagination.pageSize = val;
+                },
+                handleCurrentChange(val) {
+                    this.pagination.currentPage = val;
+                },
+                handleWorkOrderSizeChange(val) {
+                    this.workOrderPagination.pageSize = val;
+                },
+                handleWorkOrderCurrentChange(val) {
+                    this.workOrderPagination.currentPage = val;
+                },
+                getRowClassName({ row }) {
+                    if (row.status === 'fault') {
+                        return 'row-fault';
+                    } else if (row.status === 'offline') {
+                        return 'row-offline';
+                    }
+                    return '';
+                },
+                viewDevice(row) {
+                    this.currentDevice = row;
+                    this.deviceDetailDialogVisible = true;
+                },
+                reportFault(row) {
+                    this.currentDevice = row;
+                    this.quickReportForm = {
+                        workOrderId: this.generateNewWorkOrderId(),
+                        deviceId: row.deviceId,
+                        faultType: '',
+                        faultLevel: 'medium',
+                        faultDescription: '',
+                        reporter: '',
+                        contactPhone: ''
+                    };
+                    this.reportDialogVisible = true;
+                },
+                generateNewWorkOrderId() {
+                    const date = new Date();
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const sequence = String(this.workOrderCounter++).padStart(4, '0');
+                    return `WO${year}${month}${day}${sequence}`;
+                },
+                showReportDialog() {
+                    this.activeTab = 'report';
+                },
+                submitReport() {
+                    this.$refs.reportForm.validate((valid) => {
+                        if (valid) {
+                            this.workOrders.unshift({
+                                ...this.reportForm,
+                                status: 'pending',
+                                reportTime: new Date().toLocaleString('zh-CN')
+                            });
+                            
+                            const device = this.devices.find(d => d.deviceId === this.reportForm.deviceId);
+                            if (device) {
+                                device.status = 'fault';
+                            }
+                            
+                            this.$message.success('故障上报成功！工单编号：' + this.reportForm.workOrderId);
+                            this.resetReportForm();
+                            this.workOrderCounter++;
+                            this.generateWorkOrderId();
+                        }
+                    });
+                },
+                resetReportForm() {
+                    this.$refs.reportForm.resetFields();
+                    this.generateWorkOrderId();
+                },
+                submitQuickReport() {
+                    this.$refs.quickReportForm.validate((valid) => {
+                        if (valid) {
+                            this.workOrders.unshift({
+                                ...this.quickReportForm,
+                                status: 'pending',
+                                reportTime: new Date().toLocaleString('zh-CN')
+                            });
+                            
+                            const device = this.devices.find(d => d.deviceId === this.quickReportForm.deviceId);
+                            if (device) {
+                                device.status = 'fault';
+                            }
+                            
+                            this.$message.success('故障上报成功！工单编号：' + this.quickReportForm.workOrderId);
+                            this.reportDialogVisible = false;
+                            this.generateWorkOrderId();
+                        }
+                    });
+                },
+                searchWorkOrders() {
+                    this.workOrderPagination.currentPage = 1;
+                    this.$message.success('查询完成');
+                },
+                resetWorkOrderSearch() {
+                    this.workOrderSearchForm = {
+                        workOrderId: '',
+                        status: '',
+                        faultType: ''
+                    };
+                    this.workOrderPagination.currentPage = 1;
+                },
+                viewWorkOrder(row) {
+                    this.$alert(`
+工单编号: ${row.workOrderId}
+设备编号: ${row.deviceId}
+故障类型: ${this.faultTypeMap[row.faultType]}
+故障等级: ${this.faultLevelMap[row.faultLevel]}
+故障描述: ${row.faultDescription}
+上报人: ${row.reporter}
+联系电话: ${row.contactPhone}
+上报时间: ${row.reportTime}
+处理状态: ${this.workOrderStatusMap[row.status]}
+                    `, '工单详情');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

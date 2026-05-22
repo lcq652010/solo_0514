@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黑檀木书签定制系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #f5f5f5;
+        }
+        #app {
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c1810 0%, #4a2c1f 100%);
+            color: #fff;
+            padding: 20px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        .header p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .nav-tabs {
+            background: #fff;
+            padding: 0 40px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .main-container {
+            padding: 30px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #2c1810;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #d4a76a;
+        }
+        .form-section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #4a2c1f;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: #d4a76a;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+        .texture-item {
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+        .texture-item:hover {
+            border-color: #d4a76a;
+        }
+        .texture-item.active {
+            border-color: #d4a76a;
+            background: #faf5ed;
+        }
+        .texture-preview {
+            width: 100%;
+            height: 80px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .pattern-item {
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+            font-size: 32px;
+        }
+        .pattern-item:hover {
+            border-color: #d4a76a;
+        }
+        .pattern-item.active {
+            border-color: #d4a76a;
+            background: #faf5ed;
+        }
+        .order-card {
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #fafafa;
+            transition: all 0.3s;
+        }
+        .order-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #e8e8e8;
+        }
+        .order-no {
+            font-weight: 600;
+            color: #2c1810;
+            font-size: 16px;
+        }
+        .order-time {
+            color: #999;
+            font-size: 13px;
+        }
+        .process-step {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            background: #f5f5f5;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .process-step:hover {
+            background: #ebebeb;
+        }
+        .process-step.completed {
+            background: #e8f5e9;
+            color: #43a047;
+        }
+        .process-step.current {
+            background: #fff3e0;
+            color: #f57c00;
+            font-weight: 500;
+        }
+        .step-number {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ccc;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .process-step.completed .step-number {
+            background: #43a047;
+        }
+        .process-step.current .step-number {
+            background: #f57c00;
+        }
+        .process-step.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #d4a76a 0%, #c4956a 100%);
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            padding: 12px 40px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 167, 106, 0.4);
+        }
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: 600;
+            color: #d4a76a;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .el-tag--success {
+            background-color: #e8f5e9;
+            border-color: #c8e6c9;
+            color: #43a047;
+        }
+        .el-tag--warning {
+            background-color: #fff3e0;
+            border-color: #ffe0b2;
+            color: #f57c00;
+        }
+        .el-tag--info {
+            background-color: #e3f2fd;
+            border-color: #bbdefb;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>🪵 黑檀木书签定制工坊</h1>
+            <p>传承匠心工艺，定制专属书香</p>
+        </div>
+        
+        <div class="nav-tabs">
+            <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+                <el-tab-pane label="客户下单" name="order"></el-tab-pane>
+                <el-tab-pane label="管理员后台" name="admin"></el-tab-pane>
+            </el-tabs>
+        </div>
+        
+        <div class="main-container">
+            <div v-show="activeTab === 'order'">
+                <div class="card">
+                    <h2 class="card-title">定制您的专属书签</h2>
+                    
+                    <el-form :model="orderForm" :rules="formRules" ref="orderForm" label-width="100px">
+                        <div class="form-section">
+                            <h3 class="section-title">木料纹理选择</h3>
+                            <el-form-item prop="textureId">
+                                <el-row :gutter="20">
+                                    <el-col :span="6" v-for="texture in textures" :key="texture.id">
+                                        <div class="texture-item" 
+                                             :class="{ active: orderForm.textureId === texture.id }"
+                                             @click="selectTexture(texture.id)">
+                                            <div class="texture-preview" :style="{ background: texture.preview }"></div>
+                                            <div>{{ texture.name }}</div>
+                                        </div>
+                                    </el-col>
+                                </el-row>
+                            </el-form-item>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3 class="section-title">尺寸规格</h3>
+                            <el-row :gutter="20">
+                                <el-col :span="12">
+                                    <el-form-item label="书签长度" prop="length">
+                                        <el-input-number v-model="orderForm.length" :min="100" :max="200" :step="5" size="large" style="width: 100%"></el-input-number>
+                                        <span style="margin-left: 10px; color: #999;">mm</span>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="12">
+                                    <el-form-item label="书签宽度" prop="width">
+                                        <el-input-number v-model="orderForm.width" :min="20" :max="50" :step="2" size="large" style="width: 100%"></el-input-number>
+                                        <span style="margin-left: 10px; color: #999;">mm</span>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3 class="section-title">雕刻图案选择</h3>
+                            <el-form-item prop="patternId">
+                                <el-row :gutter="20">
+                                    <el-col :span="6" v-for="pattern in patterns" :key="pattern.id">
+                                        <div class="pattern-item" 
+                                             :class="{ active: orderForm.patternId === pattern.id }"
+                                             @click="selectPattern(pattern.id)">
+                                            <div>{{ pattern.icon }}</div>
+                                            <div style="font-size: 14px; margin-top: 8px;">{{ pattern.name }}</div>
+                                        </div>
+                                    </el-col>
+                                </el-row>
+                            </el-form-item>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3 class="section-title">工艺选项</h3>
+                            <el-form-item label="是否镂空">
+                                <el-switch v-model="orderForm.isHollow" 
+                                           active-text="是" 
+                                           inactive-text="否"
+                                           active-color="#d4a76a"></el-switch>
+                                <span style="margin-left: 15px; color: #999; font-size: 13px;">镂空工艺会增加制作时间，但更具艺术感</span>
+                            </el-form-item>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3 class="section-title">客户信息</h3>
+                            <el-row :gutter="20">
+                                <el-col :span="12">
+                                    <el-form-item label="客户姓名" prop="customerName">
+                                        <el-input v-model="orderForm.customerName" placeholder="请输入您的姓名" size="large"></el-input>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="12">
+                                    <el-form-item label="联系电话" prop="phone">
+                                        <el-input v-model="orderForm.phone" placeholder="请输入联系电话" size="large"></el-input>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-form-item label="备注信息">
+                                <el-input type="textarea" v-model="orderForm.remark" :rows="3" placeholder="如有特殊要求请在此说明" size="large"></el-input>
+                            </el-form-item>
+                        </div>
+                        
+                        <el-form-item>
+                            <button class="submit-btn" @click="submitOrder">提交定制订单</button>
+                        </el-form-item>
+                    </el-form>
+                </div>
+            </div>
+            
+            <div v-show="activeTab === 'admin'">
+                <div class="card" style="margin-bottom: 20px; padding: 15px 30px;">
+                    <el-input v-model="operator" placeholder="请输入操作人姓名" size="small" style="width: 200px;">
+                        <template slot="prepend">操作人</template>
+                    </el-input>
+                </div>
+                <el-row :gutter="20" style="margin-bottom: 25px;">
+                    <el-col :span="6">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ orders.length }}</div>
+                            <div class="stat-label">总订单数</div>
+                        </div>
+                    </el-col>
+                    <el-col :span="6">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ pendingOrders }}</div>
+                            <div class="stat-label">待处理</div>
+                        </div>
+                    </el-col>
+                    <el-col :span="6">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ processingOrders }}</div>
+                            <div class="stat-label">生产中</div>
+                        </div>
+                    </el-col>
+                    <el-col :span="6">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ completedOrders }}</div>
+                            <div class="stat-label">已完工</div>
+                        </div>
+                    </el-col>
+                </el-row>
+                
+                <div class="card">
+                    <h2 class="card-title">订单管理列表</h2>
+                    
+                    <div v-if="orders.length === 0" style="text-align: center; padding: 60px; color: #999;">
+                        <el-empty description="暂无订单数据"></el-empty>
+                    </div>
+                    
+                    <div v-else>
+                        <div class="order-card" v-for="order in orders" :key="order.id">
+                            <div class="order-header">
+                                <div>
+                                    <span class="order-no">订单号：{{ order.orderNo }}</span>
+                                    <el-tag :type="getOrderStatusType(order.currentStep)" size="small" style="margin-left: 15px;">
+                                        {{ getOrderStatusText(order.currentStep) }}
+                                    </el-tag>
+                                </div>
+                                <span class="order-time">{{ order.createTime }}</span>
+                            </div>
+                            
+                            <el-row :gutter="20" style="margin-bottom: 20px;">
+                                <el-col :span="6">
+                                    <div><strong>客户：</strong>{{ order.customerName }}</div>
+                                </el-col>
+                                <el-col :span="6">
+                                    <div><strong>电话：</strong>{{ order.phone }}</div>
+                                </el-col>
+                                <el-col :span="6">
+                                    <div><strong>尺寸：</strong>{{ order.length }}×{{ order.width }}mm</div>
+                                </el-col>
+                                <el-col :span="6">
+                                    <div><strong>镂空：</strong>{{ order.isHollow ? '是' : '否' }}</div>
+                                </el-col>
+                            </el-row>
+                            
+                            <el-row :gutter="20" style="margin-bottom: 20px;">
+                                <el-col :span="6">
+                                    <div><strong>纹理：</strong>{{ getTextureName(order.textureId) }}</div>
+                                </el-col>
+                                <el-col :span="6">
+                                    <div><strong>图案：</strong>{{ getPatternName(order.patternId) }}</div>
+                                </el-col>
+                                <el-col :span="12">
+                                    <div><strong>备注：</strong>{{ order.remark || '无' }}</div>
+                                </el-col>
+                            </el-row>
+                            
+                            <div style="margin-bottom: 10px;">
+                                <strong style="color: #4a2c1f;">生产工序进度：</strong>
+                            </div>
+                            <el-row :gutter="10">
+                                <el-col :span="3" v-for="(step, index) in processSteps" :key="index">
+                                    <div class="process-step" 
+                                         :class="{ 
+                                             completed: index < order.currentStep, 
+                                             current: index === order.currentStep,
+                                             disabled: index > order.currentStep + 1 || index < order.currentStep
+                                         }"
+                                         @click="updateProcessStep(order.id, index)">
+                                        <div class="step-number">{{ index + 1 }}</div>
+                                        <div>{{ step }}</div>
+                                    </div>
+                                </el-col>
+                            </el-row>
+                            
+                            <div v-if="order.processHistory && order.processHistory.length > 0" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e8e8e8;">
+                                <strong style="color: #4a2c1f; margin-bottom: 10px; display: block;">工序操作记录：</strong>
+                                <el-tag v-for="(record, idx) in order.processHistory" :key="idx" size="small" style="margin-right: 8px; margin-bottom: 8px;">
+                                    {{ record.stepName }} - {{ record.operator }} ({{ record.time }})
+                                </el-tag>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                activeTab: 'order',
+                orderForm: {
+                    textureId: null,
+                    length: 150,
+                    width: 30,
+                    patternId: null,
+                    isHollow: false,
+                    customerName: '',
+                    phone: '',
+                    remark: ''
+                },
+                formRules: {
+                    textureId: [
+                        { required: true, message: '请选择木料纹理', trigger: 'change' }
+                    ],
+                    length: [
+                        { required: true, message: '请输入书签长度', trigger: 'change' },
+                        { type: 'number', min: 100, max: 200, message: '长度需在 100-200mm 之间', trigger: 'change' }
+                    ],
+                    width: [
+                        { required: true, message: '请输入书签宽度', trigger: 'change' },
+                        { type: 'number', min: 20, max: 50, message: '宽度需在 20-50mm 之间', trigger: 'change' }
+                    ],
+                    patternId: [
+                        { required: true, message: '请选择雕刻图案', trigger: 'change' }
+                    ],
+                    customerName: [
+                        { required: true, message: '请输入客户姓名', trigger: 'blur' }
+                    ],
+                    phone: [
+                        { required: true, message: '请输入联系电话', trigger: 'blur' },
+                        { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+                    ]
+                },
+                operator: '管理员',
+                textures: [
+                    { id: 1, name: '直纹黑檀', preview: 'linear-gradient(90deg, #1a0f0a 0%, #2c1810 50%, #1a0f0a 100%)' },
+                    { id: 2, name: '山纹黑檀', preview: 'linear-gradient(135deg, #1a0f0a 25%, #3d2817 50%, #1a0f0a 75%)' },
+                    { id: 3, name: '影纹黑檀', preview: 'linear-gradient(45deg, #2c1810 20%, #4a3020 50%, #2c1810 80%)' },
+                    { id: 4, name: '虎皮纹黑檀', preview: 'repeating-linear-gradient(90deg, #1a0f0a, #3d2817 10px, #1a0f0a 20px)' }
+                ],
+                patterns: [
+                    { id: 1, name: '梅花', icon: '🌸' },
+                    { id: 2, name: '兰花', icon: '🌿' },
+                    { id: 3, name: '竹子', icon: '🎋' },
+                    { id: 4, name: '菊花', icon: '🌼' },
+                    { id: 5, name: '龙凤', icon: '🐉' },
+                    { id: 6, name: '山水', icon: '⛰️' },
+                    { id: 7, name: '诗词', icon: '📜' },
+                    { id: 8, name: '素面', icon: '✨' }
+                ],
+                processSteps: ['选料', '裁切', '打磨', '雕刻', '镂空', '抛光', '上蜡', '完工'],
+                orders: []
+            },
+            computed: {
+                pendingOrders() {
+                    return this.orders.filter(o => o.currentStep === 0).length;
+                },
+                processingOrders() {
+                    return this.orders.filter(o => o.currentStep > 0 && o.currentStep < 7).length;
+                },
+                completedOrders() {
+                    return this.orders.filter(o => o.currentStep === 7).length;
+                }
+            },
+            methods: {
+                handleTabClick(tab) {
+                    console.log('切换到:', tab.name);
+                },
+                selectTexture(id) {
+                    this.orderForm.textureId = id;
+                    this.$refs.orderForm.validateField('textureId');
+                },
+                selectPattern(id) {
+                    this.orderForm.patternId = id;
+                    this.$refs.orderForm.validateField('patternId');
+                },
+                submitOrder() {
+                    this.$refs.orderForm.validate((valid) => {
+                        if (valid) {
+                            this.$message({
+                                message: '正在提交订单...',
+                                type: 'info',
+                                duration: 1000
+                            });
+                            setTimeout(() => {
+                                const order = {
+                                    id: Date.now(),
+                                    orderNo: 'BK' + Date.now().toString().slice(-8),
+                                    ...this.orderForm,
+                                    currentStep: 0,
+                                    createTime: this.formatDate(new Date())
+                                };
+                                this.orders.unshift(order);
+                                this.$message({
+                                    message: '订单提交成功！我们将尽快为您制作',
+                                    type: 'success',
+                                    duration: 3000
+                                });
+                                this.resetForm();
+                            }, 1000);
+                        }
+                    });
+                },
+                resetForm() {
+                    this.orderForm = {
+                        textureId: null,
+                        length: 150,
+                        width: 30,
+                        patternId: null,
+                        isHollow: false,
+                        customerName: '',
+                        phone: '',
+                        remark: ''
+                    };
+                    this.$refs.orderForm.resetFields();
+                },
+                updateProcessStep(orderId, stepIndex) {
+                    const order = this.orders.find(o => o.id === orderId);
+                    if (order) {
+                        if (stepIndex > order.currentStep + 1) {
+                            this.$message({
+                                message: `请先完成「${this.processSteps[order.currentStep]}」工序，不可跳步！`,
+                                type: 'warning'
+                            });
+                            return;
+                        }
+                        if (stepIndex < order.currentStep) {
+                            this.$message({
+                                message: '工序已完成，不可回退',
+                                type: 'warning'
+                            });
+                            return;
+                        }
+                        order.currentStep = stepIndex;
+                        if (!order.processHistory) {
+                            order.processHistory = [];
+                        }
+                        order.processHistory.push({
+                            step: stepIndex,
+                            stepName: this.processSteps[stepIndex],
+                            operator: this.operator,
+                            time: this.formatDate(new Date())
+                        });
+                        this.$message({
+                            message: stepIndex === 7 ? '订单已完工！' : `工序已更新为：${this.processSteps[stepIndex]}`,
+                            type: 'success'
+                        });
+                    }
+                },
+                getTextureName(id) {
+                    const texture = this.textures.find(t => t.id === id);
+                    return texture ? texture.name : '未知';
+                },
+                getPatternName(id) {
+                    const pattern = this.patterns.find(p => p.id === id);
+                    return pattern ? pattern.name : '未知';
+                },
+                getOrderStatusType(step) {
+                    if (step === 0) return 'info';
+                    if (step === 7) return 'success';
+                    return 'warning';
+                },
+                getOrderStatusText(step) {
+                    if (step === 0) return '待处理';
+                    if (step === 7) return '已完工';
+                    return '生产中';
+                },
+                formatDate(date) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    return `${year}-${month}-${day} ${hours}:${minutes}`;
+                }
+            },
+            mounted() {
+                const savedOrders = localStorage.getItem('bookmarkOrders');
+                if (savedOrders) {
+                    this.orders = JSON.parse(savedOrders);
+                }
+            },
+            watch: {
+                orders: {
+                    handler(newVal) {
+                        localStorage.setItem('bookmarkOrders', JSON.stringify(newVal));
+                    },
+                    deep: true
+                }
+            }
+        });
+    </script>
+</body>
+</html>

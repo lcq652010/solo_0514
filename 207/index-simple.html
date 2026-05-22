@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教育缴费自助查询打印终端运维管理系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+      background-color: #f5f7fa;
+    }
+    .device-management {
+      min-height: 100vh;
+      background-color: #f5f7fa;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px 40px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    .title {
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0;
+    }
+    .content {
+      padding: 20px 40px;
+    }
+    .search-card, .table-card {
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .search-form {
+      margin: 0;
+    }
+    .status-filter {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #ebeef5;
+    }
+    .status-filter-label {
+      font-size: 14px;
+      color: #606266;
+      margin-right: 10px;
+    }
+    .filter-tag {
+      margin-right: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .filter-tag:hover {
+      transform: scale(1.05);
+    }
+    .filter-tag.active {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .table-header {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .status-summary {
+      display: flex;
+      gap: 20px;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #606266;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .pagination-container {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .device-info {
+      background-color: #f5f7fa;
+      padding: 15px;
+      border-radius: 4px;
+      width: 100%;
+    }
+    .device-info p {
+      margin: 8px 0;
+      font-size: 14px;
+      color: #606266;
+    }
+    .device-info span {
+      color: #909399;
+    }
+    .el-table .row-normal {
+      background-color: #f0f9ff;
+    }
+    .el-table .row-warning {
+      background-color: #fdf6ec;
+    }
+    .el-table .row-offline {
+      background-color: #f4f4f5;
+    }
+    .el-table .row-fault {
+      background-color: #fef0f0;
+    }
+    .el-table .row-normal:hover > td {
+      background-color: #e6f7ff !important;
+    }
+    .el-table .row-warning:hover > td {
+      background-color: #faecd8 !important;
+    }
+    .el-table .row-offline:hover > td {
+      background-color: #e9e9eb !important;
+    }
+    .el-table .row-fault:hover > td {
+      background-color: #fde2e2 !important;
+    }
+    .status-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 5px;
+    }
+    .blink {
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.4;
+      }
+    }
+    .pulse {
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+    }
+    .fault-badge {
+      position: relative;
+    }
+    .fault-badge::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 8px;
+      height: 8px;
+      background-color: #f56c6c;
+      border-radius: 50%;
+      animation: blink 1s ease-in-out infinite;
+    }
+    .el-table .cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .search-tips {
+      font-size: 12px;
+      color: #909399;
+      margin-top: 5px;
+    }
+    .module-status {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-start;
+    }
+    .module-item {
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      gap: 4px;
+    }
+    .module-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .module-name {
+      color: #606266;
+      min-width: 60px;
+    }
+    .module-status-text {
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="device-management">
+      <div class="header">
+        <h1 class="title">教育缴费自助查询打印终端运维管理系统</h1>
+      </div>
+
+      <div class="content">
+        <el-card class="search-card">
+          <el-form :inline="true" :model="searchForm" class="search-form">
+            <el-form-item label="设备编号">
+              <el-input 
+                v-model="searchForm.deviceCode" 
+                placeholder="支持模糊搜索，如：001、EDU" 
+                clearable
+                @input="handleSearch"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="网点名称">
+              <el-input 
+                v-model="searchForm.schoolName" 
+                placeholder="支持模糊搜索，如：北京、中学" 
+                clearable
+                @input="handleSearch"
+              ></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+              <el-button icon="el-icon-refresh" @click="handleReset">重置</el-button>
+            </el-form-item>
+          </el-form>
+          
+          <div class="status-filter">
+            <span class="status-filter-label">状态筛选：</span>
+            <el-tag 
+              v-for="filter in statusFilters" 
+              :key="filter.value"
+              :type="currentStatusFilter === filter.value ? filter.type : 'info'"
+              :effect="currentStatusFilter === filter.value ? 'dark' : 'plain'"
+              class="filter-tag"
+              :class="{ active: currentStatusFilter === filter.value }"
+              @click="setStatusFilter(filter.value)"
+            >
+              {{ filter.label }}
+              <span style="margin-left: 5px;">({{ getStatusCount(filter.value) }})</span>
+            </el-tag>
+          </div>
+          
+          <div class="search-tips" v-if="searchForm.deviceCode || searchForm.schoolName || currentStatusFilter !== 'all'">
+            筛选结果：共 {{ filteredDevices.length }} 条数据
+          </div>
+        </el-card>
+
+        <el-card class="table-card">
+          <div class="table-header">
+            <div class="status-summary">
+              <div class="status-item">
+                <span class="status-dot" style="background-color: #67c23a;"></span>
+                运行正常：{{ statusCount.normal }}
+              </div>
+              <div class="status-item">
+                <span class="status-dot" style="background-color: #e6a23c;"></span>
+                预警：{{ statusCount.warning }}
+              </div>
+              <div class="status-item">
+                <span class="status-dot" style="background-color: #909399;"></span>
+                离线：{{ statusCount.offline }}
+              </div>
+              <div class="status-item">
+                <span class="status-dot" style="background-color: #f56c6c;"></span>
+                故障：{{ statusCount.fault }}
+              </div>
+            </div>
+            <el-button type="danger" icon="el-icon-warning" @click="openReportDialog">
+              故障上报
+            </el-button>
+          </div>
+
+          <el-table
+            :data="tableData"
+            border
+            style="width: 100%"
+            :row-class-name="tableRowClassName"
+            v-loading="loading"
+            stripe
+          >
+            <el-table-column prop="deviceCode" label="设备编号" width="160" align="center">
+              <template slot-scope="scope">
+                <span class="fault-badge" v-if="scope.row.status === 'fault'">
+                  <i class="el-icon-cpu" style="margin-right: 5px; color: #409eff;"></i>
+                  {{ scope.row.deviceCode }}
+                </span>
+                <span v-else>
+                  <i class="el-icon-cpu" style="margin-right: 5px; color: #409eff;"></i>
+                  {{ scope.row.deviceCode }}
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="schoolName" label="学校网点" align="center" min-width="150"></el-table-column>
+            <el-table-column prop="location" label="安装位置" align="center" width="140"></el-table-column>
+            <el-table-column prop="status" label="设备运行状态" width="160" align="center">
+              <template slot-scope="scope">
+                <span v-if="scope.row.status === 'fault'" class="status-icon pulse">
+                  <i class="el-icon-circle-close" style="color: #f56c6c; font-size: 16px;"></i>
+                </span>
+                <span v-else-if="scope.row.status === 'warning'" class="status-icon blink">
+                  <i class="el-icon-warning" style="color: #e6a23c; font-size: 16px;"></i>
+                </span>
+                <span v-else-if="scope.row.status === 'offline'" class="status-icon">
+                  <i class="el-icon-remove-outline" style="color: #909399; font-size: 16px;"></i>
+                </span>
+                <span v-else class="status-icon">
+                  <i class="el-icon-circle-check" style="color: #67c23a; font-size: 16px;"></i>
+                </span>
+                <el-tag :type="getStatusType(scope.row.status)" effect="dark" :class="{ 'blink': scope.row.status === 'fault' }">
+                  {{ getStatusText(scope.row.status) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="模块运行状态" width="220" align="center">
+              <template slot-scope="scope">
+                <div class="module-status">
+                  <div class="module-item">
+                    <span class="module-dot" :style="{ backgroundColor: getModuleStatusColor(scope.row.modules.payment) }"></span>
+                    <span class="module-name">缴费查询</span>
+                    <span class="module-status-text" :style="{ color: getModuleStatusColor(scope.row.modules.payment) }">
+                      {{ getModuleStatusText(scope.row.modules.payment) }}
+                    </span>
+                  </div>
+                  <div class="module-item">
+                    <span class="module-dot" :style="{ backgroundColor: getModuleStatusColor(scope.row.modules.print) }"></span>
+                    <span class="module-name">凭证打印</span>
+                    <span class="module-status-text" :style="{ color: getModuleStatusColor(scope.row.modules.print) }">
+                      {{ getModuleStatusText(scope.row.modules.print) }}
+                    </span>
+                  </div>
+                  <div class="module-item">
+                    <span class="module-dot" :style="{ backgroundColor: getModuleStatusColor(scope.row.modules.network) }"></span>
+                    <span class="module-name">网络通信</span>
+                    <span class="module-status-text" :style="{ color: getModuleStatusColor(scope.row.modules.network) }">
+                      {{ getModuleStatusText(scope.row.modules.network) }}
+                    </span>
+                  </div>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="lastOnlineTime" label="最后在线时间" width="170" align="center"></el-table-column>
+            <el-table-column label="操作" width="140" align="center" fixed="right">
+              <template slot-scope="scope">
+                <el-button 
+                  :type="scope.row.status === 'fault' ? 'danger' : 'primary'" 
+                  size="small" 
+                  icon="el-icon-edit"
+                  @click="handleReport(scope.row)"
+                >
+                  故障上报
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div class="pagination-container">
+            <el-pagination
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page.sync="pagination.currentPage"
+              :page-sizes="[10, 20, 50, 100]"
+              :page-size.sync="pagination.pageSize"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="pagination.total"
+              background>
+            </el-pagination>
+          </div>
+        </el-card>
+      </div>
+
+      <el-dialog
+        title="故障上报"
+        :visible.sync="reportDialogVisible"
+        width="650px"
+        :close-on-click-modal="false"
+      >
+        <el-form :model="reportForm" :rules="reportRules" ref="reportForm" label-width="100px">
+          <el-form-item label="工单编号" prop="orderNo">
+            <el-input v-model="reportForm.orderNo" readonly>
+              <i slot="prefix" class="el-icon-document" style="color: #409eff;"></i>
+            </el-input>
+          </el-form-item>
+          <el-form-item label="选择设备" prop="deviceId">
+            <el-select 
+              v-model="reportForm.deviceId" 
+              placeholder="请选择故障设备（支持搜索）" 
+              filterable
+              style="width: 100%;"
+              @change="handleDeviceChange"
+              clearable
+            >
+              <el-option
+                v-for="device in deviceOptions"
+                :key="device.id"
+                :label="`${device.deviceCode} - ${device.schoolName}`"
+                :value="device.id"
+              >
+                <span style="float: left">{{ device.deviceCode }}</span>
+                <span style="float: right; color: #8492a6; font-size: 13px">{{ device.schoolName }}</span>
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="设备信息" v-if="selectedDevice">
+            <div class="device-info">
+              <p><span>设备编号：</span>{{ selectedDevice.deviceCode }}</p>
+              <p><span>学校网点：</span>{{ selectedDevice.schoolName }}</p>
+              <p><span>安装位置：</span>{{ selectedDevice.location }}</p>
+              <p><span>当前状态：</span>
+                <el-tag :type="getStatusType(selectedDevice.status)" effect="dark" size="mini">
+                  {{ getStatusText(selectedDevice.status) }}
+                </el-tag>
+              </p>
+            </div>
+          </el-form-item>
+          <el-form-item label="故障类型" prop="faultType">
+            <el-select v-model="reportForm.faultType" placeholder="请选择故障类型" style="width: 100%;">
+              <el-option label="设备离线" value="offline"></el-option>
+              <el-option label="打印故障" value="printer"></el-option>
+              <el-option label="触摸屏故障" value="touch"></el-option>
+              <el-option label="网络故障" value="network"></el-option>
+              <el-option label="系统异常" value="system"></el-option>
+              <el-option label="其他故障" value="other"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="紧急程度" prop="priority">
+            <el-radio-group v-model="reportForm.priority">
+              <el-radio label="low">低</el-radio>
+              <el-radio label="medium">中</el-radio>
+              <el-radio label="high">高</el-radio>
+              <el-radio label="urgent">紧急</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="异常说明" prop="description">
+            <el-input
+              v-model="reportForm.description"
+              type="textarea"
+              :rows="4"
+              placeholder="请详细描述设备故障情况（至少10个字符）"
+              maxlength="500"
+              show-word-limit
+            ></el-input>
+          </el-form-item>
+          <el-form-item label="上报人" prop="reporter">
+            <el-input v-model="reportForm.reporter" placeholder="请输入上报人姓名">
+              <i slot="prefix" class="el-icon-user"></i>
+            </el-input>
+          </el-form-item>
+          <el-form-item label="联系电话" prop="phone">
+            <el-input v-model="reportForm.phone" placeholder="请输入联系电话">
+              <i slot="prefix" class="el-icon-phone"></i>
+            </el-input>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="reportDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="submitReport" :loading="submitting">确 定 上 报</el-button>
+        </span>
+      </el-dialog>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data() {
+        return {
+          loading: false,
+          submitting: false,
+          searchForm: {
+            deviceCode: '',
+            schoolName: ''
+          },
+          currentStatusFilter: 'all',
+          statusFilters: [
+            { label: '全部', value: 'all', type: '' },
+            { label: '运行正常', value: 'normal', type: 'success' },
+            { label: '预警', value: 'warning', type: 'warning' },
+            { label: '离线', value: 'offline', type: 'info' },
+            { label: '故障', value: 'fault', type: 'danger' }
+          ],
+          allDevices: [],
+          filteredDevices: [],
+          tableData: [],
+          pagination: {
+            currentPage: 1,
+            pageSize: 10,
+            total: 0
+          },
+          reportDialogVisible: false,
+          reportForm: {
+            orderNo: '',
+            deviceId: null,
+            faultType: '',
+            priority: 'medium',
+            description: '',
+            reporter: '',
+            phone: ''
+          },
+          reportRules: {
+            deviceId: [
+              { required: true, message: '请选择故障设备', trigger: 'change' }
+            ],
+            faultType: [
+              { required: true, message: '请选择故障类型', trigger: 'change' }
+            ],
+            priority: [
+              { required: true, message: '请选择紧急程度', trigger: 'change' }
+            ],
+            description: [
+              { required: true, message: '请填写异常说明', trigger: 'blur' },
+              { min: 10, message: '异常说明至少10个字符', trigger: 'blur' }
+            ],
+            reporter: [
+              { required: true, message: '请输入上报人姓名', trigger: 'blur' }
+            ],
+            phone: [
+              { required: true, message: '请输入联系电话', trigger: 'blur' },
+              { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+            ]
+          },
+          deviceOptions: []
+        }
+      },
+      computed: {
+        selectedDevice() {
+          if (!this.reportForm.deviceId) return null
+          return this.allDevices.find(d => d.id === this.reportForm.deviceId)
+        },
+        statusCount() {
+          return {
+            normal: this.allDevices.filter(d => d.status === 'normal').length,
+            warning: this.allDevices.filter(d => d.status === 'warning').length,
+            offline: this.allDevices.filter(d => d.status === 'offline').length,
+            fault: this.allDevices.filter(d => d.status === 'fault').length
+          }
+        }
+      },
+      watch: {
+        'pagination.currentPage'(newVal) {
+          this.updateTableData()
+        },
+        'pagination.pageSize'(newVal) {
+          this.pagination.currentPage = 1
+          this.updateTableData()
+        },
+        'allDevices': {
+          handler() {
+            this.handleSearch()
+          },
+          deep: true
+        }
+      },
+      created() {
+        this.initMockData()
+      },
+      methods: {
+        initMockData() {
+          const schools = [
+            '北京市第一中学', '北京市第二中学', '北京市第三中学',
+            '北京市海淀区实验小学', '北京市朝阳区第一小学', '北京市西城区育才学校',
+            '上海市第一中学', '上海市浦东新区实验学校', '广州市天河中学',
+            '深圳市南山外国语学校', '杭州市第一中学', '南京市金陵中学',
+            '成都市第七中学', '武汉市第一中学', '西安市第一中学'
+          ]
+          const locations = [
+            '教学楼一层大厅', '行政楼服务大厅', '图书馆入口',
+            '食堂一层', '学生活动中心', '实验楼一层',
+            '综合楼服务窗口', '宿舍楼大厅', '体育馆入口'
+          ]
+          const statuses = ['normal', 'normal', 'normal', 'normal', 'warning', 'offline', 'fault']
+          const moduleStatuses = ['normal', 'warning', 'fault']
+
+          const devices = []
+          for (let i = 1; i <= 85; i++) {
+            const schoolIndex = Math.floor(Math.random() * schools.length)
+            const locationIndex = Math.floor(Math.random() * locations.length)
+            const statusIndex = Math.floor(Math.random() * statuses.length)
+            const status = statuses[statusIndex]
+            
+            let paymentStatus, printStatus, networkStatus
+            
+            if (status === 'normal') {
+              paymentStatus = 'normal'
+              printStatus = Math.random() > 0.1 ? 'normal' : 'warning'
+              networkStatus = 'normal'
+            } else if (status === 'warning') {
+              paymentStatus = Math.random() > 0.5 ? 'normal' : 'warning'
+              printStatus = 'warning'
+              networkStatus = Math.random() > 0.5 ? 'normal' : 'warning'
+            } else if (status === 'offline') {
+              paymentStatus = 'fault'
+              printStatus = 'fault'
+              networkStatus = 'fault'
+            } else {
+              const randomFault = Math.floor(Math.random() * 3)
+              if (randomFault === 0) {
+                paymentStatus = 'fault'
+                printStatus = 'normal'
+                networkStatus = 'normal'
+              } else if (randomFault === 1) {
+                paymentStatus = 'normal'
+                printStatus = 'fault'
+                networkStatus = 'normal'
+              } else {
+                paymentStatus = 'normal'
+                printStatus = 'normal'
+                networkStatus = 'fault'
+              }
+            }
+            
+            devices.push({
+              id: i,
+              deviceCode: `EDU-${String(i).padStart(6, '0')}`,
+              schoolName: schools[schoolIndex],
+              location: locations[locationIndex],
+              status: status,
+              modules: {
+                payment: paymentStatus,
+                print: printStatus,
+                network: networkStatus
+              },
+              lastOnlineTime: this.generateRandomTime()
+            })
+          }
+
+          this.allDevices = devices
+          this.deviceOptions = devices.map(d => ({
+            id: d.id,
+            deviceCode: d.deviceCode,
+            schoolName: d.schoolName
+          }))
+          this.handleSearch()
+        },
+        generateRandomTime() {
+          const now = new Date()
+          const randomDays = Math.floor(Math.random() * 7)
+          const randomHours = Math.floor(Math.random() * 24)
+          const randomMinutes = Math.floor(Math.random() * 60)
+          
+          now.setDate(now.getDate() - randomDays)
+          now.setHours(now.getHours() - randomHours)
+          now.setMinutes(now.getMinutes() - randomMinutes)
+          
+          const year = now.getFullYear()
+          const month = String(now.getMonth() + 1).padStart(2, '0')
+          const day = String(now.getDate()).padStart(2, '0')
+          const hours = String(now.getHours()).padStart(2, '0')
+          const minutes = String(now.getMinutes()).padStart(2, '0')
+          const seconds = String(now.getSeconds()).padStart(2, '0')
+          
+          return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+        },
+        getStatusType(status) {
+          const statusMap = {
+            normal: 'success',
+            warning: 'warning',
+            offline: 'info',
+            fault: 'danger'
+          }
+          return statusMap[status] || 'info'
+        },
+        getStatusText(status) {
+          const statusMap = {
+            normal: '运行正常',
+            warning: '预警',
+            offline: '离线',
+            fault: '故障'
+          }
+          return statusMap[status] || '未知'
+        },
+        getModuleStatusColor(status) {
+          const colorMap = {
+            normal: '#67c23a',
+            warning: '#e6a23c',
+            fault: '#f56c6c'
+          }
+          return colorMap[status] || '#909399'
+        },
+        getModuleStatusText(status) {
+          const textMap = {
+            normal: '正常',
+            warning: '异常',
+            fault: '故障'
+          }
+          return textMap[status] || '未知'
+        },
+        getStatusCount(status) {
+          if (status === 'all') return this.allDevices.length
+          return this.allDevices.filter(d => d.status === status).length
+        },
+        tableRowClassName({ row }) {
+          const rowClassMap = {
+            normal: 'row-normal',
+            warning: 'row-warning',
+            offline: 'row-offline',
+            fault: 'row-fault'
+          }
+          return rowClassMap[row.status] || ''
+        },
+        setStatusFilter(status) {
+          this.currentStatusFilter = status
+          this.handleSearch()
+        },
+        handleSearch() {
+          this.loading = true
+          
+          setTimeout(() => {
+            this.filteredDevices = this.allDevices.filter(device => {
+              const matchDeviceCode = !this.searchForm.deviceCode || 
+                device.deviceCode.toLowerCase().includes(this.searchForm.deviceCode.toLowerCase())
+              const matchSchoolName = !this.searchForm.schoolName || 
+                device.schoolName.includes(this.searchForm.schoolName)
+              const matchStatus = this.currentStatusFilter === 'all' || 
+                device.status === this.currentStatusFilter
+              return matchDeviceCode && matchSchoolName && matchStatus
+            })
+            
+            this.pagination.total = this.filteredDevices.length
+            this.pagination.currentPage = 1
+            this.updateTableData()
+            this.loading = false
+          }, 200)
+        },
+        handleReset() {
+          this.searchForm.deviceCode = ''
+          this.searchForm.schoolName = ''
+          this.currentStatusFilter = 'all'
+          this.handleSearch()
+        },
+        handleSizeChange(val) {
+          this.pagination.pageSize = val
+        },
+        handleCurrentChange(val) {
+          this.pagination.currentPage = val
+        },
+        updateTableData() {
+          const start = (this.pagination.currentPage - 1) * this.pagination.pageSize
+          const end = start + this.pagination.pageSize
+          this.tableData = this.filteredDevices.slice(start, end)
+        },
+        generateOrderNo() {
+          const now = new Date()
+          const year = now.getFullYear()
+          const month = String(now.getMonth() + 1).padStart(2, '0')
+          const day = String(now.getDate()).padStart(2, '0')
+          const hours = String(now.getHours()).padStart(2, '0')
+          const minutes = String(now.getMinutes()).padStart(2, '0')
+          const seconds = String(now.getSeconds()).padStart(2, '0')
+          const random = String(Math.floor(Math.random() * 10000)).padStart(4, '0')
+          
+          return `WO${year}${month}${day}${hours}${minutes}${seconds}${random}`
+        },
+        openReportDialog() {
+          this.reportForm = {
+            orderNo: this.generateOrderNo(),
+            deviceId: null,
+            faultType: '',
+            priority: 'medium',
+            description: '',
+            reporter: '',
+            phone: ''
+          }
+          this.reportDialogVisible = true
+          this.$nextTick(() => {
+            if (this.$refs.reportForm) {
+              this.$refs.reportForm.clearValidate()
+            }
+          })
+        },
+        handleReport(row) {
+          this.reportForm = {
+            orderNo: this.generateOrderNo(),
+            deviceId: row.id,
+            faultType: row.status === 'fault' ? 'system' : '',
+            priority: row.status === 'fault' ? 'high' : 'medium',
+            description: '',
+            reporter: '',
+            phone: ''
+          }
+          this.reportDialogVisible = true
+          this.$nextTick(() => {
+            if (this.$refs.reportForm) {
+              this.$refs.reportForm.clearValidate()
+            }
+          })
+        },
+        handleDeviceChange(deviceId) {
+          const device = this.allDevices.find(d => d.id === deviceId)
+          if (device) {
+            if (device.status === 'normal') {
+              this.$message.warning('该设备当前运行正常，是否确认上报故障？')
+            } else if (device.status === 'fault') {
+              this.$message.info('该设备已处于故障状态，请详细描述故障情况')
+            }
+          }
+        },
+        submitReport() {
+          if (!this.reportForm.deviceId) {
+            this.$message.error('请先选择故障设备！')
+            return
+          }
+          
+          this.$refs.reportForm.validate((valid) => {
+            if (valid) {
+              this.submitting = true
+
+              setTimeout(() => {
+                this.submitting = false
+                
+                const device = this.allDevices.find(d => d.id === this.reportForm.deviceId)
+                if (device) {
+                  device.status = 'fault'
+                  if (this.reportForm.faultType === 'printer') {
+                    device.modules.print = 'fault'
+                  } else if (this.reportForm.faultType === 'network') {
+                    device.modules.network = 'fault'
+                  } else if (this.reportForm.faultType === 'offline' || this.reportForm.faultType === 'system') {
+                    device.modules.payment = 'fault'
+                    device.modules.print = 'fault'
+                    device.modules.network = 'fault'
+                  }
+                }
+                
+                this.$message({
+                  type: 'success',
+                  message: `故障上报成功！\n工单编号：${this.reportForm.orderNo}\n我们将尽快处理`,
+                  duration: 3000,
+                  showClose: true
+                })
+                this.reportDialogVisible = false
+              }, 1500)
+            }
+          })
+        }
+      }
+    })
+  </script>
+</body>
+</html>

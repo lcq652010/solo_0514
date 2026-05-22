@@ -1,0 +1,14 @@
+{
+  "name": "horn-comb-custom",
+  "version": "1.0.0",
+  "description": "牛角梳定制系统",
+  "main": "index.html",
+  "scripts": {
+    "dev": "serve -s .",
+    "start": "serve -s ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}

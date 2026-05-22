@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>影城自助卖品兑换终端运维管理系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+        }
+        .app-container {
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .status-normal {
+            color: #67c23a;
+            font-weight: 600;
+        }
+        .status-fault {
+            color: #f56c6c;
+            font-weight: 600;
+        }
+        .status-offline {
+            color: #909399;
+            font-weight: 600;
+        }
+        .status-maintenance {
+            color: #e6a23c;
+            font-weight: 600;
+        }
+        .search-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+        .pagination-container {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .action-btn {
+            margin: 0 5px;
+        }
+        .row-fault {
+            background-color: #fef0f0 !important;
+        }
+        .row-offline {
+            background-color: #f4f4f5 !important;
+        }
+        .el-table__body tr.row-fault:hover > td {
+            background-color: #fde2e2 !important;
+        }
+        .el-table__body tr.row-offline:hover > td {
+            background-color: #e9e9eb !important;
+        }
+        .module-status {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+        .module-status .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .module-status .dot-normal {
+            background-color: #67c23a;
+        }
+        .module-status .dot-fault {
+            background-color: #f56c6c;
+        }
+        .module-status .dot-offline {
+            background-color: #909399;
+        }
+        .status-filter {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="app-container">
+        <div class="header">
+            <h1>🎬 影城自助卖品兑换终端运维管理系统</h1>
+            <p>实时监控设备状态，高效处理故障工单</p>
+        </div>
+
+        <div class="search-bar">
+            <el-row :gutter="20">
+                <el-col :span="6">
+                    <el-input 
+                        v-model="searchForm.deviceCode" 
+                        placeholder="搜索设备编号"
+                        prefix-icon="el-icon-search"
+                        clearable
+                        @keyup.enter.native="handleSearch"
+                    ></el-input>
+                </el-col>
+                <el-col :span="6">
+                    <el-input 
+                        v-model="searchForm.cinemaName" 
+                        placeholder="搜索影城名称"
+                        prefix-icon="el-icon-search"
+                        clearable
+                        @keyup.enter.native="handleSearch"
+                    ></el-input>
+                </el-col>
+                <el-col :span="6">
+                    <el-select 
+                        v-model="searchForm.status" 
+                        placeholder="设备状态筛选"
+                        class="status-filter"
+                        clearable
+                        @change="handleSearch"
+                    >
+                        <el-option label="正常" value="normal"></el-option>
+                        <el-option label="故障" value="fault"></el-option>
+                        <el-option label="离线" value="offline"></el-option>
+                        <el-option label="维护中" value="maintenance"></el-option>
+                    </el-select>
+                </el-col>
+                <el-col :span="6">
+                    <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+                    <el-button icon="el-icon-refresh" @click="handleReset">重置</el-button>
+                    <el-button type="success" icon="el-icon-plus" @click="openReportDialog">故障上报</el-button>
+                </el-col>
+            </el-row>
+        </div>
+
+        <div class="table-container">
+            <el-table 
+                :data="tableData" 
+                border 
+                style="width: 100%"
+                :header-cell-style="{background:'#f5f7fa',color:'#606266',fontWeight:'600'}"
+                :row-class-name="getRowClassName"
+            >
+                <el-table-column type="index" label="序号" width="60" align="center"></el-table-column>
+                <el-table-column prop="deviceCode" label="设备编号" width="150" align="center"></el-table-column>
+                <el-table-column prop="cinemaName" label="所属影城" align="center"></el-table-column>
+                <el-table-column prop="hallArea" label="影厅区域" width="120" align="center"></el-table-column>
+                <el-table-column prop="status" label="设备状态" width="110" align="center">
+                    <template slot-scope="scope">
+                        <span :class="getStatusClass(scope.row.status)">
+                            {{ getStatusText(scope.row.status) }}
+                        </span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="扫码模块" width="110" align="center">
+                    <template slot-scope="scope">
+                        <div class="module-status">
+                            <span class="status-dot" :class="'dot-' + scope.row.scannerStatus"></span>
+                            <span :class="getStatusClass(scope.row.scannerStatus)">
+                                {{ getModuleStatusText(scope.row.scannerStatus) }}
+                            </span>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column label="打印机" width="110" align="center">
+                    <template slot-scope="scope">
+                        <div class="module-status">
+                            <span class="status-dot" :class="'dot-' + scope.row.printerStatus"></span>
+                            <span :class="getStatusClass(scope.row.printerStatus)">
+                                {{ getModuleStatusText(scope.row.printerStatus) }}
+                            </span>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column label="支付模块" width="110" align="center">
+                    <template slot-scope="scope">
+                        <div class="module-status">
+                            <span class="status-dot" :class="'dot-' + scope.row.paymentStatus"></span>
+                            <span :class="getStatusClass(scope.row.paymentStatus)">
+                                {{ getModuleStatusText(scope.row.paymentStatus) }}
+                            </span>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="lastOnlineTime" label="最后在线时间" width="160" align="center"></el-table-column>
+                <el-table-column label="操作" width="200" align="center">
+                    <template slot-scope="scope">
+                        <el-button 
+                            type="danger" 
+                            size="small" 
+                            icon="el-icon-warning" 
+                            @click="openReportDialog(scope.row)"
+                            :disabled="scope.row.status === 'maintenance'"
+                        >
+                            故障上报
+                        </el-button>
+                        <el-button 
+                            type="primary" 
+                            size="small" 
+                            icon="el-icon-view"
+                            @click="viewDeviceDetail(scope.row)"
+                        >
+                            详情
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <div class="pagination-container">
+                <el-pagination
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page="pagination.currentPage"
+                    :page-sizes="[5, 10, 20, 50]"
+                    :page-size="pagination.pageSize"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="pagination.total"
+                ></el-pagination>
+            </div>
+        </div>
+
+        <el-dialog 
+            title="故障上报" 
+            :visible.sync="reportDialogVisible" 
+            width="500px"
+            :close-on-click-modal="false"
+        >
+            <el-form :model="reportForm" :rules="reportRules" ref="reportForm" label-width="100px">
+                <el-form-item label="工单编号">
+                    <el-input v-model="reportForm.orderNo" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="选择设备" prop="deviceId">
+                    <el-select 
+                        v-model="reportForm.deviceId" 
+                        placeholder="请选择设备"
+                        style="width: 100%"
+                        filterable
+                    >
+                        <el-option 
+                            v-for="device in deviceOptions" 
+                            :key="device.id" 
+                            :label="`${device.deviceCode} - ${device.cinemaName}`"
+                            :value="device.id"
+                        ></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="故障描述" prop="faultDescription">
+                    <el-input 
+                        type="textarea" 
+                        v-model="reportForm.faultDescription" 
+                        :rows="4"
+                        placeholder="请详细描述故障情况..."
+                        maxlength="500"
+                        show-word-limit
+                    ></el-input>
+                </el-form-item>
+                <el-form-item label="上报人">
+                    <el-input v-model="reportForm.reporter" placeholder="请输入您的姓名"></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="reportDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="submitReport">提 交</el-button>
+            </span>
+        </el-dialog>
+    </div>
+
+    <script src="https://unpkg.com/vue@2.7.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    searchForm: {
+                        deviceCode: '',
+                        cinemaName: '',
+                        status: ''
+                    },
+                    pagination: {
+                        currentPage: 1,
+                        pageSize: 10,
+                        total: 0
+                    },
+                    allDeviceList: [],
+                    tableData: [],
+                    reportDialogVisible: false,
+                    reportForm: {
+                        orderNo: '',
+                        deviceId: '',
+                        faultDescription: '',
+                        reporter: ''
+                    },
+                    reportRules: {
+                        deviceId: [
+                            { required: true, message: '请选择设备', trigger: 'change' }
+                        ],
+                        faultDescription: [
+                            { required: true, message: '请输入故障描述', trigger: 'blur' },
+                            { min: 10, message: '故障描述不少于10个字', trigger: 'blur' }
+                        ]
+                    }
+                }
+            },
+            computed: {
+                deviceOptions() {
+                    return this.allDeviceList.filter(d => d.status !== 'maintenance');
+                }
+            },
+            created() {
+                this.initDeviceData();
+            },
+            methods: {
+                initDeviceData() {
+                    const cinemas = [
+                        '万达影城（朝阳店）', '万达影城（海淀店）', 'CGV影城（望京店）',
+                        '博纳国际影城（国贸店）', '金逸影城（崇文门店）', '百老汇影城（东方广场店）',
+                        '保利国际影城（天安门店）', '耀莱成龙国际影城（五棵松店）'
+                    ];
+                    const hallAreas = ['1号厅区', '2号厅区', '3号厅区', '4号厅区', '5号厅区', 'IMAX厅区', 'VIP厅区'];
+                    const statuses = ['normal', 'normal', 'normal', 'fault', 'offline', 'maintenance'];
+                    const moduleStatuses = ['normal', 'normal', 'normal', 'normal', 'fault', 'offline'];
+
+                    this.allDeviceList = Array.from({ length: 35 }, (_, i) => ({
+                        id: i + 1,
+                        deviceCode: `EX-${String(i + 1).padStart(4, '0')}`,
+                        cinemaName: cinemas[Math.floor(Math.random() * cinemas.length)],
+                        hallArea: hallAreas[Math.floor(Math.random() * hallAreas.length)],
+                        status: statuses[Math.floor(Math.random() * statuses.length)],
+                        scannerStatus: moduleStatuses[Math.floor(Math.random() * moduleStatuses.length)],
+                        printerStatus: moduleStatuses[Math.floor(Math.random() * moduleStatuses.length)],
+                        paymentStatus: moduleStatuses[Math.floor(Math.random() * moduleStatuses.length)],
+                        lastOnlineTime: this.generateRandomTime()
+                    }));
+
+                    this.handleSearch();
+                },
+
+                generateRandomTime() {
+                    const now = new Date();
+                    const hours = Math.floor(Math.random() * 24);
+                    const minutes = Math.floor(Math.random() * 60);
+                    now.setHours(now.getHours() - hours);
+                    now.setMinutes(now.getMinutes() - minutes);
+                    return now.toLocaleString('zh-CN', { 
+                        year: 'numeric', 
+                        month: '2-digit', 
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                },
+
+                generateOrderNo() {
+                    const now = new Date();
+                    const dateStr = now.getFullYear().toString() + 
+                        String(now.getMonth() + 1).padStart(2, '0') + 
+                        String(now.getDate()).padStart(2, '0');
+                    const randomStr = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+                    return `WO${dateStr}${randomStr}`;
+                },
+
+                getStatusClass(status) {
+                    const classMap = {
+                        normal: 'status-normal',
+                        fault: 'status-fault',
+                        offline: 'status-offline',
+                        maintenance: 'status-maintenance'
+                    };
+                    return classMap[status] || '';
+                },
+
+                getStatusText(status) {
+                    const textMap = {
+                        normal: '正常',
+                        fault: '故障',
+                        offline: '离线',
+                        maintenance: '维护中'
+                    };
+                    return textMap[status] || status;
+                },
+
+                getModuleStatusText(status) {
+                    const textMap = {
+                        normal: '正常',
+                        fault: '故障',
+                        offline: '离线'
+                    };
+                    return textMap[status] || status;
+                },
+
+                getRowClassName({ row }) {
+                    if (row.status === 'fault') {
+                        return 'row-fault';
+                    } else if (row.status === 'offline') {
+                        return 'row-offline';
+                    }
+                    return '';
+                },
+
+                handleSearch() {
+                    let filteredData = [...this.allDeviceList];
+
+                    if (this.searchForm.deviceCode) {
+                        filteredData = filteredData.filter(item => 
+                            item.deviceCode.toLowerCase().includes(this.searchForm.deviceCode.toLowerCase())
+                        );
+                    }
+
+                    if (this.searchForm.cinemaName) {
+                        filteredData = filteredData.filter(item => 
+                            item.cinemaName.includes(this.searchForm.cinemaName)
+                        );
+                    }
+
+                    if (this.searchForm.status) {
+                        filteredData = filteredData.filter(item => 
+                            item.status === this.searchForm.status
+                        );
+                    }
+
+                    this.pagination.total = filteredData.length;
+                    this.updateTableData(filteredData);
+                },
+
+                handleReset() {
+                    this.searchForm = {
+                        deviceCode: '',
+                        cinemaName: '',
+                        status: ''
+                    };
+                    this.pagination.currentPage = 1;
+                    this.handleSearch();
+                },
+
+                updateTableData(filteredData) {
+                    const start = (this.pagination.currentPage - 1) * this.pagination.pageSize;
+                    const end = start + this.pagination.pageSize;
+                    this.tableData = filteredData.slice(start, end);
+                },
+
+                handleSizeChange(val) {
+                    this.pagination.pageSize = val;
+                    this.handleSearch();
+                },
+
+                handleCurrentChange(val) {
+                    this.pagination.currentPage = val;
+                    this.handleSearch();
+                },
+
+                openReportDialog(row) {
+                    this.reportForm = {
+                        orderNo: this.generateOrderNo(),
+                        deviceId: row ? row.id : '',
+                        faultDescription: '',
+                        reporter: ''
+                    };
+                    this.$nextTick(() => {
+                        if (this.$refs.reportForm) {
+                            this.$refs.reportForm.clearValidate();
+                        }
+                    });
+                    this.reportDialogVisible = true;
+                },
+
+                submitReport() {
+                    this.$refs.reportForm.validate((valid) => {
+                        if (valid) {
+                            const device = this.allDeviceList.find(d => d.id === this.reportForm.deviceId);
+                            if (device) {
+                                device.status = 'fault';
+                            }
+
+                            this.$message({
+                                type: 'success',
+                                message: `工单 ${this.reportForm.orderNo} 提交成功！`
+                            });
+                            
+                            this.reportDialogVisible = false;
+                            this.handleSearch();
+                        }
+                    });
+                },
+
+                viewDeviceDetail(row) {
+                    this.$message.info(`查看设备 ${row.deviceCode} 详情功能开发中...`);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+.page-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0 20px;
+  height: 60px;
+  line-height: 60px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-content h1 {
+  font-size: 22px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.main-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.form-card, .preview-card, .list-card {
+  height: 100%;
+}
+
+.preview-content {
+  text-align: center;
+}
+
+.tea-filter-preview {
+  padding: 40px 20px;
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-body {
+  width: 150px;
+  height: 80px;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-rim {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.top-rim {
+  position: absolute;
+  top: 0;
+}
+
+.bottom-rim {
+  position: absolute;
+  bottom: 0;
+}
+
+.filter-mesh {
+  width: 90%;
+  height: 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mesh-pattern {
+  width: 100%;
+  height: 100%;
+  background-size: 10px 10px;
+}
+
+.pattern-cross .mesh-pattern {
+  background-image: 
+    linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(0,0,0,0.1) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.1) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.1) 75%);
+}
+
+.pattern-herringbone .mesh-pattern {
+  background-image: repeating-linear-gradient(
+    60deg,
+    transparent,
+    transparent 5px,
+    rgba(0,0,0,0.15) 5px,
+    rgba(0,0,0,0.15) 6px
+  );
+}
+
+.pattern-hexagon .mesh-pattern {
+  background-image: radial-gradient(circle, rgba(0,0,0,0.2) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.pattern-meander .mesh-pattern {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 4px,
+    rgba(0,0,0,0.15) 4px,
+    rgba(0,0,0,0.15) 5px
+  ),
+  repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 4px,
+    rgba(0,0,0,0.15) 4px,
+    rgba(0,0,0,0.15) 5px
+  );
+}
+
+.pattern-spiral .mesh-pattern {
+  background: repeating-radial-gradient(
+    circle at center,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.12) 3px,
+    rgba(0,0,0,0.12) 4px
+  );
+}
+
+.bamboo-maozhu {
+  background: linear-gradient(135deg, #8BC34A 0%, #689F38 100%);
+  box-shadow: 0 4px 15px rgba(139, 195, 74, 0.4);
+}
+
+.bamboo-nanzhu {
+  background: linear-gradient(135deg, #AED581 0%, #8BC34A 100%);
+  box-shadow: 0 4px 15px rgba(174, 213, 129, 0.4);
+}
+
+.bamboo-shuizhu {
+  background: linear-gradient(135deg, #C5E1A5 0%, #AED581 100%);
+  box-shadow: 0 4px 15px rgba(197, 225, 165, 0.4);
+}
+
+.bamboo-zizhu {
+  background: linear-gradient(135deg, #7E57C2 0%, #5E35B1 100%);
+  box-shadow: 0 4px 15px rgba(126, 87, 194, 0.4);
+}
+
+.bamboo-default {
+  background: linear-gradient(135deg, #BDBDBD 0%, #9E9E9E 100%);
+  box-shadow: 0 4px 15px rgba(189, 189, 189, 0.4);
+}
+
+.handle {
+  width: 60px;
+  height: 15px;
+  background: linear-gradient(90deg, #8BC34A, #689F38);
+  margin-top: -5px;
+  border-radius: 0 8px 8px 0;
+}
+
+.handle-straight {
+  transform: translateX(45px);
+}
+
+.handle-curved {
+  transform: translateX(45px) rotate(-15deg);
+  border-radius: 0 15px 15px 0;
+}
+
+.handle-engraved {
+  transform: translateX(45px);
+  border-radius: 0 8px 8px 0;
+  background: linear-gradient(90deg, #8BC34A, #558B2F);
+  position: relative;
+}
+
+.handle-engraved::after {
+  content: '♦';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255,255,255,0.6);
+  font-size: 10px;
+}
+
+.order-summary {
+  text-align: left;
+  margin-top: 20px;
+}
+
+.order-summary h3 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #303133;
+}
+
+.order-info p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #606266;
+}
+
+.order-info p span {
+  color: #909399;
+}
+
+.el-table {
+  font-size: 13px;
+}
+
+.dialog-footer {
+  text-align: right;
+}
+
+.el-form-item {
+  margin-bottom: 22px;
+}
+
+.el-card__body {
+  padding: 20px;
+}
+
+.el-radio {
+  margin-right: 15px;
+}

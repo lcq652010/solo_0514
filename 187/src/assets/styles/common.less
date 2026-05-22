@@ -1,0 +1,77 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+.page-card {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+  
+  .page-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #303133;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ebeef5;
+  }
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.status-tag {
+  &.pending {
+    background: #ecf5ff;
+    color: #409eff;
+    border: 1px solid #b3d8ff;
+  }
+  
+  &.processing {
+    background: #fdf6ec;
+    color: #e6a23c;
+    border: 1px solid #f5dab1;
+  }
+  
+  &.shipped {
+    background: #f0f9eb;
+    color: #67c23a;
+    border: 1px solid #c2e7b0;
+  }
+  
+  &.completed {
+    background: #f4f4f5;
+    color: #909399;
+    border: 1px solid #d3d4d6;
+  }
+  
+  &.warning {
+    background: #fef0f0;
+    color: #f56c6c;
+    border: 1px solid #fbc4c4;
+  }
+}

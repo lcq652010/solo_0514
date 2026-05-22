@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}查询订单 - 宣纸团扇定制{% endblock %}
+
+{% block content %}
+<h2 style="color: #5D4037; margin-bottom: 30px; text-align: center;">🔍 订单查询</h2>
+
+<div style="max-width: 500px; margin: 0 auto;">
+    <form method="POST" style="background: #F5F5DC; padding: 30px; border-radius: 10px;">
+        <div class="form-group">
+            <label>请输入订单号</label>
+            <input type="text" name="order_number" required placeholder="例如：202405FS0001" style="text-align: center; font-size: 16px;">
+            <p style="font-size: 12px; color: #888; margin-top: 8px;">订单号规则：年份(4位) + 月份(2位) + 品类(FS) + 流水号(4位)</p>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button type="submit" class="btn" style="font-size: 16px; padding: 12px 40px;">
+                🔍 查询订单
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if order %}
+<div style="margin-top: 40px;">
+    <h3 style="color: #5D4037; margin-bottom: 20px;">📋 查询结果</h3>
+    
+    <div class="order-card">
+        <h3>订单号：{{ order.order_number }}</h3>
+        <p style="color: #888; margin-top: 5px;">提交时间：{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+    </div>
+
+    <div style="background: #F5F5DC; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+            <div class="info-item">
+                <div class="info-label">客户姓名</div>
+                <div class="info-value">{{ order.customer_name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">宣纸类型</div>
+                <div class="info-value">{{ order.paper_type }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">宣纸型号</div>
+                <div class="info-value">{{ order.paper_model }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">扇面尺寸</div>
+                <div class="info-value">{{ order.fan_size }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">扇骨尺寸</div>
+                <div class="info-value">{{ order.fan_bone_size }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">画面题材</div>
+                <div class="info-value">{{ order.theme }}</div>
+            </div>
+        </div>
+    </div>
+
+    <h4 style="color: #5D4037; margin: 25px 0 15px;">📊 制作进度</h4>
+    <div class="progress-steps">
+        {% for step in steps %}
+        <div class="step {% if loop.index0 < order.current_step %}completed{% elif loop.index0 == order.current_step %}current{% endif %}">
+            <div class="step-circle">
+                {% if loop.index0 < order.current_step %}✓{% else %}{{ loop.index }}{% endif %}
+            </div>
+            <div class="step-text">{{ step }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <p style="color: #666;">当前状态：<strong style="color: #8B4513; font-size: 1.2em;">{{ steps[order.current_step] }}</strong></p>
+        <a href="{{ url_for('order_detail', order_number=order.order_number) }}" class="btn" style="margin-top: 15px;">
+            📄 查看完整详情
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

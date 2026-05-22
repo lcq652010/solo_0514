@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}订单详情 - 宣纸团扇定制{% endblock %}
+
+{% block content %}
+<h2 style="color: #5D4037; margin-bottom: 30px;">📋 订单详情</h2>
+
+<div class="order-card">
+    <h3>订单号：{{ order.order_number }}</h3>
+    <p style="color: #888; margin-top: 5px;">提交时间：{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+    <p style="color: #666; margin-top: 5px; font-size: 14px;">
+        订单号规则：年份(4位) + 月份(2位) + 品类(FS=团扇) + 流水号(4位)
+    </p>
+</div>
+
+<div style="background: #FFF8E1; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+    <h4 style="color: #8B4513; margin-bottom: 15px;">👤 客户信息</h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        <div class="info-item">
+            <div class="info-label">客户姓名</div>
+            <div class="info-value">{{ order.customer_name }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">联系电话</div>
+            <div class="info-value">{{ order.phone }}</div>
+        </div>
+    </div>
+    <div class="info-item" style="margin-top: 10px;">
+        <div class="info-label">收货地址</div>
+        <div class="info-value">{{ order.address }}</div>
+    </div>
+</div>
+
+<div style="background: #F5F5DC; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+    <h4 style="color: #8B4513; margin-bottom: 15px;">🎐 宣纸与团扇规格</h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+        <div class="info-item">
+            <div class="info-label">宣纸类型</div>
+            <div class="info-value">{{ order.paper_type }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">宣纸型号</div>
+            <div class="info-value">{{ order.paper_model }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">扇面尺寸</div>
+            <div class="info-value">{{ order.fan_size }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">扇骨尺寸</div>
+            <div class="info-value">{{ order.fan_bone_size }}</div>
+        </div>
+    </div>
+</div>
+
+<div style="background: #FFF8E1; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+    <h4 style="color: #8B4513; margin-bottom: 15px;">🎨 定制内容</h4>
+    <div class="info-item">
+        <div class="info-label">画面题材</div>
+        <div class="info-value">{{ order.theme }}</div>
+    </div>
+    <div class="info-item" style="margin-top: 10px;">
+        <div class="info-label">图案详细描述</div>
+        <div class="info-value">{{ order.design_description }}</div>
+    </div>
+    <div class="info-item" style="margin-top: 10px;">
+        <div class="info-label">题字内容</div>
+        <div class="info-value">{{ order.inscription or '无' }}</div>
+    </div>
+</div>
+
+<h3 style="color: #5D4037; margin: 30px 0 20px;">📊 制作进度</h3>
+<div class="progress-steps">
+    {% for step in steps %}
+    <div class="step {% if loop.index0 < order.current_step %}completed{% elif loop.index0 == order.current_step %}current{% endif %}">
+        <div class="step-circle">
+            {% if loop.index0 < order.current_step %}✓{% else %}{{ loop.index }}{% endif %}
+        </div>
+        <div class="step-text">{{ step }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div style="margin-top: 30px;">
+    <h4 style="color: #5D4037; margin-bottom: 15px;">📜 工序变更历史</h4>
+    {% if order.get_sorted_history() %}
+    <div style="background: #F8F9FA; border-radius: 10px; padding: 20px;">
+        {% for record in order.get_sorted_history() %}
+        <div style="display: flex; padding: 12px 0; border-bottom: 1px solid #E9ECEF; {% if loop.last %}border-bottom: none;{% endif %}">
+            <div style="flex-shrink: 0; width: 50px; text-align: center;">
+                {% if record.operation_type == '创建订单' %}
+                <span style="font-size: 24px;">📦</span>
+                {% elif record.operation_type == '进度推进' %}
+                <span style="font-size: 24px;">➡️</span>
+                {% elif record.operation_type == '进度回退' %}
+                <span style="font-size: 24px;">⬅️</span>
+                {% else %}
+                <span style="font-size: 24px;">📝</span>
+                {% endif %}
+            </div>
+            <div style="flex-grow: 1; margin-left: 10px;">
+                <div style="font-weight: bold; color: #5D4037;">{{ record.operation_type }}</div>
+                <div style="font-size: 14px; color: #666; margin-top: 4px;">{{ record.remark }}</div>
+                <div style="font-size: 12px; color: #999; margin-top: 6px;">
+                    👤 {{ record.operator }} &nbsp;|&nbsp; 🕐 {{ record.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: #999; text-align: center; padding: 20px; background: #F8F9FA; border-radius: 10px;">暂无变更记录</p>
+    {% endif %}
+</div>
+
+<div style="text-align: center; margin-top: 40px;">
+    <p style="color: #666; margin-bottom: 20px;">当前状态：<strong style="color: #8B4513;">{{ steps[order.current_step] }}</strong></p>
+    <a href="{{ url_for('search_order') }}" class="btn" style="background: linear-gradient(135deg, #666 0%, #888 100%);">
+        🔙 返回查询
+    </a>
+    <a href="{{ url_for('index') }}" class="btn">
+        🏠 返回首页
+    </a>
+</div>
+{% endblock %}

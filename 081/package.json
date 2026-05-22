@@ -1,0 +1,16 @@
+{
+  "name": "station-device-management",
+  "version": "1.0.0",
+  "description": "火车站自助退票改签终端运维管理系统",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server --port=8080 --open=/index.html",
+    "serve": "live-server --port=8080 --open=/index.html"
+  },
+  "keywords": ["vue2", "management", "station"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

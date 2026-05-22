@@ -1,0 +1,27 @@
+{
+  "name": "entry-exit-device-management",
+  "version": "1.0.0",
+  "description": "出入境自助签注打印终端运维管理系统",
+  "main": "index.js",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "vue": "^2.6.14",
+    "vue-router": "^3.5.3",
+    "element-ui": "^2.15.12"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^4.5.19",
+    "vue-template-compiler": "^2.6.14",
+    "sass": "^1.54.0",
+    "sass-loader": "^10.3.1"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
